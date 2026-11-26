@@ -39,6 +39,13 @@
           <TerminalArt />
         </div>
       </div>
+
+      <button class="hero__scroll" type="button" :aria-label="c('home.scrollHint')" @click="scrollDown">
+        <span>{{ c('home.scrollHint') }}</span>
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M8 3v9M4 8.5l4 4 4-4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
     </section>
 
     <!-- ============ 2. 服务带：全宽三栏，与首屏明确区隔 ============ -->
@@ -149,6 +156,11 @@ onMounted(() => {
   if (!authStore.isAdmin) appStore.fetchPublicSettings?.()
 })
 
+function scrollDown() {
+  const top = window.innerHeight - 60
+  window.scrollTo({ top: top > 0 ? top : window.innerHeight, behavior: 'smooth' })
+}
+
 const strip = [
   { t: 'home.strip1t', b: 'home.strip1b' },
   { t: 'home.strip2t', b: 'home.strip2b' },
@@ -157,9 +169,44 @@ const strip = [
 </script>
 
 <style scoped>
-/* ---------- 1. hero ---------- */
-.hero { padding-block: clamp(56px, 7vw, 104px) clamp(40px, 5vw, 72px); }
+/* ---------- 1. hero：占满首屏 ---------- */
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - 60px);
+  padding-block: clamp(32px, 4.5vw, 64px) clamp(72px, 8vw, 96px);
+}
+.hero .st-shell { width: 100%; }
 .hero__grid { display: grid; grid-template-columns: 1fr; gap: clamp(36px, 4.5vw, 56px); align-items: center; }
+
+/* 向下滚动提示 */
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 2.4vw, 32px);
+  transform: translateX(-50%);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--st-ink-3);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  animation: hero-bob 2.2s var(--st-ease) infinite;
+  transition: color var(--st-t) var(--st-ease);
+}
+.hero__scroll:hover { color: var(--st-ink); }
+@keyframes hero-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.75; }
+  50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .hero__scroll { animation: none; } }
 .hero__title { margin: 0; }
 .hero__title em { font-style: normal; display: inline-block; white-space: nowrap; color: var(--st-brand-text); }
 .hero__line { margin: 20px 0 0; font-size: clamp(1rem, 1.2vw, 1.1rem); color: var(--st-ink-2); }
