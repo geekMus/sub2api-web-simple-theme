@@ -13,3 +13,9 @@ coverage/
 
 # 本地验证截图
 .tmp-shots/
+
+# 构建/编译产物（vue-tsc -b 会生成 vite.config.js 等）
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+.vite/

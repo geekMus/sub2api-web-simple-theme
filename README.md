@@ -9,6 +9,22 @@
 * 独立部署时由 Nginx（或任意静态服务器）把 `/api`、`/v1`、`/setup` 反代到后端；
 * 嵌入后端部署时由后端同源提供静态资源，不需要反代。
 
+## 项目定位
+
+**只做用户界面，不改 API。** `src/api/**`、`src/types/**` 是冻结的接口契约（后端 REST 契约的映射），
+改界面时不许碰；需要新字段时走 [`docs/UI-REQUESTS.md`](./docs/UI-REQUESTS.md) 登记。
+
+## 文档
+
+| 文档 | 内容 |
+| --- | --- |
+| [AGENTS.md](./AGENTS.md) | 给 AI/协作者的硬性约定：冻结目录、允许范围、验收标准、任务落点 |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | 环境、分支、提交信息、提交前闸门、PR 清单 |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 启动链路、目录职责、数据流、i18n、样式系统、构建形态 |
+| [docs/UPSTREAM-SYNC.md](./docs/UPSTREAM-SYNC.md) | 从 `sub2api-beichen/frontend` 同步上游代码的流程与必守差异 |
+| [docs/UI-REQUESTS.md](./docs/UI-REQUESTS.md) | 「界面需要后端新字段」的登记处 |
+| [CHANGELOG.md](./CHANGELOG.md) | 版本变更记录 |
+
 ## 快速开始
 
 ```bash
