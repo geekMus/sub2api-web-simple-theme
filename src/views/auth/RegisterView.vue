@@ -2,9 +2,6 @@
   <AuthLayout>
     <div class="auth-form">
       <header class="auth-form__head st-reveal">
-        <p class="st-eyebrow">{{ c('auth.register.eyebrow') }}</p>
-        <h2 class="st-display-3 auth-form__title">{{ c('auth.register.title') }}</h2>
-        <p class="st-body auth-form__lede">{{ c('auth.register.lede') }}</p>
       </header>
 
       <div v-if="!registrationEnabled && settingsLoaded" class="auth-notice auth-notice--warn st-reveal" style="--i: 1">
@@ -294,7 +291,6 @@ import WechatOAuthSection from '@/components/auth/WechatOAuthSection.vue'
 import EmailOAuthButtons from '@/components/auth/EmailOAuthButtons.vue'
 import LoginAgreementPrompt from '@/components/auth/LoginAgreementPrompt.vue'
 import Icon from '@/components/icons/Icon.vue'
-import { useAuthCopy } from '@/composables/copy/auth'
 import TurnstileWidget from '@/components/CaptchaChallenge.vue'
 import { useAuthStore, useAppStore } from '@/stores'
 import {
@@ -321,7 +317,6 @@ import {
 import type { LoginAgreementDocument } from '@/types'
 
 const { t, locale } = useI18n()
-const { c } = useAuthCopy()
 const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
 
 // ==================== Router & Stores ====================
