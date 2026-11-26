@@ -223,6 +223,18 @@
 .st-btn:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
 .st-btn[disabled], .st-btn[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
 
+/* 禁用态：不要用半透明强调色（在深色下会变成脏橄榄绿），改成中性表面 */
+.st-btn--primary[disabled],
+.st-btn--primary[aria-disabled="true"],
+.st-btn--brand[disabled],
+.st-btn--brand[aria-disabled="true"] {
+  background: var(--st-bg-soft);
+  border-color: var(--st-line);
+  color: var(--st-ink-3);
+  box-shadow: none;
+  opacity: 1;
+}
+
 .st-btn--primary { --_bg: var(--st-brand); --_bd: var(--st-brand); --_fg: var(--st-brand-ink); font-weight: 600; }
 .st-btn--primary:hover { --_bd: var(--st-brand); filter: brightness(1.06); }
 
