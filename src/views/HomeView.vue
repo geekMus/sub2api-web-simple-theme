@@ -186,13 +186,22 @@ const strip = [
   align-items: center;
   min-height: calc(100vh - 60px);
   padding-block: clamp(24px, 3vw, 44px) clamp(64px, 7vw, 88px);
-  overflow: hidden;
+  /* 允许背景层向上覆盖到导航栏后面 */
+  overflow: visible;
 }
 .hero__inner { width: 100%; display: flex; flex-direction: column; justify-content: center; }
 
 /* 背景：冷光 + 网格 */
-.hero__bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.hero__bg { position: absolute; inset: -60px 0 0 0; pointer-events: none; z-index: 0; }
 .hero__glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.75; }
+/* 顶部再多铺一点，避免导航栏背后出现断层 */
+.hero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 220px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--st-bg) 0%, transparent), transparent);
+}
 .hero__glow--a { width: 900px; height: 620px; right: -160px; top: -260px; background: var(--st-brand-soft); }
 .hero__glow--b { width: 760px; height: 520px; left: -220px; top: 30%; background: rgba(110, 130, 255, 0.1); }
 .hero__mesh {
