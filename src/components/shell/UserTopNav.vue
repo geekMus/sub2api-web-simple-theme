@@ -83,6 +83,7 @@ import { useAppStore, useAuthStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import { useSimpleCopy } from '@/composables/useSimpleCopy'
 import { formatCurrency } from '@/utils/format'
+import { toggleThemeFromElement } from '@/utils/theme-transition'
 
 let router: ReturnType<typeof useRouter> | null = null
 let authStore: ReturnType<typeof useAuthStore> | null = null
@@ -128,12 +129,10 @@ const accountMenu = computed(() => {
   return items
 })
 
-function toggleTheme() {
-  const root = document.documentElement
-  const next = !root.classList.contains('dark')
-  root.classList.toggle('dark', next)
-  localStorage.setItem('theme', next ? 'dark' : 'light')
-  isDark.value = next
+function toggleTheme(event?: MouseEvent) {
+  const el = (event?.currentTarget as HTMLElement | null) ?? null
+  const next = toggleThemeFromElement(el)
+  isDark.value = next === 'dark'
 }
 
 function onScroll() { scrolled.value = window.scrollY > 4 }

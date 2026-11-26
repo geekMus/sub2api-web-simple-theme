@@ -355,6 +355,17 @@
 .st-marquee:hover .st-marquee__track { animation-play-state: paused; }
 @keyframes st-scroll { to { transform: translateX(-50%); } }
 
+/* 主题切换：默认不交叉淡入，改由 JS 做圆形扩散 */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) { z-index: 1; }
+  ::view-transition-new(root) { z-index: 2; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .st-reveal, .st-fade-in, .st-marquee__track { animation: none !important; }
   .st-reveal { opacity: 1; transform: none; }
