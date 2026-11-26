@@ -87,6 +87,7 @@ onMounted(() => {
 .auth-grid {
   position: relative;
   z-index: 1;
+  min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
   align-items: center;

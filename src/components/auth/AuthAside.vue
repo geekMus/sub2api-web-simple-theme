@@ -1,14 +1,5 @@
 <template>
   <div class="auth-aside">
-    <div class="auth-aside__copy">
-      <p class="st-eyebrow st-reveal">{{ c('auth.aside.eyebrow') }}</p>
-      <h1 class="st-display-2 auth-aside__title st-reveal" style="--i: 1">
-        {{ c('auth.aside.title1') }}<br />
-        <span class="auth-aside__accent">{{ c('auth.aside.title2') }}</span>
-      </h1>
-      <p class="st-lede auth-aside__lede st-reveal" style="--i: 2">{{ c('auth.aside.lede') }}</p>
-    </div>
-
     <div class="auth-aside__art st-reveal" style="--i: 3">
       <MockApp flat />
     </div>
