@@ -246,9 +246,9 @@ onBeforeUnmount(() => { unmounted = true })
   align-items: center;
   gap: 10px;
   font-size: 0.84rem;
-  color: hsl(3 72% 55%);
+  color: var(--st-danger);
 }
-.mcp__error-text { font-size: 0.84rem; color: hsl(3 72% 55%); }
+.mcp__error-text { font-size: 0.84rem; color: var(--st-danger); }
 
 .mcp__steps { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
 .mcp__step {
@@ -297,8 +297,8 @@ onBeforeUnmount(() => { unmounted = true })
   white-space: nowrap;
 }
 .mcp__dates { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.74rem; color: var(--st-ink-faint); }
-.mcp__revoke { flex-shrink: 0; color: hsl(3 72% 55%); }
-.mcp__revoke:hover { background: color-mix(in srgb, hsl(3 72% 55%) 12%, transparent); color: hsl(3 72% 50%); }
+.mcp__revoke { flex-shrink: 0; color: var(--st-danger); }
+.mcp__revoke:hover { background: var(--st-danger-soft); color: var(--st-danger); }
 
 .mcp__skeleton { display: flex; flex-direction: column; gap: 8px; }
 .mcp__skeleton-row { height: 72px; }
@@ -322,6 +322,8 @@ onBeforeUnmount(() => { unmounted = true })
 
 @media (max-width: 640px) {
   .mcp__endpoint { flex-direction: column; }
+  .mcp__endpoint .st-btn { width: 100%; }
   .mcp__row { flex-direction: column; }
+  .mcp__revoke { width: 100%; }
 }
 </style>

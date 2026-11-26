@@ -1,102 +1,85 @@
 <template>
-  <div class="space-y-4">
-    <!-- ═══ Terminal States: show result, user clicks to return ═══ -->
-
-    <!-- Success -->
+  <div class="psp">
     <template v-if="outcome === 'success'">
-      <div class="card p-6">
-        <div class="flex flex-col items-center space-y-4 py-4">
-          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-            <Icon name="check" size="lg" class="text-green-500" />
-          </div>
-          <p class="text-lg font-bold text-gray-900 dark:text-white">{{ props.orderType === 'subscription' ? t('payment.result.subscriptionSuccess') : t('payment.result.success') }}</p>
-          <div v-if="paidOrder" class="w-full rounded-xl bg-gray-50 p-4 dark:bg-dark-800">
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.orderId') }}</span>
-                <span class="font-medium text-gray-900 dark:text-white">#{{ paidOrder.id }}</span>
+      <div class="st-card st-card--pad psp__card">
+        <div class="psp__state">
+          <div class="psp__mark psp__mark--ok"><Icon name="check" size="lg" /></div>
+          <p class="st-display-3 psp__title">{{ props.orderType === 'subscription' ? t('payment.result.subscriptionSuccess') : t('payment.result.success') }}</p>
+          <p class="st-body">{{ c('result.successBody') }}</p>
+          <div v-if="paidOrder" class="psp__receipt">
+            <div class="psp__rows">
+              <div class="st-row psp__row">
+                <span class="st-row__meta">{{ t('payment.orders.orderId') }}</span>
+                <span class="psp__value">#{{ paidOrder.id }}</span>
               </div>
-              <div v-if="paidOrder.out_trade_no" class="flex justify-between">
-                <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.orderNo') }}</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{ paidOrder.out_trade_no }}</span>
+              <div v-if="paidOrder.out_trade_no" class="st-row psp__row">
+                <span class="st-row__meta">{{ t('payment.orders.orderNo') }}</span>
+                <span class="psp__value psp__value--mono">{{ paidOrder.out_trade_no }}</span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.amount') }}</span>
-                <span class="font-medium text-gray-900 dark:text-white">
+              <div class="st-row psp__row">
+                <span class="st-row__meta">{{ t('payment.orders.amount') }}</span>
+                <span class="psp__value">
                   {{ creditedAmountSymbol }}{{ paidOrder.amount.toFixed(2) }}
-                  <span v-if="(paidOrder.bonus_amount ?? 0) > 0" class="ml-1 text-xs font-normal text-amber-600 dark:text-amber-400">
+                  <span v-if="(paidOrder.bonus_amount ?? 0) > 0" class="psp__bonus">
                     ({{ t('payment.orders.bonusIncluded', { amount: creditedAmountSymbol + (paidOrder.bonus_amount ?? 0).toFixed(2) }) }})
                   </span>
                 </span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.payAmount') }}</span>
-                <span class="font-medium text-gray-900 dark:text-white">{{ formatGatewayAmount(paidOrder.pay_amount, paidOrder.currency) }}</span>
+              <div class="st-row psp__row">
+                <span class="st-row__meta">{{ t('payment.orders.payAmount') }}</span>
+                <span class="psp__value">{{ formatGatewayAmount(paidOrder.pay_amount, paidOrder.currency) }}</span>
               </div>
             </div>
           </div>
-          <button class="btn btn-primary" @click="handleDone">{{ t('common.confirm') }}</button>
+          <button class="st-btn st-btn--primary psp__btn" @click="handleDone">{{ t('common.confirm') }}</button>
         </div>
       </div>
     </template>
 
-    <!-- Cancelled -->
     <template v-else-if="outcome === 'cancelled'">
-      <div class="card p-6">
-        <div class="flex flex-col items-center space-y-4 py-4">
-          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700">
-            <svg class="h-8 w-8 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <div class="st-card st-card--pad psp__card">
+        <div class="psp__state">
+          <div class="psp__mark">
+            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <p class="text-lg font-bold text-gray-900 dark:text-white">{{ t('payment.qr.cancelled') }}</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.cancelledDesc') }}</p>
-          <button class="btn btn-primary" @click="handleDone">{{ t('common.confirm') }}</button>
+          <p class="st-display-3 psp__title">{{ t('payment.qr.cancelled') }}</p>
+          <p class="st-body">{{ t('payment.qr.cancelledDesc') }}</p>
+          <button class="st-btn st-btn--primary psp__btn" @click="handleDone">{{ t('common.confirm') }}</button>
         </div>
       </div>
     </template>
 
-    <!-- Expired / Failed -->
     <template v-else-if="outcome === 'expired'">
-      <div class="card p-6">
-        <div class="flex flex-col items-center space-y-4 py-4">
-          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
-            <svg class="h-8 w-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <div class="st-card st-card--pad psp__card">
+        <div class="psp__state">
+          <div class="psp__mark psp__mark--warn">
+            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p class="text-lg font-bold text-gray-900 dark:text-white">{{ t('payment.qr.expired') }}</p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.expiredDesc') }}</p>
-          <button class="btn btn-primary" @click="handleDone">{{ t('common.confirm') }}</button>
+          <p class="st-display-3 psp__title">{{ t('payment.qr.expired') }}</p>
+          <p class="st-body">{{ t('payment.qr.expiredDesc') }}</p>
+          <button class="st-btn st-btn--primary psp__btn" @click="handleDone">{{ t('common.confirm') }}</button>
         </div>
       </div>
     </template>
 
-    <!-- ═══ Active States: QR or Popup waiting ═══ -->
-
-    <!-- Mobile Alipay app handoff. The QR fallback stays hidden until launch timeout. -->
     <template v-else-if="isMobileAlipayDeepLink">
       <template v-if="!deepLinkFallbackVisible">
-        <div class="card p-6">
-          <div class="flex flex-col items-center space-y-4 py-4 text-center">
-            <div
-              v-if="deepLinkState === 'launching'"
-              class="h-10 w-10 animate-spin rounded-full border-4 border-[#00AEEF] border-t-transparent"
-            ></div>
-            <div
-              v-else
-              class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950/30"
-            >
-              <Icon name="checkCircle" size="lg" class="text-[#00AEEF]" />
-            </div>
-            <p class="text-lg font-semibold text-gray-900 dark:text-white">
+        <div class="st-card st-card--pad psp__card">
+          <div class="psp__state">
+            <span v-if="deepLinkState === 'launching'" class="psp__spin"></span>
+            <div v-else class="psp__mark psp__mark--accent"><Icon name="checkCircle" size="lg" /></div>
+            <p class="st-display-3 psp__title">
               {{ deepLinkState === 'backgrounded' ? t('payment.qr.alipayContinueInApp') : t('payment.qr.alipayOpening') }}
             </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.alipayWaitingHint') }}</p>
+            <p class="st-body">{{ t('payment.qr.alipayWaitingHint') }}</p>
             <button
               v-if="deepLinkState === 'backgrounded'"
               data-test="reopen-alipay"
-              class="btn btn-alipay inline-flex items-center gap-2 text-sm"
+              class="st-btn st-btn--quiet psp__btn"
               @click="reopenAlipay"
             >
               <Icon name="externalLink" size="sm" />
@@ -104,118 +87,98 @@
             </button>
           </div>
         </div>
-        <div class="card p-4 text-center">
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.expiresIn') }}</p>
-          <p class="mt-1 text-2xl font-bold tabular-nums text-gray-900 dark:text-white">{{ countdownDisplay }}</p>
-          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ t('payment.qr.waitingPayment') }}</p>
+        <div class="st-card st-card--pad psp__card psp__countdown">
+          <p class="st-row__meta">{{ t('payment.qr.expiresIn') }}</p>
+          <p class="st-display-2 psp__time st-num">{{ countdownDisplay }}</p>
+          <p class="st-row__meta">{{ t('payment.qr.waitingPayment') }}</p>
         </div>
       </template>
+
       <template v-else>
-        <div data-test="alipay-qr-fallback" class="card p-6">
-          <div class="flex flex-col items-center space-y-4">
-            <div class="text-center">
-              <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('payment.qr.alipayFallbackTitle') }}</p>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.alipayFallbackHint') }}</p>
+        <div data-test="alipay-qr-fallback" class="st-card st-card--pad psp__card">
+          <div class="psp__state">
+            <div class="psp__fallback-head">
+              <p class="st-display-3 psp__title">{{ t('payment.qr.alipayFallbackTitle') }}</p>
+              <p class="st-body">{{ t('payment.qr.alipayFallbackHint') }}</p>
             </div>
-            <div class="w-full space-y-2 border-y border-gray-100 py-3 text-sm dark:border-dark-600">
-              <div class="flex items-start justify-between gap-4">
-                <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.payAmount') }}</span>
-                <span class="font-semibold text-gray-900 dark:text-white">{{ displayPaymentAmount }}</span>
+            <div class="psp__rows psp__rows--boxed">
+              <div class="st-row psp__row">
+                <span class="st-row__meta">{{ t('payment.orders.payAmount') }}</span>
+                <span class="psp__value">{{ displayPaymentAmount }}</span>
               </div>
-              <div class="flex items-start justify-between gap-4">
-                <span class="text-gray-500 dark:text-gray-400">{{ t('payment.orders.orderNo') }}</span>
-                <span class="max-w-[70%] break-all text-right font-mono text-xs text-gray-900 dark:text-white">
-                  {{ displayOrderNumber }}
-                </span>
+              <div class="st-row psp__row">
+                <span class="st-row__meta">{{ t('payment.orders.orderNo') }}</span>
+                <span class="psp__value psp__value--mono">{{ displayOrderNumber }}</span>
               </div>
-              <div class="flex items-start justify-between gap-4">
-                <span class="text-gray-500 dark:text-gray-400">{{ t('payment.qr.expiresIn') }}</span>
-                <span class="font-semibold tabular-nums text-gray-900 dark:text-white">{{ countdownDisplay }}</span>
+              <div class="st-row psp__row">
+                <span class="st-row__meta">{{ t('payment.qr.expiresIn') }}</span>
+                <span class="psp__value st-num">{{ countdownDisplay }}</span>
               </div>
             </div>
-            <div :class="['relative rounded-lg border-2 p-4', qrBorderClass]">
-              <canvas ref="qrCanvas" class="mx-auto"></canvas>
-              <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <span :class="['rounded-full p-2 shadow ring-2 ring-white', qrLogoBgClass]">
-                  <img :src="qrLogoIcon" alt="" class="h-5 w-5 brightness-0 invert" />
-                </span>
+            <div class="psp__paper">
+              <canvas ref="qrCanvas" class="psp__canvas"></canvas>
+              <div class="psp__logo">
+                <img :src="qrLogoIcon" alt="" class="psp__logo-img" />
               </div>
             </div>
-            <p class="text-center text-sm leading-6 text-gray-600 dark:text-gray-300">
-              {{ t('payment.qr.alipaySaveAndScanHint') }}
-            </p>
-            <div class="grid w-full gap-2 sm:grid-cols-2">
-              <button
-                data-test="reopen-alipay"
-                class="btn btn-alipay inline-flex items-center justify-center gap-2"
-                @click="reopenAlipay"
-              >
+            <p class="st-body">{{ t('payment.qr.alipaySaveAndScanHint') }}</p>
+            <div class="psp__actions">
+              <button data-test="reopen-alipay" class="st-btn st-btn--primary psp__btn" @click="reopenAlipay">
                 <Icon name="externalLink" size="sm" />
                 {{ t('payment.qr.reopenAlipay') }}
               </button>
-              <button
-                data-test="save-alipay-qr"
-                class="btn btn-secondary inline-flex items-center justify-center gap-2"
-                @click="saveQRCode"
-              >
+              <button data-test="save-alipay-qr" class="st-btn st-btn--quiet psp__btn" @click="saveQRCode">
                 <Icon name="download" size="sm" />
                 {{ t('payment.qr.saveQRCode') }}
               </button>
             </div>
-            <button class="btn btn-secondary w-full" @click="handleDone">
-              {{ t('payment.result.backToRecharge') }}
-            </button>
+            <button class="st-btn st-btn--ghost psp__btn" @click="handleDone">{{ t('payment.result.backToRecharge') }}</button>
           </div>
         </div>
       </template>
     </template>
 
-    <!-- QR Code Mode -->
     <template v-else-if="showQRCode">
-      <div class="card p-6">
-        <div class="flex flex-col items-center space-y-4">
-          <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ scanTitle }}</p>
-          <div :class="['relative rounded-lg border-2 p-4', qrBorderClass]">
-            <canvas ref="qrCanvas" class="mx-auto"></canvas>
-            <!-- Brand logo overlay -->
-            <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <span :class="['rounded-full p-2 shadow ring-2 ring-white', qrLogoBgClass]">
-                <img :src="qrLogoIcon" alt="" class="h-5 w-5 brightness-0 invert" />
-              </span>
+      <div class="st-card st-card--pad psp__card">
+        <div class="psp__state">
+          <p class="st-display-3 psp__title">{{ scanTitle }}</p>
+          <div class="psp__paper">
+            <canvas ref="qrCanvas" class="psp__canvas"></canvas>
+            <div class="psp__logo">
+              <img :src="qrLogoIcon" alt="" class="psp__logo-img" />
             </div>
           </div>
-          <p v-if="scanHint" class="text-center text-sm text-gray-500 dark:text-gray-400">{{ scanHint }}</p>
-          <button v-if="payUrl" class="btn btn-secondary text-sm" @click="reopenPopup">
+          <p v-if="scanHint" class="st-body">{{ scanHint }}</p>
+          <button v-if="payUrl" class="btn btn-secondary text-sm psp__btn" @click="reopenPopup">
             {{ t('payment.qr.openPayWindow') }}
           </button>
         </div>
       </div>
-      <div class="card p-4 text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.expiresIn') }}</p>
-        <p class="mt-1 text-2xl font-bold tabular-nums text-gray-900 dark:text-white">{{ countdownDisplay }}</p>
-        <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ t('payment.qr.waitingPayment') }}</p>
+      <div class="st-card st-card--pad psp__card psp__countdown">
+        <p class="st-row__meta">{{ t('payment.qr.expiresIn') }}</p>
+        <p class="st-display-2 psp__time st-num">{{ countdownDisplay }}</p>
+        <p class="st-row__meta">{{ t('payment.qr.waitingPayment') }}</p>
       </div>
-      <button class="btn btn-secondary w-full" :disabled="cancelling" @click="handleCancel">
+      <button class="st-btn st-btn--quiet psp__btn" :disabled="cancelling" @click="handleCancel">
         {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
       </button>
     </template>
 
-    <!-- Waiting for Popup/Redirect Mode -->
     <template v-else>
-      <div class="card p-6">
-        <div class="flex flex-col items-center space-y-4 py-4">
-          <div class="h-10 w-10 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.payInNewWindowHint') }}</p>
-          <button v-if="payUrl" class="btn btn-secondary text-sm" @click="reopenPopup">
+      <div class="st-card st-card--pad psp__card">
+        <div class="psp__state">
+          <span class="psp__spin"></span>
+          <p class="st-body">{{ t('payment.qr.payInNewWindowHint') }}</p>
+          <button v-if="payUrl" class="btn btn-secondary text-sm psp__btn" @click="reopenPopup">
             {{ t('payment.qr.openPayWindow') }}
           </button>
         </div>
       </div>
-      <div class="card p-4 text-center">
-        <p class="mt-1 text-2xl font-bold tabular-nums text-gray-900 dark:text-white">{{ countdownDisplay }}</p>
-        <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ t('payment.qr.waitingPayment') }}</p>
+      <div class="st-card st-card--pad psp__card psp__countdown">
+        <p class="st-display-2 psp__time st-num">{{ countdownDisplay }}</p>
+        <p class="st-row__meta">{{ t('payment.qr.waitingPayment') }}</p>
       </div>
-      <button class="btn btn-secondary w-full" :disabled="cancelling" @click="handleCancel">
+      <button class="st-btn st-btn--quiet psp__btn" :disabled="cancelling" @click="handleCancel">
         {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
       </button>
     </template>
@@ -225,6 +188,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useBillingCopy } from '@/composables/copy/billing'
 import { usePaymentStore } from '@/stores/payment'
 import { useAppStore } from '@/stores'
 import { paymentAPI } from '@/api/payment'
@@ -263,6 +227,7 @@ const emit = defineEmits<{ done: []; success: []; settled: [outcome: PaymentOutc
 
 const i18n = useI18n()
 const { t } = i18n
+const { c } = useBillingCopy()
 const paymentStore = usePaymentStore()
 const appStore = useAppStore()
 
@@ -300,18 +265,6 @@ const isAlipay = computed(() => isBuiltInAlipayMethod(props.paymentType))
 const isWxpay = computed(() => isBuiltInWxpayMethod(props.paymentType))
 const isMobileAlipayDeepLink = computed(() => props.mobileAlipayDeepLink === true && isAlipay.value && !!qrUrl.value)
 const showQRCode = computed(() => !!qrUrl.value && (!isMobileAlipayDeepLink.value || deepLinkFallbackVisible.value))
-
-const qrBorderClass = computed(() => {
-  if (isAlipay.value) return 'border-[#00AEEF] bg-blue-50 dark:border-[#00AEEF]/70 dark:bg-blue-950/20'
-  if (isWxpay.value) return 'border-[#2BB741] bg-green-50 dark:border-[#2BB741]/70 dark:bg-green-950/20'
-  return 'border-gray-200 bg-white dark:border-dark-600 dark:bg-dark-800'
-})
-
-const qrLogoBgClass = computed(() => {
-  if (isAlipay.value) return 'bg-[#00AEEF]'
-  if (isWxpay.value) return 'bg-[#2BB741]'
-  return 'bg-gray-400'
-})
 
 const qrLogoIcon = computed(() => {
   if (isAlipay.value) return alipayIcon
@@ -508,3 +461,63 @@ onMounted(() => {
 })
 onUnmounted(() => cleanup())
 </script>
+<style scoped>
+.psp { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 620px; margin-inline: auto; }
+.psp__card { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.psp__state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; min-width: 0; }
+.psp__title { margin-top: 2px; }
+.psp__fallback-head { display: flex; flex-direction: column; gap: 6px; text-align: center; }
+
+.psp__mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--st-bg-soft);
+  color: var(--st-ink-2);
+}
+.psp__mark--ok { background: var(--st-ok-soft); color: var(--st-ok); }
+.psp__mark--warn { background: var(--st-warn-soft); color: var(--st-warn); }
+.psp__mark--accent { background: var(--st-brand-soft); color: var(--st-brand-ink); }
+
+.psp__receipt { width: 100%; padding: 12px 14px; border-radius: var(--st-r-md); background: var(--st-bg-soft); text-align: left; }
+.psp__rows { display: flex; flex-direction: column; width: 100%; }
+.psp__rows--boxed { padding: 4px 14px; border-radius: var(--st-r-md); border: 1px solid var(--st-line); background: var(--st-bg-soft); }
+.psp__row { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 9px 0; }
+.psp__value { font-size: 0.88rem; color: var(--st-ink); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.psp__value--mono { font-family: var(--st-font-mono); font-size: 0.78rem; }
+.psp__bonus { display: block; font-size: 0.74rem; color: var(--st-warn); }
+
+.psp__paper {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: var(--st-r-md);
+  /* 二维码必须保持白底，否则相机识别率会下降 */
+  background: white;
+}
+.psp__canvas { display: block; max-width: 100%; height: auto; }
+.psp__logo { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.psp__logo-img { width: 26px; height: 26px; padding: 4px; border-radius: var(--st-r-xs); background: white; }
+
+.psp__actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+.psp__actions .psp__btn { flex: 1 1 150px; }
+.psp__btn { width: 100%; min-width: 0; white-space: normal; text-align: center; }
+.psp__countdown { align-items: center; text-align: center; gap: 4px; }
+.psp__time { font-size: clamp(1.8rem, 6vw, 2.4rem); letter-spacing: 0.02em; }
+
+.psp__spin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--st-line-2);
+  border-top-color: var(--st-brand);
+  animation: psp-spin 0.9s linear infinite;
+}
+@keyframes psp-spin { to { transform: rotate(360deg); } }
+</style>
+

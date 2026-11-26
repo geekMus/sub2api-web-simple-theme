@@ -195,7 +195,7 @@ onMounted(loadChannels)
 }
 .ch__title { margin-top: 14px; }
 .ch__lede { margin-top: 14px; max-width: 54ch; }
-.ch__tools { display: flex; align-items: center; gap: 8px; }
+.ch__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 .ch__search {
   display: flex;
@@ -222,7 +222,14 @@ onMounted(loadChannels)
 .ch__item { padding: clamp(18px, 2.2vw, 26px); display: flex; flex-direction: column; gap: 16px; }
 .ch__item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .ch__item-title { min-width: 0; }
-.ch__name { font-family: var(--st-font-display); font-size: 1.12rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink); }
+.ch__name {
+  font-family: var(--st-font-display);
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--st-ink);
+  overflow-wrap: anywhere;
+}
 .ch__desc { margin-top: 5px; font-size: 0.84rem; line-height: 1.65; color: var(--st-ink-soft); max-width: 72ch; }
 .ch__badge { flex-shrink: 0; }
 

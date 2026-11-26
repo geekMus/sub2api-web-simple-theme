@@ -87,10 +87,18 @@
     <section class="st-section--tight">
       <div class="st-shell charts">
         <article class="st-card st-card--pad chart">
+          <div class="chart__head">
+            <h2 class="st-display-4">{{ c('usage.trend.title') }}</h2>
+            <p class="st-body">{{ c('usage.trend.lede') }}</p>
+          </div>
           <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
         </article>
 
         <article class="st-card st-card--pad chart">
+          <div class="chart__head">
+            <h2 class="st-display-4">{{ c('usage.models.title') }}</h2>
+            <p class="st-body">{{ c('usage.models.lede') }}</p>
+          </div>
           <ModelDistributionChart
             v-model:metric="modelDistributionMetric"
             :model-stats="requestedModelStats"
@@ -105,6 +113,10 @@
         </article>
 
         <article class="st-card st-card--pad chart">
+          <div class="chart__head">
+            <h2 class="st-display-4">{{ c('usage.groups.title') }}</h2>
+            <p class="st-body">{{ c('usage.groups.lede') }}</p>
+          </div>
           <GroupDistributionChart
             v-model:metric="groupDistributionMetric"
             :group-stats="groupStats"
@@ -118,6 +130,10 @@
         </article>
 
         <article class="st-card st-card--pad chart">
+          <div class="chart__head">
+            <h2 class="st-display-4">{{ c('usage.endpoints.title') }}</h2>
+            <p class="st-body">{{ c('usage.endpoints.lede') }}</p>
+          </div>
           <EndpointDistributionChart
             v-model:source="endpointDistributionSource"
             v-model:metric="endpointDistributionMetric"
@@ -1211,6 +1227,12 @@ watch(endpointDistributionSource, () => {
 .chart { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .chart__head { display: flex; flex-direction: column; gap: 6px; }
 .chart__head .st-body { font-size: 0.85rem; }
+/* 图表组件自身不再带卡片外壳，这里只保留其控件行 */
+.chart :deep(.chart-box) { padding: 0; border: 0; background: transparent; min-height: 0; }
+.chart :deep(.chart-box__title) { display: none; }
+.chart :deep(.chart-box__head) { justify-content: flex-end; }
+.chart :deep(.chart-line) { height: 240px; }
+.chart :deep(.chart-doughnut) { width: 170px; height: 170px; max-width: 170px; }
 
 .logs-sec { padding-bottom: clamp(64px, 8vw, 120px); }
 .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -1340,5 +1362,7 @@ watch(endpointDistributionSource, () => {
   .log__time { grid-row: 1 / 2; }
   .log__main { grid-column: 2 / 3; }
   .toolbar__granularity { margin-left: 0; }
+  .toolbar__actions { flex-wrap: wrap; }
+  .toolbar__actions .st-btn { flex: 1 1 auto; }
 }
 </style>

@@ -1,35 +1,41 @@
 <template>
-  <AppLayout>
-    <div class="mx-auto max-w-lg space-y-6 py-8">
-      <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
-      </div>
-
-      <div v-else-if="errorMessage" class="card p-8 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-          <Icon name="exclamationCircle" size="xl" class="text-red-500" />
+  <UserShell>
+    <section class="st-section--tight awx">
+      <div class="st-shell awx__wrap">
+        <div v-if="loading" class="st-card st-card--pad awx__card" aria-busy="true">
+          <span class="awx__spin"></span>
+          <p class="st-body">{{ c('stripe.loading') }}</p>
+          <p class="st-row__meta">{{ t('payment.qr.payInNewWindowHint') }}</p>
         </div>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ t('payment.airwallexLoadFailed') }}</h3>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ errorMessage }}</p>
-        <button class="btn btn-primary mt-6" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
-      </div>
 
-      <div v-else class="card p-6">
-        <div class="flex flex-col items-center space-y-4 py-4">
-          <div class="h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.qr.payInNewWindowHint') }}</p>
+        <div v-else-if="errorMessage" class="st-card st-card--pad awx__card">
+          <div class="awx__mark">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9" />
+              <path stroke-linecap="round" d="M12 8v5m0 3.5h.01" />
+            </svg>
+          </div>
+          <h1 class="st-display-3">{{ t('payment.airwallexLoadFailed') }}</h1>
+          <p class="st-body">{{ errorMessage }}</p>
+          <p class="st-row__meta">{{ c('stripe.failedHint') }}</p>
+          <button class="st-btn st-btn--primary awx__btn" @click="router.push('/purchase')">{{ c('stripe.back') }}</button>
+        </div>
+
+        <div v-else class="st-card st-card--pad awx__card">
+          <span class="awx__spin"></span>
+          <p class="st-body">{{ t('payment.qr.payInNewWindowHint') }}</p>
         </div>
       </div>
-    </div>
-  </AppLayout>
+    </section>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import AppLayout from '@/components/layout/AppLayout.vue'
-import Icon from '@/components/icons/Icon.vue'
+import UserShell from '@/components/shell/UserShell.vue'
+import { useBillingCopy } from '@/composables/copy/billing'
 import {
   PAYMENT_RECOVERY_STORAGE_KEY,
   readPaymentRecoverySnapshot,
@@ -37,6 +43,7 @@ import {
 } from '@/components/payment/paymentFlow'
 
 const { t, locale } = useI18n()
+const { c } = useBillingCopy()
 const route = useRoute()
 const router = useRouter()
 
@@ -136,3 +143,28 @@ onMounted(async () => {
   }
 })
 </script>
+<style scoped>
+.awx { padding-bottom: clamp(56px, 8vw, 96px); }
+.awx__wrap { max-width: 460px; }
+.awx__card { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; min-width: 0; }
+.awx__mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--st-danger-soft);
+  color: var(--st-danger);
+}
+.awx__spin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--st-line-2);
+  border-top-color: var(--st-brand);
+  animation: awx-spin 0.9s linear infinite;
+}
+@keyframes awx-spin { to { transform: rotate(360deg); } }
+.awx__btn { width: 100%; min-width: 0; white-space: normal; }
+</style>
+

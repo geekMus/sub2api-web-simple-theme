@@ -42,6 +42,8 @@
       </dl>
     </section>
 
+    <div class="profile-columns">
+      <div data-testid="profile-main-column" class="profile-columns__main">
     <section data-testid="profile-basics-panel" class="st-card st-card--pad">
       <header class="profile-block__head">
         <h3 class="st-display-3">{{ t('profile.basicsTitle') }}</h3>
@@ -71,19 +73,23 @@
         compact
       />
     </section>
-
-    <section v-if="sourceHints.length" class="st-card st-card--pad">
-      <header class="profile-block__head">
-        <h3 class="st-display-3">{{ t('profile.linkedProfileSources') }}</h3>
-        <p class="st-body">{{ t('profile.linkedProfileSourcesDescription') }}</p>
-      </header>
-      <div class="st-list">
-        <div v-for="hint in sourceHints" :key="hint.key" class="st-row profile-source">
-          <span class="profile-source__icon"><Icon name="link" size="sm" /></span>
-          <span class="profile-source__text">{{ hint.text }}</span>
-        </div>
       </div>
-    </section>
+
+      <div data-testid="profile-side-column" class="profile-columns__side">
+        <section v-if="sourceHints.length" class="st-card st-card--pad">
+          <header class="profile-block__head">
+            <h3 class="st-display-3">{{ t('profile.linkedProfileSources') }}</h3>
+            <p class="st-body">{{ t('profile.linkedProfileSourcesDescription') }}</p>
+          </header>
+          <div class="st-list">
+            <div v-for="hint in sourceHints" :key="hint.key" class="st-row profile-source">
+              <span class="profile-source__icon"><Icon name="link" size="sm" /></span>
+              <span class="profile-source__text">{{ hint.text }}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -291,6 +297,9 @@ const sourceHints = computed(() => {
 
 <style scoped>
 .profile-info { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-columns { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-columns__main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-columns__side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .profile-hero { display: flex; flex-direction: column; gap: 22px; }
 .profile-hero__top { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .profile-hero__avatar {

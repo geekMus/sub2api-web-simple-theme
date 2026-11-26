@@ -606,6 +606,7 @@ interface DailyUsageRow {
   output_tokens: number
   cache_read_tokens: number
   cache_write_tokens: number
+  total_tokens?: number
   cost: number
   actual_cost?: number
 }

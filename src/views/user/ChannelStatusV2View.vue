@@ -926,31 +926,22 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.status-dot {
-  display: inline-block;
-  height: 0.5rem;
-  width: 0.5rem;
-  flex: none;
-  border-radius: 9999px;
-}
-/* Multi-stop green → yellow → red score bands */
-.health-score10 { background: #16a34a; }
-.health-score9  { background: #22c55e; }
-.health-score8  { background: #4ade80; }
-.health-score7  { background: #a3e635; }
-.health-score6  { background: #facc15; }
-.health-score5  { background: #fbbf24; }
-.health-score4  { background: #f59e0b; }
-.health-score3  { background: #f97316; }
-.health-score2  { background: #fb7185; }
-.health-score1  { background: #f87171; }
-.health-score0  { background: rgb(239, 67, 67); }
-.health-healthy  { background: #22c55e; }
-.health-warning  { background: #f59e0b; }
-.health-critical { background: #ef4444; }
-.health-unknown  { background: #9ca3af; }
-.matrix-select {
+/* Multi-stop green → yellow → red score bands (all derived from status tokens) */
+.health-score10 { background: var(--st-ok); }
+.health-score9  { background: color-mix(in srgb, var(--st-ok) 92%, var(--st-warn)); }
+.health-score8  { background: color-mix(in srgb, var(--st-ok) 82%, var(--st-warn)); }
+.health-score7  { background: color-mix(in srgb, var(--st-ok) 64%, var(--st-warn)); }
+.health-score6  { background: color-mix(in srgb, var(--st-warn) 82%, var(--st-ok)); }
+.health-score5  { background: var(--st-warn); }
+.health-score4  { background: color-mix(in srgb, var(--st-warn) 74%, var(--st-danger)); }
+.health-score3  { background: color-mix(in srgb, var(--st-danger) 70%, var(--st-warn)); }
+.health-score2  { background: color-mix(in srgb, var(--st-danger) 86%, var(--st-warn)); }
+.health-score1  { background: var(--st-danger); }
+.health-score0  { background: color-mix(in srgb, var(--st-danger) 82%, var(--st-ink)); }
+.health-healthy  { background: var(--st-ok); }
+.health-warning  { background: var(--st-warn); }
+.health-critical { background: var(--st-danger); }
+.health-unknown  { background: var(--st-ink-3); }
   min-width: 10rem;
 }
 details > summary::-webkit-details-marker {

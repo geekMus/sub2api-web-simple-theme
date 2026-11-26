@@ -1,127 +1,101 @@
 <template>
   <UserShell :show-footer="false">
-    <div class="custom-page-layout">
-      <div class="st-card custom-page-panel">
-        <div v-if="loading" class="flex h-full items-center justify-center py-12">
-          <div
-            class="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"
-          ></div>
-        </div>
-
-        <div
-          v-else-if="!menuItem"
-          class="flex h-full items-center justify-center p-10 text-center"
-        >
-          <div class="max-w-md">
-            <div
-              class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700"
-            >
-              <Icon name="link" size="lg" class="text-gray-400" />
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ t('customPage.notFoundTitle') }}
-            </h3>
-            <p class="mt-2 text-sm text-gray-500 dark:text-dark-400">
-              {{ t('customPage.notFoundDesc') }}
-            </p>
+    <section class="st-section--tight page">
+      <div class="st-shell">
+        <div class="st-card page__panel">
+          <div v-if="loading" class="page__state" aria-busy="true">
+            <span class="page__spinner animate-spin" aria-hidden="true"></span>
           </div>
-        </div>
 
-        <!-- Markdown mode with TOC -->
-        <div v-else-if="isMarkdownMode" class="flex h-full overflow-hidden">
-          <!-- TOC Sidebar -->
-          <aside
-            v-show="tocVisible"
-            class="toc-sidebar"
-          >
-            <div class="toc-header">
-              <span class="toc-title">{{ t('customPage.tableOfContents') }}</span>
-              <button class="toc-close-btn" @click="tocVisible = false">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-              </button>
-            </div>
-            <nav class="toc-nav">
-              <a
-                v-for="item in tocItems"
-                :key="item.id"
-                :href="'#' + item.id"
-                class="toc-item"
-                :class="[
-                  `toc-level-${item.level}`,
-                  { 'toc-active': activeHeadingId === item.id }
-                ]"
-                @click.prevent="scrollToHeading(item.id)"
-              >
-                {{ item.text }}
-              </a>
-            </nav>
-          </aside>
-
-          <!-- TOC Toggle Button (when collapsed) -->
-          <button
-            v-show="!tocVisible && tocItems.length > 0"
-            class="toc-toggle-btn"
-            @click="tocVisible = true"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-            <span class="ml-1 text-xs">{{ t('customPage.tableOfContents') }}</span>
-          </button>
-
-          <!-- Content -->
-          <div
-            ref="markdownContainer"
-            class="markdown-page-content flex-1 h-full overflow-auto p-6 md:p-10"
-            v-html="renderedHtml"
-            @scroll="onContentScroll"
-          ></div>
-        </div>
-
-        <!-- URL not configured -->
-        <div v-else-if="!isValidUrl" class="flex h-full items-center justify-center p-10 text-center">
-          <div class="max-w-md">
-            <div
-              class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700"
-            >
-              <Icon name="link" size="lg" class="text-gray-400" />
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ t('customPage.notConfiguredTitle') }}
-            </h3>
-            <p class="mt-2 text-sm text-gray-500 dark:text-dark-400">
-              {{ t('customPage.notConfiguredDesc') }}
-            </p>
+          <div v-else-if="!menuItem" class="page__state">
+            <span class="page__mark" aria-hidden="true">
+              <Icon name="link" size="lg" />
+            </span>
+            <h1 class="st-display-3">{{ t('customPage.notFoundTitle') }}</h1>
+            <p class="st-body page__state-body">{{ t('customPage.notFoundDesc') }}</p>
           </div>
-        </div>
 
-        <!-- Iframe embed mode -->
-        <div v-else ref="embedShell" class="custom-embed-shell">
-          <a
-            v-if="!menuItem?.hide_open_button"
-            ref="openButton"
-            :href="embeddedUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn btn-secondary btn-sm custom-open-fab"
-            :style="openButtonPosition ? { left: `${openButtonPosition.x}px`, top: `${openButtonPosition.y}px`, right: 'auto' } : undefined"
-            @pointerdown="startButtonDrag"
-            @pointermove="moveButtonDrag"
-            @pointerup="endButtonDrag"
-            @pointercancel="endButtonDrag"
-            @lostpointercapture="endButtonDrag"
-            @dragstart.prevent
-            @click="handleOpenButtonClick"
-          >
-            <Icon name="externalLink" size="sm" class="mr-1.5" :stroke-width="2" />
-            {{ t('customPage.openInNewTab') }}
-          </a>
-          <iframe
-            :src="embeddedUrl"
-            class="custom-embed-frame"
-            allowfullscreen
-          ></iframe>
+          <!-- Markdown 正文 + 目录 -->
+          <div v-else-if="isMarkdownMode" class="page__split">
+            <aside v-show="tocVisible" class="page__toc">
+              <div class="page__toc-head">
+                <span class="page__toc-label">{{ t('customPage.tableOfContents') }}</span>
+                <button
+                  type="button"
+                  class="st-icon-btn page__toc-close"
+                  :aria-label="t('customPage.tableOfContents')"
+                  @click="tocVisible = false"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+              </div>
+              <nav class="page__toc-nav">
+                <a
+                  v-for="item in tocItems"
+                  :key="item.id"
+                  :href="'#' + item.id"
+                  class="toc-item"
+                  :class="[`toc-level-${item.level}`, { 'toc-active': activeHeadingId === item.id }]"
+                  @click.prevent="scrollToHeading(item.id)"
+                >
+                  {{ item.text }}
+                </a>
+              </nav>
+            </aside>
+
+            <button
+              v-show="!tocVisible && tocItems.length > 0"
+              type="button"
+              class="st-btn st-btn--quiet st-btn--sm page__toc-toggle"
+              @click="tocVisible = true"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+              {{ t('customPage.tableOfContents') }}
+            </button>
+
+            <div
+              ref="markdownContainer"
+              class="markdown-page-content page__content"
+              v-html="renderedHtml"
+              @scroll="onContentScroll"
+            ></div>
+          </div>
+
+          <!-- 没配地址 -->
+          <div v-else-if="!isValidUrl" class="page__state">
+            <span class="page__mark" aria-hidden="true">
+              <Icon name="link" size="lg" />
+            </span>
+            <h1 class="st-display-3">{{ t('customPage.notConfiguredTitle') }}</h1>
+            <p class="st-body page__state-body">{{ t('customPage.notConfiguredDesc') }}</p>
+          </div>
+
+          <!-- 内嵌网页 -->
+          <div v-else ref="embedShell" class="custom-embed-shell page__embed">
+            <a
+              v-if="!menuItem?.hide_open_button"
+              ref="openButton"
+              :href="embeddedUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="st-btn st-btn--quiet st-btn--sm custom-open-fab"
+              :style="openButtonPosition ? { left: `${openButtonPosition.x}px`, top: `${openButtonPosition.y}px`, right: 'auto' } : undefined"
+              @pointerdown="startButtonDrag"
+              @pointermove="moveButtonDrag"
+              @pointerup="endButtonDrag"
+              @pointercancel="endButtonDrag"
+              @lostpointercapture="endButtonDrag"
+              @dragstart.prevent
+              @click="handleOpenButtonClick"
+            >
+              <Icon name="externalLink" size="sm" :stroke-width="2" />
+              {{ t('customPage.openInNewTab') }}
+            </a>
+            <iframe :src="embeddedUrl" class="custom-embed-frame" allowfullscreen></iframe>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </UserShell>
 </template>
 
@@ -453,195 +427,230 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.custom-page-layout {
-  @apply flex flex-col;
-  height: calc(100vh - 72px - 3rem);
-  padding: clamp(16px, 2.4vw, 32px) var(--st-gutter);
-  max-width: var(--st-max);
-  margin-inline: auto;
-  width: 100%;
+.page { padding-block: clamp(10px, 1.4vw, 20px) clamp(24px, 4vw, 44px); }
+
+.page__panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: clamp(420px, calc(100dvh - 200px), 1180px);
+  overflow: hidden;
+  padding: 0;
 }
 
-.toc-sidebar {
-  @apply flex flex-col h-full border-r border-gray-200 dark:border-dark-600 bg-gray-50 dark:bg-dark-800;
-  width: min(240px, 30%);
-  min-width: 160px;
-  max-width: 280px;
+.page__state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 44px 20px;
+  text-align: center;
+}
+.page__state-body { max-width: 42ch; }
+.page__mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-3);
+}
+.page__spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--st-line-2);
+  border-top-color: var(--st-brand);
+  animation: page-spin 900ms linear infinite;
+}
+@keyframes page-spin { to { transform: rotate(360deg); } }
+
+.page__split { position: relative; flex: 1; min-height: 0; display: flex; }
+
+.page__toc {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 220px;
+  border-right: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
   overflow: hidden;
 }
-
-@media (max-width: 640px) {
-  .toc-sidebar {
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 20;
-    width: 70%;
-    max-width: 240px;
-    height: 100%;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-  }
+.page__toc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--st-line);
 }
-
-.toc-header {
-  @apply flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-dark-600;
+.page__toc-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--st-ink-3);
 }
-
-.toc-title {
-  @apply text-sm font-semibold text-gray-700 dark:text-dark-200;
-}
-
-.toc-close-btn {
-  @apply p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-dark-200 hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors;
-}
-
-.toc-nav {
-  @apply flex-1 overflow-y-auto py-2 px-2;
+.page__toc-close { width: 28px; height: 28px; }
+.page__toc-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .toc-item {
-  @apply block px-2 py-1.5 text-sm rounded transition-colors truncate;
-  @apply text-gray-600 dark:text-dark-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-dark-600;
-}
-
-.toc-item.toc-active {
-  @apply text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 font-medium;
-}
-
-.toc-level-1 { padding-left: 8px; }
-.toc-level-2 { padding-left: 20px; }
-.toc-level-3 { padding-left: 32px; }
-.toc-level-4 { padding-left: 44px; }
-
-.toc-toggle-btn {
-  @apply absolute left-2 top-2 z-10 flex items-center px-2 py-1.5 rounded-md text-sm;
-  @apply bg-white dark:bg-dark-700 border border-gray-200 dark:border-dark-500;
-  @apply text-gray-600 dark:text-dark-300 hover:bg-gray-100 dark:hover:bg-dark-600;
-  @apply shadow-sm transition-colors cursor-pointer;
-}
-
-.custom-embed-shell {
-  @apply relative;
-  @apply h-full w-full overflow-hidden rounded-2xl;
-  @apply bg-gradient-to-b from-gray-50 to-white dark:from-dark-900 dark:to-dark-950;
-  @apply p-0;
-}
-
-.custom-open-fab {
-  @apply absolute right-3 top-3 z-10 w-max max-w-full touch-none select-none transition-colors;
-  @apply shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-dark-800/80;
-}
-
-.custom-embed-frame {
   display: block;
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border-left: 2px solid transparent;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--st-ink-2);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
+.toc-item:hover { color: var(--st-ink); background: var(--st-bg-sink); }
+.toc-item.toc-active {
+  color: var(--st-brand-text) !important;
+  background: var(--st-brand-soft) !important;
+  border-left-color: var(--st-brand);
+  font-weight: 600;
+}
+.toc-level-1 { padding-left: 10px !important; }
+.toc-level-2 { padding-left: 20px !important; }
+.toc-level-3 { padding-left: 30px !important; }
+.toc-level-4 { padding-left: 40px !important; }
+
+.page__toc-toggle { position: absolute; left: 12px; top: 12px; z-index: 10; }
+
+.page__content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: clamp(18px, 2.6vw, 36px) clamp(18px, 4vw, 52px) clamp(28px, 4vw, 56px);
+}
+
+.page__embed { position: relative; flex: 1; min-height: 0; }
+.custom-embed-shell { overflow: hidden; }
+.custom-open-fab {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 10;
+  max-width: calc(100% - 28px);
+  touch-action: none;
+  user-select: none;
+  box-shadow: var(--st-shadow-2);
+}
+.custom-embed-frame { display: block; width: 100%; height: 100%; border: 0; background: var(--st-bg); }
+
+@media (max-width: 900px) {
+  .page__toc {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    width: min(78%, 268px);
+    box-shadow: var(--st-shadow-3);
+  }
+}
+@media (max-width: 640px) {
+  .page__panel { height: clamp(380px, calc(100dvh - 156px), 900px); }
+  .page__content { padding: 18px 16px 30px; }
 }
 </style>
 
 <style>
+/* Markdown 正文（v-html 注入，不能 scoped） */
 .markdown-page-content {
-  line-height: 1.7;
-  color: inherit;
+  font-size: 0.97rem;
+  line-height: 1.8;
+  color: var(--st-ink-2);
+  overflow-wrap: anywhere;
 }
-.markdown-page-content h1 { @apply text-3xl font-bold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-dark-600; }
-.markdown-page-content h2 { @apply text-2xl font-bold mt-6 mb-3; }
-.markdown-page-content h3 { @apply text-xl font-semibold mt-5 mb-2; }
-.markdown-page-content h4 { @apply text-lg font-semibold mt-4 mb-2; }
-.markdown-page-content p { @apply mb-4; }
-.markdown-page-content ul { @apply list-disc pl-6 mb-4; }
-.markdown-page-content ol { @apply list-decimal pl-6 mb-4; }
-.markdown-page-content li { @apply mb-1; }
-.markdown-page-content a { @apply text-primary-500 hover:text-primary-600 underline; }
-.markdown-page-content blockquote { @apply border-l-4 border-gray-300 dark:border-dark-500 pl-4 italic text-gray-600 dark:text-dark-300 my-4; }
-.markdown-page-content img { @apply max-w-full h-auto rounded-lg my-4; }
-.markdown-page-content table { @apply w-full border-collapse my-4; }
-.markdown-page-content th { @apply border border-gray-300 dark:border-dark-500 px-3 py-2 bg-gray-50 dark:bg-dark-700 font-semibold text-left; }
-.markdown-page-content td { @apply border border-gray-300 dark:border-dark-500 px-3 py-2; }
-.markdown-page-content code { @apply bg-gray-100 dark:bg-dark-700 px-1.5 py-0.5 rounded text-sm font-mono; }
-.markdown-page-content pre { @apply bg-gray-900 dark:bg-dark-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4 relative; }
-.markdown-page-content pre code { @apply bg-transparent p-0 text-inherit; }
-.markdown-page-content hr { @apply my-6 border-gray-200 dark:border-dark-600; }
-
+.markdown-page-content h1,
+.markdown-page-content h2,
+.markdown-page-content h3,
+.markdown-page-content h4 {
+  font-family: var(--st-font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--st-ink);
+}
+.markdown-page-content h1 { font-size: 1.65rem; margin: 1.5em 0 0.6em; padding-bottom: 10px; border-bottom: 1px solid var(--st-line); }
+.markdown-page-content h2 { font-size: 1.26rem; margin: 1.5em 0 0.5em; }
+.markdown-page-content h3 { font-size: 1.06rem; margin: 1.3em 0 0.4em; }
+.markdown-page-content h4 { font-size: 1rem; margin: 1.2em 0 0.4em; }
+.markdown-page-content > :first-child { margin-top: 0; }
+.markdown-page-content p { margin: 0 0 1.05em; }
+.markdown-page-content ul,
+.markdown-page-content ol { padding-left: 1.4em; margin: 0 0 1.05em; }
+.markdown-page-content ul { list-style: disc; }
+.markdown-page-content ol { list-style: decimal; }
+.markdown-page-content li { margin-bottom: 0.35em; }
+.markdown-page-content a { color: var(--st-brand-text); text-decoration: underline; text-underline-offset: 3px; }
+.markdown-page-content strong { color: var(--st-ink); font-weight: 600; }
+.markdown-page-content blockquote {
+  margin: 1.3em 0;
+  padding: 2px 0 2px 16px;
+  border-left: 2px solid var(--st-brand-line);
+  color: var(--st-ink-2);
+}
+.markdown-page-content code {
+  font-family: var(--st-font-mono);
+  font-size: 0.86em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--st-bg-sink);
+  border: 1px solid var(--st-line);
+}
+.markdown-page-content pre {
+  position: relative;
+  margin: 1.3em 0;
+  padding: 16px 18px;
+  border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-sink);
+  overflow-x: auto;
+}
+.markdown-page-content pre code { padding: 0; border: 0; background: transparent; font-size: 0.82rem; line-height: 1.7; }
+.markdown-page-content table { width: 100%; border-collapse: collapse; margin: 1.3em 0; font-size: 0.88rem; }
+.markdown-page-content th,
+.markdown-page-content td { padding: 9px 12px; border-bottom: 1px solid var(--st-line); text-align: left; vertical-align: top; }
+.markdown-page-content th { font-size: 0.76rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--st-ink-3); }
+.markdown-page-content img { max-width: 100%; height: auto; border-radius: var(--st-r-md); margin: 1.3em 0; }
+.markdown-page-content hr { border: 0; height: 1px; background: var(--st-line); margin: 2em 0; }
 .copy-btn {
   position: absolute;
   top: 8px;
   right: 8px;
   padding: 4px 10px;
   font-size: 12px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.15);
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s, background 0.2s;
   font-family: inherit;
+  border-radius: 999px;
+  border: 1px solid var(--st-line-2);
+  background: var(--st-bg);
+  color: var(--st-ink-2);
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease);
 }
-.copy-btn:hover { background: rgba(255, 255, 255, 0.25); }
-pre:hover .copy-btn { opacity: 1; }
-</style>
-
-<style scoped>
-.custom-page-layout { padding-block: 0; }
-.custom-page-panel {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: var(--st-radius-lg);
-  background: var(--st-bg-elev);
-  display: flex;
-  flex-direction: column;
+.copy-btn:hover { color: var(--st-ink); }
+@media (max-width: 640px) {
+  .markdown-page-content table { display: block; overflow-x: auto; }
 }
-.toc-sidebar {
-  border-right: 1px solid var(--st-line) !important;
-  background: var(--st-bg-sunk) !important;
-}
-.toc-header { border-bottom: 1px solid var(--st-line) !important; padding: 14px 16px !important; }
-.toc-title { font-size: 11px !important; letter-spacing: 0.14em; text-transform: uppercase; color: var(--st-ink-faint) !important; }
-.toc-nav { padding: 10px 8px !important; }
-.toc-item {
-  border-radius: 8px !important;
-  font-size: 0.82rem !important;
-  color: var(--st-ink-soft) !important;
-  padding-block: 6px !important;
-}
-.toc-item:hover { background: var(--st-accent-soft) !important; color: var(--st-ink) !important; }
-.toc-item.toc-active { background: var(--st-accent-soft) !important; color: var(--st-accent) !important; font-weight: 600 !important; }
-.toc-toggle-btn {
-  border: 1px solid var(--st-line-strong) !important;
-  background: var(--st-bg-elev) !important;
-  color: var(--st-ink-soft) !important;
-  border-radius: 999px !important;
-  box-shadow: var(--st-shadow-sm) !important;
-}
-.custom-embed-shell { border-radius: var(--st-radius-lg); background: var(--st-bg-sunk) !important; }
-.custom-open-fab { border-radius: 999px !important; }
-</style>
-<style>
-.markdown-page-content { line-height: 1.8; color: var(--st-ink-soft); max-width: 72ch; margin-inline: auto; }
-.markdown-page-content h1 { font-size: 1.7rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink-strong); margin: 1.6em 0 0.6em; padding-bottom: 10px; border-bottom: 1px solid var(--st-line); }
-.markdown-page-content h2 { font-size: 1.28rem; font-weight: 600; color: var(--st-ink-strong); margin: 1.5em 0 0.5em; }
-.markdown-page-content h3 { font-size: 1.06rem; font-weight: 600; color: var(--st-ink); margin: 1.3em 0 0.4em; }
-.markdown-page-content p { margin-bottom: 1.05em; }
-.markdown-page-content ul { list-style: disc; padding-left: 1.4em; margin-bottom: 1.05em; }
-.markdown-page-content ol { list-style: decimal; padding-left: 1.4em; margin-bottom: 1.05em; }
-.markdown-page-content li { margin-bottom: 0.35em; }
-.markdown-page-content a { color: var(--st-accent); text-underline-offset: 3px; }
-.markdown-page-content blockquote { border-left: 2px solid var(--st-accent-line); padding-left: 16px; color: var(--st-ink-soft); margin: 1.3em 0; }
-.markdown-page-content code { font-family: var(--st-font-mono); font-size: 0.86em; background: var(--st-bg-sunk); border: 1px solid var(--st-line); border-radius: 6px; padding: 2px 6px; }
-.markdown-page-content pre { background: var(--st-bg-sunk); border: 1px solid var(--st-line); border-radius: var(--st-radius-md); padding: 16px 18px; overflow-x: auto; margin: 1.3em 0; position: relative; }
-.markdown-page-content pre code { background: transparent; border: 0; padding: 0; color: var(--st-ink-soft); }
-.markdown-page-content table { width: 100%; border-collapse: collapse; margin: 1.3em 0; font-size: 0.88rem; }
-.markdown-page-content th, .markdown-page-content td { border-bottom: 1px solid var(--st-line); padding: 9px 12px; text-align: left; }
-.markdown-page-content th { font-size: 0.76rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--st-ink-faint); }
-.markdown-page-content img { max-width: 100%; height: auto; border-radius: var(--st-radius-md); margin: 1.3em 0; }
-.markdown-page-content hr { border: 0; height: 1px; background: var(--st-line); margin: 2em 0; }
-.copy-btn { border-radius: 999px; background: var(--st-bg-elev); color: var(--st-ink-soft); border: 1px solid var(--st-line-strong); }
 </style>
 

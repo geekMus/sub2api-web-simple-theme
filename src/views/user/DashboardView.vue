@@ -156,7 +156,7 @@ onMounted(() => { refreshAll() })
 .dash__skeleton-chart span { flex: 1; border-radius: 6px 6px 0 0; }
 
 .dash__error { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.dash__error-icon { color: var(--st-accent); }
+.dash__error-icon { color: var(--st-brand-text); }
 .dash__error .st-btn { margin-top: 6px; }
 
 .dash__bottom { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
@@ -169,4 +169,3 @@ onMounted(() => { refreshAll() })
   .dash__bottom { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 20px; }
 }
 </style>
-

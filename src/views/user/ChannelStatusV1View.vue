@@ -347,9 +347,9 @@ onBeforeUnmount(() => {
 <style scoped>
 .board {
   padding-bottom: clamp(56px, 8vw, 96px);
-  --tone-ok: var(--st-accent);
-  --tone-warn: hsl(36 88% 52%);
-  --tone-bad: hsl(3 72% 55%);
+  --tone-ok: var(--st-brand);
+  --tone-warn: var(--st-warn);
+  --tone-bad: var(--st-danger);
 }
 
 .board__hero {
@@ -485,6 +485,7 @@ onBeforeUnmount(() => {
 
 .board__legend {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-top: 18px;
   padding-left: 4px;

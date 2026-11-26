@@ -1,115 +1,50 @@
 <template>
   <div class="st-root setup-page">
-    <div class="w-full max-w-2xl">
-      <!-- Logo & Title -->
-      <div class="mb-8 text-center">
-        <div
-          class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg"
-        >
-          <Icon name="cog" size="xl" class="text-white" />
-        </div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ t('setup.title') }}</h1>
-        <p class="mt-2 text-gray-500 dark:text-dark-400">{{ t('setup.description') }}</p>
-      </div>
+    <div class="setup-wrap">
+      <header class="setup-head">
+        <span class="setup-mark" aria-hidden="true">
+          <Icon name="cog" size="xl" />
+        </span>
+        <p class="st-eyebrow">{{ c('setup.eyebrow') }}</p>
+        <h1 class="st-display-2 setup-title">{{ t('setup.title') }}</h1>
+        <p class="st-lede setup-lede">{{ t('setup.description') }}</p>
+      </header>
 
-      <!-- Progress Steps -->
-      <div class="mb-8">
-        <div class="flex items-center justify-center">
-          <template v-for="(step, index) in steps" :key="step.id">
-            <div class="flex items-center">
-              <div
-                :class="[
-                  'flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all',
-                  currentStep > index
-                    ? 'bg-primary-500 text-white'
-                    : currentStep === index
-                      ? 'bg-primary-500 text-white ring-4 ring-primary-100 dark:ring-primary-900'
-                      : 'bg-gray-200 text-gray-500 dark:bg-dark-700 dark:text-dark-400'
-                ]"
-              >
-                <Icon
-                  v-if="currentStep > index"
-                  name="check"
-                  size="md"
-                  :stroke-width="2"
-                />
-                <span v-else>{{ index + 1 }}</span>
-              </div>
-              <span
-                class="ml-2 hidden text-sm font-medium sm:inline"
-                :class="
-                  currentStep >= index
-                    ? 'text-gray-900 dark:text-white'
-                    : 'text-gray-400 dark:text-dark-500'
-                "
-              >
-                {{ step.title }}
-              </span>
-            </div>
-            <div
-              v-if="index < steps.length - 1"
-              class="mx-2 h-0.5 w-6 sm:mx-3 sm:w-12"
-              :class="currentStep > index ? 'bg-primary-500' : 'bg-gray-200 dark:bg-dark-700'"
-            ></div>
-          </template>
-        </div>
-      </div>
+      <ol class="setup-steps" aria-label="setup">
+        <li
+          v-for="(step, index) in steps"
+          :key="step.id"
+          class="setup-step"
+          :class="{ 'setup-step--done': currentStep > index, 'setup-step--active': currentStep === index }"
+        >
+          <span class="setup-step__dot">
+            <Icon v-if="currentStep > index" name="check" size="md" :stroke-width="2" />
+            <span v-else class="st-num">{{ index + 1 }}</span>
+          </span>
+          <span class="setup-step__label">{{ step.title }}</span>
+        </li>
+      </ol>
 
       <!-- Step Content -->
       <div class="st-card setup-card">
         <!-- Step 1: Database -->
-        <div v-if="currentStep === 0" class="space-y-6">
-          <div class="mb-6 text-center">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ t('setup.database.title') }}
-            </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">
-              {{ t('setup.database.description') }}
-            </p>
+        <div v-if="currentStep === 0" class="setup-step-body">
+          <div class="setup-step-head">
+            <h2 class="st-display-3">{{ t('setup.database.title') }}</h2>
+            <p class="setup-hint">{{ c('setup.stepHint.database') }}</p>
           </div>
-
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="setup-grid">
             <div>
               <label class="st-label">{{ t('setup.database.host') }}</label>
-              <input
-                v-model="formData.database.host"
-                type="text"
-                class="st-input"
-                placeholder="localhost"
-              />
+              <input v-model="formData.database.host" type="text" class="st-input" placeholder="localhost" />
             </div>
             <div>
               <label class="st-label">{{ t('setup.database.port') }}</label>
-              <input
-                v-model.number="formData.database.port"
-                type="number"
-                class="st-input"
-                placeholder="5432"
-              />
+              <input v-model.number="formData.database.port" type="number" class="st-input" placeholder="5432" />
             </div>
-          </div>
-
-          <div class="flex items-center justify-between rounded-xl border border-gray-200 p-3 dark:border-dark-700">
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ t("setup.redis.enableTls") }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-dark-400">
-                {{ t("setup.redis.enableTlsHint") }}
-              </p>
-            </div>
-            <Toggle v-model="formData.redis.enable_tls" />
-          </div>
-
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label class="st-label">{{ t('setup.database.username') }}</label>
-              <input
-                v-model="formData.database.user"
-                type="text"
-                class="st-input"
-                placeholder="postgres"
-              />
+              <input v-model="formData.database.user" type="text" class="st-input" placeholder="postgres" />
             </div>
             <div>
               <label class="st-label">{{ t('setup.database.password') }}</label>
@@ -120,17 +55,9 @@
                 :placeholder="t('setup.database.passwordPlaceholder')"
               />
             </div>
-          </div>
-
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label class="st-label">{{ t('setup.database.databaseName') }}</label>
-              <input
-                v-model="formData.database.dbname"
-                type="text"
-                class="st-input"
-                placeholder="sub2api"
-              />
+              <input v-model="formData.database.dbname" type="text" class="st-input" placeholder="sub2api" />
             </div>
             <div>
               <label class="st-label">{{ t('setup.database.sslMode') }}</label>
@@ -146,75 +73,42 @@
             </div>
           </div>
 
+          <div class="setup-switch">
+            <div class="setup-switch__copy">
+              <p class="setup-switch__title">{{ t("setup.redis.enableTls") }}</p>
+              <p class="setup-switch__hint">{{ t("setup.redis.enableTlsHint") }}</p>
+            </div>
+            <Toggle v-model="formData.redis.enable_tls" />
+          </div>
+
           <button
-            @click="testDatabaseConnection"
+            type="button"
+            class="st-btn st-btn--quiet setup-test"
+            :class="{ 'setup-test--ok': dbConnected }"
             :disabled="testingDb"
-            class="st-btn st-btn--quiet w-full"
+            @click="testDatabaseConnection"
           >
-            <svg
-              v-if="testingDb"
-              class="-ml-1 mr-2 h-4 w-4 animate-spin"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <Icon v-else-if="dbConnected" name="check" size="md" class="mr-2 text-green-500" :stroke-width="2" />
-            {{
-              testingDb
-                ? t('setup.status.testing')
-                : dbConnected
-                  ? t('setup.status.success')
-                  : t('setup.status.testConnection')
-            }}
+            <span v-if="testingDb" class="setup-spinner" aria-hidden="true"></span>
+            <Icon v-else-if="dbConnected" name="check" size="md" :stroke-width="2" />
+            <span>{{ testingDb ? t('setup.status.testing') : dbConnected ? t('setup.status.success') : t('setup.status.testConnection') }}</span>
           </button>
         </div>
 
         <!-- Step 2: Redis -->
-        <div v-if="currentStep === 1" class="space-y-6">
-          <div class="mb-6 text-center">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ t('setup.redis.title') }}
-            </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">
-              {{ t('setup.redis.description') }}
-            </p>
+        <div v-if="currentStep === 1" class="setup-step-body">
+          <div class="setup-step-head">
+            <h2 class="st-display-3">{{ t('setup.redis.title') }}</h2>
+            <p class="setup-hint">{{ c('setup.stepHint.redis') }}</p>
           </div>
-
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="setup-grid">
             <div>
               <label class="st-label">{{ t('setup.redis.host') }}</label>
-              <input
-                v-model="formData.redis.host"
-                type="text"
-                class="st-input"
-                placeholder="localhost"
-              />
+              <input v-model="formData.redis.host" type="text" class="st-input" placeholder="localhost" />
             </div>
             <div>
               <label class="st-label">{{ t('setup.redis.port') }}</label>
-              <input
-                v-model.number="formData.redis.port"
-                type="number"
-                class="st-input"
-                placeholder="6379"
-              />
+              <input v-model.number="formData.redis.port" type="number" class="st-input" placeholder="6379" />
             </div>
-          </div>
-
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label class="st-label">{{ t('setup.redis.username') }}</label>
               <input
@@ -235,78 +129,36 @@
             </div>
             <div>
               <label class="st-label">{{ t('setup.redis.database') }}</label>
-              <input
-                v-model.number="formData.redis.db"
-                type="number"
-                class="st-input"
-                placeholder="0"
-              />
+              <input v-model.number="formData.redis.db" type="number" class="st-input" placeholder="0" />
             </div>
           </div>
 
-          <div class="flex items-center justify-between rounded-xl border border-gray-200 p-3 dark:border-dark-700">
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ t("setup.redis.enableTls") }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-dark-400">
-                {{ t("setup.redis.enableTlsHint") }}
-              </p>
+          <div class="setup-switch">
+            <div class="setup-switch__copy">
+              <p class="setup-switch__title">{{ t("setup.redis.enableTls") }}</p>
+              <p class="setup-switch__hint">{{ t("setup.redis.enableTlsHint") }}</p>
             </div>
             <Toggle v-model="formData.redis.enable_tls" />
           </div>
 
           <button
-            @click="testRedisConnection"
+            type="button"
+            class="st-btn st-btn--quiet setup-test"
+            :class="{ 'setup-test--ok': redisConnected }"
             :disabled="testingRedis"
-            class="st-btn st-btn--quiet w-full"
+            @click="testRedisConnection"
           >
-            <svg
-              v-if="testingRedis"
-              class="-ml-1 mr-2 h-4 w-4 animate-spin"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <Icon
-              v-else-if="redisConnected"
-              name="check"
-              size="md"
-              class="mr-2 text-green-500"
-              :stroke-width="2"
-            />
-            {{
-              testingRedis
-                ? t('setup.status.testing')
-                : redisConnected
-                  ? t('setup.status.success')
-                  : t('setup.status.testConnection')
-            }}
+            <span v-if="testingRedis" class="setup-spinner" aria-hidden="true"></span>
+            <Icon v-else-if="redisConnected" name="check" size="md" :stroke-width="2" />
+            <span>{{ testingRedis ? t('setup.status.testing') : redisConnected ? t('setup.status.success') : t('setup.status.testConnection') }}</span>
           </button>
         </div>
 
         <!-- Step 3: Admin -->
-        <div v-if="currentStep === 2" class="space-y-6">
-          <div class="mb-6 text-center">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ t('setup.admin.title') }}
-            </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">
-              {{ t('setup.admin.description') }}
-            </p>
+        <div v-if="currentStep === 2" class="setup-step-body">
+          <div class="setup-step-head">
+            <h2 class="st-display-3">{{ t('setup.admin.title') }}</h2>
+            <p class="setup-hint">{{ c('setup.stepHint.admin') }}</p>
           </div>
 
           <div>
@@ -347,147 +199,74 @@
         </div>
 
         <!-- Step 4: Complete -->
-        <div v-if="currentStep === 3" class="space-y-6">
-          <div class="mb-6 text-center">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ t('setup.ready.title') }}
-            </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">
-              {{ t('setup.ready.description') }}
-            </p>
+        <div v-if="currentStep === 3" class="setup-step-body">
+          <div class="setup-step-head">
+            <h2 class="st-display-3">{{ t('setup.ready.title') }}</h2>
+            <p class="setup-hint">{{ c('setup.stepHint.complete') }}</p>
           </div>
 
-          <div class="space-y-4">
-            <div class="rounded-xl bg-gray-50 p-4 dark:bg-dark-700">
-              <h3 class="mb-2 text-sm font-medium text-gray-500 dark:text-dark-400">
-                {{ t('setup.ready.database') }}
-              </h3>
-              <p class="text-gray-900 dark:text-white">
-                {{ formData.database.user }}@{{ formData.database.host }}:{{
-                  formData.database.port
-                }}/{{ formData.database.dbname }}
-              </p>
+          <dl class="setup-summary">
+            <div class="setup-summary__item">
+              <dt>{{ t('setup.ready.database') }}</dt>
+              <dd>{{ formData.database.user }}@{{ formData.database.host }}:{{ formData.database.port }}/{{ formData.database.dbname }}</dd>
             </div>
-
-            <div class="rounded-xl bg-gray-50 p-4 dark:bg-dark-700">
-              <h3 class="mb-2 text-sm font-medium text-gray-500 dark:text-dark-400">
-                {{ t('setup.ready.redis') }}
-              </h3>
-              <p class="text-gray-900 dark:text-white">
-                {{ formData.redis.host }}:{{ formData.redis.port }}
-              </p>
+            <div class="setup-summary__item">
+              <dt>{{ t('setup.ready.redis') }}</dt>
+              <dd>{{ formData.redis.host }}:{{ formData.redis.port }}</dd>
             </div>
-
-            <div class="rounded-xl bg-gray-50 p-4 dark:bg-dark-700">
-              <h3 class="mb-2 text-sm font-medium text-gray-500 dark:text-dark-400">
-                {{ t('setup.ready.adminEmail') }}
-              </h3>
-              <p class="text-gray-900 dark:text-white">{{ formData.admin.email }}</p>
+            <div class="setup-summary__item">
+              <dt>{{ t('setup.ready.adminEmail') }}</dt>
+              <dd>{{ formData.admin.email }}</dd>
             </div>
-          </div>
+          </dl>
         </div>
 
         <!-- Error Message -->
-        <div
-          v-if="errorMessage"
-          class="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800/50 dark:bg-red-900/20"
-        >
-          <div class="flex items-start gap-3">
-            <Icon name="exclamationCircle" size="md" class="flex-shrink-0 text-red-500" />
-            <p class="text-sm text-red-700 dark:text-red-400">{{ errorMessage }}</p>
+        <div v-if="errorMessage" class="setup-alert setup-alert--bad" role="alert">
+          <Icon name="exclamationCircle" size="md" />
+          <p class="setup-alert__text">{{ errorMessage }}</p>
+        </div>
+
+        <div v-if="installSuccess" class="setup-alert setup-alert--ok" role="status">
+          <span v-if="!serviceReady" class="setup-spinner" aria-hidden="true"></span>
+          <Icon v-else name="checkCircle" size="md" />
+          <div>
+            <p class="setup-alert__title">{{ t('setup.status.completed') }}</p>
+            <p class="setup-alert__text">{{ serviceReady ? t('setup.status.redirecting') : t('setup.status.restarting') }}</p>
           </div>
         </div>
 
-        <!-- Success Message -->
-        <div
-          v-if="installSuccess"
-          class="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-800/50 dark:bg-green-900/20"
-        >
-          <div class="flex items-start gap-3">
-            <svg
-              v-if="!serviceReady"
-              class="h-5 w-5 flex-shrink-0 animate-spin text-green-500"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <Icon v-else name="checkCircle" size="md" class="flex-shrink-0 text-green-500" />
-            <div>
-              <p class="text-sm font-medium text-green-700 dark:text-green-400">
-                {{ t('setup.status.completed') }}
-              </p>
-              <p class="mt-1 text-sm text-green-600 dark:text-green-500">
-                {{
-                  serviceReady
-                    ? t('setup.status.redirecting')
-                    : t('setup.status.restarting')
-                }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Navigation Buttons -->
-        <div class="mt-8 flex justify-between">
+        <div class="setup-nav">
           <button
             v-if="currentStep > 0 && !installSuccess"
-            @click="currentStep--"
+            type="button"
             class="st-btn st-btn--quiet"
+            @click="currentStep--"
           >
-            <Icon name="chevronLeft" size="sm" class="mr-2" :stroke-width="2" />
+            <Icon name="chevronLeft" size="sm" :stroke-width="2" />
             {{ t('common.back') }}
           </button>
-          <div v-else></div>
+          <span v-else aria-hidden="true"></span>
 
           <button
             v-if="currentStep < 3"
-            @click="nextStep"
-            :disabled="!canProceed"
+            type="button"
             class="st-btn st-btn--primary"
+            :disabled="!canProceed"
+            @click="nextStep"
           >
             {{ t('common.next') }}
-            <Icon name="chevronRight" size="sm" class="ml-2" :stroke-width="2" />
+            <Icon name="chevronRight" size="sm" :stroke-width="2" />
           </button>
 
           <button
             v-else-if="!installSuccess"
-            @click="performInstall"
-            :disabled="installing"
+            type="button"
             class="st-btn st-btn--primary"
+            :disabled="installing"
+            @click="performInstall"
           >
-            <svg
-              v-if="installing"
-              class="-ml-1 mr-2 h-4 w-4 animate-spin"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
+            <span v-if="installing" class="setup-spinner" aria-hidden="true"></span>
             {{ installing ? t('setup.status.installing') : t('setup.status.completeInstallation') }}
           </button>
         </div>
@@ -504,8 +283,10 @@ import { buildGatewayUrl } from '@/api/client'
 import Select from '@/components/common/Select.vue'
 import Toggle from '@/components/common/Toggle.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { useMiscCopy } from '@/composables/copy/misc'
 
 const { t } = useI18n()
+const { c } = useMiscCopy()
 
 const steps = computed(() => [
   { id: 'database', title: t('setup.database.title') },
@@ -688,25 +469,125 @@ async function waitForServiceRestart() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(20px, 4vw, 56px) var(--st-gutter);
   min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(28px, 5vw, 64px) var(--st-gutter);
   background: var(--st-bg);
   color: var(--st-ink);
   font-family: var(--st-font-body);
 }
-.setup-card {
-  padding: clamp(22px, 3vw, 36px);
-  border-radius: var(--st-radius-xl);
-  box-shadow: var(--st-shadow-md);
-}
-.setup-page :deep(.bg-primary-500) { background-color: var(--st-accent) !important; color: var(--st-accent-ink) !important; }
-.setup-page :deep(.bg-primary-100) { background-color: color-mix(in srgb, var(--st-accent) 18%, transparent) !important; }
-.setup-page :deep(.ring-primary-100), .setup-page :deep(.ring-primary-900) { --tw-ring-color: var(--st-accent-soft) !important; }
-.setup-page :deep(.bg-gray-200) { background-color: var(--st-bg-sunk) !important; }
-.setup-page :deep(.text-gray-500), .setup-page :deep(.text-gray-400) { color: var(--st-ink-faint) !important; }
-.setup-page :deep(.text-gray-900) { color: var(--st-ink) !important; }
-.setup-page :deep(.bg-green-50) { background-color: var(--st-accent-soft) !important; }
-.setup-page :deep(.text-green-700), .setup-page :deep(.text-green-600), .setup-page :deep(.text-green-500) { color: var(--st-accent) !important; }
-.setup-err { margin-top: 6px; font-size: 0.78rem; color: hsl(3 72% 55%); }
-</style>
+.setup-wrap { width: 100%; max-width: 640px; }
 
+.setup-head { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; margin-bottom: clamp(24px, 3.4vw, 36px); }
+.setup-mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+  border-radius: var(--st-r-lg);
+  border: 1px solid var(--st-brand-line);
+  background: var(--st-brand-soft);
+  color: var(--st-brand-text);
+}
+.setup-title { margin-top: 2px; }
+.setup-lede { max-width: 46ch; }
+
+.setup-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 clamp(20px, 3vw, 30px);
+  padding: 0;
+  list-style: none;
+}
+.setup-step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; text-align: center; }
+.setup-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 1px;
+  background: var(--st-line);
+}
+.setup-step--done:not(:last-child)::after { background: var(--st-brand-line); }
+.setup-step__dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line-2);
+  background: var(--st-bg);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--st-ink-3);
+}
+.setup-step--active .setup-step__dot { border-color: var(--st-brand); background: var(--st-brand); color: var(--st-brand-ink); box-shadow: 0 0 0 4px var(--st-brand-soft); }
+.setup-step--done .setup-step__dot { border-color: var(--st-brand-line); background: var(--st-bg); color: var(--st-brand-text); }
+.setup-step__label { font-size: 0.72rem; line-height: 1.35; color: var(--st-ink-3); overflow-wrap: anywhere; }
+.setup-step--active .setup-step__label,
+.setup-step--done .setup-step__label { color: var(--st-ink); }
+
+.setup-card { padding: clamp(20px, 3.2vw, 34px); }
+.setup-step-body { display: flex; flex-direction: column; gap: 20px; }
+.setup-step-head { display: flex; flex-direction: column; gap: 6px; }
+.setup-hint { font-size: 0.82rem; color: var(--st-ink-3); }
+
+.setup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; }
+.setup-grid > div { min-width: 0; }
+
+.setup-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--st-r-sm);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+}
+.setup-switch__copy { min-width: 0; }
+.setup-switch__title { font-size: 0.85rem; font-weight: 600; color: var(--st-ink); }
+.setup-switch__hint { margin-top: 2px; font-size: 0.76rem; line-height: 1.55; color: var(--st-ink-3); }
+
+.setup-test { width: 100%; }
+.setup-test--ok { border-color: var(--st-brand-line); background: var(--st-brand-soft); color: var(--st-brand-text); }
+
+.setup-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--st-line-2);
+  border-top-color: var(--st-brand);
+  animation: setup-spin 800ms linear infinite;
+}
+@keyframes setup-spin { to { transform: rotate(360deg); } }
+
+.setup-err { margin-top: 6px; font-size: 0.78rem; color: var(--st-danger); }
+
+.setup-summary { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.setup-summary__item { padding: 12px 14px; border-radius: var(--st-r-sm); border: 1px solid var(--st-line); background: var(--st-bg-soft); }
+.setup-summary__item dt { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-3); }
+.setup-summary__item dd { margin: 4px 0 0; font-size: 0.88rem; color: var(--st-ink); overflow-wrap: anywhere; }
+
+.setup-alert { display: flex; align-items: flex-start; gap: 10px; margin-top: 22px; padding: 12px 14px; border-radius: var(--st-r-sm); }
+.setup-alert--bad { background: var(--st-danger-soft); color: var(--st-danger); }
+.setup-alert--ok { background: var(--st-brand-soft); color: var(--st-brand-text); }
+.setup-alert__title { font-size: 0.85rem; font-weight: 600; color: var(--st-ink); }
+.setup-alert__text { font-size: 0.82rem; line-height: 1.6; overflow-wrap: anywhere; }
+.setup-alert > svg { flex-shrink: 0; margin-top: 2px; }
+
+.setup-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: clamp(24px, 3vw, 34px); }
+.setup-nav .st-btn { flex: 1 1 auto; min-width: 0; }
+@media (max-width: 560px) {
+  .setup-grid { grid-template-columns: 1fr; }
+  .setup-step__label { font-size: 0.66rem; }
+}
+@media (max-width: 480px) {
+  .setup-nav .st-btn { flex: 1 1 100%; }
+}
+</style>

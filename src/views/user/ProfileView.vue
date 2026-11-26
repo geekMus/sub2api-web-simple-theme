@@ -1,38 +1,59 @@
 <template>
   <UserShell>
-    <section class="st-section profile-sec">
+    <section class="st-section profile-page">
       <div class="st-shell">
         <header class="profile-head">
-          <p class="st-eyebrow st-reveal">{{ c('profile.eyebrow') }}</p>
-          <h1 class="st-display-2 st-reveal" style="--i: 1">{{ c('profile.title') }}</h1>
-          <p class="st-lede st-reveal" style="--i: 2">{{ c('profile.lede') }}</p>
+          <p class="st-eyebrow st-reveal">{{ c('usercore.profile.eyebrow') }}</p>
+          <h1 class="st-display-2 st-reveal" style="--i: 1">{{ c('usercore.profile.title') }}</h1>
+          <p class="st-lede st-reveal" style="--i: 2">{{ c('usercore.profile.lede') }}</p>
         </header>
 
-        <!-- 联系方式 -->
-        <div v-if="contactInfo" class="st-card st-card--pad profile-contact st-reveal" style="--i: 4">
+        <div v-if="contactInfo" class="st-card st-card--pad profile-contact st-reveal" style="--i: 3">
           <span class="profile-contact__icon"><Icon name="chat" size="md" /></span>
-          <div>
+          <div class="profile-contact__copy">
             <p class="st-row__title">{{ t('common.contactSupport') }}</p>
             <p class="st-body">{{ contactInfo }}</p>
           </div>
         </div>
 
-        <!-- 分区卡片 -->
-        <div class="profile-grid" data-testid="profile-shell">
-          <div class="st-reveal" style="--i: 5"><ProfileInfoCard
-            :user="user"
-            :linuxdo-enabled="linuxdoOAuthEnabled"
-            :dingtalk-enabled="dingtalkOAuthEnabled"
-            :oidc-enabled="oidcOAuthEnabled"
-            :oidc-provider-name="oidcOAuthProviderName"
-            :wechat-enabled="wechatOAuthEnabled"
-            :wechat-open-enabled="wechatOAuthOpenEnabled"
-            :wechat-mp-enabled="wechatOAuthMPEnabled"
-          /></div>
-          <div class="st-reveal" style="--i: 6"><ProfilePasswordForm /></div>
-          <div class="st-reveal" style="--i: 7"><ProfileTotpCard /></div>
-          <div class="st-reveal" style="--i: 8"><ProfilePasskeyCard :enabled="passkeyEnabled" /></div>
-          <div v-if="user && balanceLowNotifyEnabled" class="st-reveal" style="--i: 9">
+        <div class="profile-sections" data-testid="profile-shell">
+          <!-- 身份 -->
+          <section class="profile-section st-reveal" style="--i: 4">
+            <header class="profile-section__head">
+              <h2 class="st-display-3">{{ c('usercore.profile.identityTitle') }}</h2>
+              <p class="st-body">{{ c('usercore.profile.identityLede') }}</p>
+            </header>
+            <ProfileInfoCard
+              :user="user"
+              :linuxdo-enabled="linuxdoOAuthEnabled"
+              :dingtalk-enabled="dingtalkOAuthEnabled"
+              :oidc-enabled="oidcOAuthEnabled"
+              :oidc-provider-name="oidcOAuthProviderName"
+              :wechat-enabled="wechatOAuthEnabled"
+              :wechat-open-enabled="wechatOAuthOpenEnabled"
+              :wechat-mp-enabled="wechatOAuthMPEnabled"
+            />
+          </section>
+
+          <!-- 安全 -->
+          <section class="profile-section st-reveal" style="--i: 5">
+            <header class="profile-section__head">
+              <h2 class="st-display-3">{{ c('usercore.profile.securityTitle') }}</h2>
+              <p class="st-body">{{ c('usercore.profile.securityLede') }}</p>
+            </header>
+            <div class="profile-grid">
+              <ProfilePasswordForm />
+              <ProfileTotpCard />
+              <ProfilePasskeyCard :enabled="passkeyEnabled" />
+            </div>
+          </section>
+
+          <!-- 余额与提醒 -->
+          <section v-if="user && balanceLowNotifyEnabled" class="profile-section st-reveal" style="--i: 6">
+            <header class="profile-section__head">
+              <h2 class="st-display-3">{{ c('usercore.profile.billingTitle') }}</h2>
+              <p class="st-body">{{ c('usercore.profile.billingLede') }}</p>
+            </header>
             <ProfileBalanceNotifyCard
               :enabled="user.balance_notify_enabled ?? true"
               :threshold="user.balance_notify_threshold"
@@ -40,7 +61,7 @@
               :system-default-threshold="systemDefaultThreshold"
               :user-email="user.email"
             />
-          </div>
+          </section>
         </div>
       </div>
     </section>
@@ -116,15 +137,21 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.profile-sec { padding-top: clamp(32px, 4vw, 56px); }
-.profile-head { margin-bottom: clamp(24px, 3vw, 40px); }
+.profile-page { padding-top: clamp(32px, 4vw, 56px); }
+.profile-head { margin-bottom: clamp(22px, 3vw, 34px); }
 .profile-head .st-display-2 { margin-top: 14px; }
 .profile-head .st-lede { margin-top: 14px; }
 
-.profile-contact { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-.profile-contact__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--st-accent-soft); color: var(--st-accent); flex-shrink: 0; }
+.profile-contact { display: flex; align-items: center; gap: 14px; margin-bottom: clamp(22px, 3vw, 34px); min-width: 0; }
+.profile-contact__icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--st-brand-soft); color: var(--st-brand-text); }
+.profile-contact__copy { min-width: 0; }
+.profile-contact__copy .st-body { overflow-wrap: anywhere; }
 
-.profile-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.profile-sections { display: flex; flex-direction: column; gap: clamp(26px, 3.4vw, 40px); min-width: 0; }
+.profile-section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-section__head { display: flex; flex-direction: column; gap: 6px; }
+.profile-grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+
 @media (min-width: 900px) {
   .profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

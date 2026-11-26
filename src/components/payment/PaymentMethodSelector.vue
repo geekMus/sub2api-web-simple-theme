@@ -1,11 +1,9 @@
 <template>
-  <div>
-    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-      {{ t('payment.paymentMethod') }}
-    </label>
+  <div class="pm">
+    <label class="st-label">{{ t('payment.paymentMethod') }}</label>
     <div
       data-testid="payment-method-grid"
-      class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+      class="pm__grid grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
     >
       <button
         v-for="method in sortedMethods"
@@ -13,29 +11,14 @@
         type="button"
         :title="methodLabel(method)"
         :disabled="!method.available"
-        :class="[
-          'relative flex h-[60px] min-w-0 flex-col items-center justify-center rounded-lg border px-3 transition-all',
-          !method.available
-            ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-50 dark:border-dark-700 dark:bg-dark-800/50'
-            : selected === method.type
-              ? methodSelectedClass(method.type)
-              : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200 dark:hover:border-dark-500',
-        ]"
+        class="pm__btn min-w-0"
+        :class="method.available ? (selected === method.type ? methodSelectedClass(method.type) : '') : 'pm__btn--off'"
         @click="method.available && emit('select', method.type)"
       >
-        <span class="flex w-full min-w-0 items-center justify-center gap-2">
-          <img :src="methodIcon(method.type)" :alt="methodLabel(method)" class="h-7 w-7 shrink-0 object-contain" />
-          <span class="flex min-w-0 flex-col items-start leading-none">
-            <span data-testid="payment-method-label" class="block w-full truncate text-base font-semibold">
-              {{ methodLabel(method) }}
-            </span>
-            <span
-              v-if="method.fee_rate > 0"
-              class="text-[10px] tracking-wide text-gray-500 dark:text-dark-400"
-            >
-              {{ t('payment.fee') }} {{ method.fee_rate }}%
-            </span>
-          </span>
+        <img :src="methodIcon(method.type)" :alt="methodLabel(method)" class="pm__icon" />
+        <span class="pm__copy">
+          <span data-testid="payment-method-label" class="pm__label truncate">{{ methodLabel(method) }}</span>
+          <span v-if="method.fee_rate > 0" class="pm__fee">{{ t('payment.fee') }} {{ method.fee_rate }}%</span>
         </span>
       </button>
     </div>
@@ -98,11 +81,40 @@ function methodLabel(method: PaymentMethodOption): string {
   return method.display_name || t(`payment.methods.${method.type}`, method.type)
 }
 
-function methodSelectedClass(type: string): string {
-  if (isBuiltInAlipayMethod(type)) return 'border-[#02A9F1] bg-blue-50 text-gray-900 shadow-sm dark:bg-blue-950 dark:text-gray-100'
-  if (isBuiltInWxpayMethod(type)) return 'border-[#09BB07] bg-green-50 text-gray-900 shadow-sm dark:bg-green-950 dark:text-gray-100'
-  if (type === 'stripe') return 'border-[#676BE5] bg-indigo-50 text-gray-900 shadow-sm dark:bg-indigo-950 dark:text-gray-100'
-  if (type === 'airwallex') return 'border-[#FF6B3D] bg-orange-50 text-gray-900 shadow-sm dark:border-[#FF8E3C] dark:bg-orange-950 dark:text-gray-100'
-  return 'border-primary-500 bg-primary-50 text-gray-900 shadow-sm dark:bg-primary-950 dark:text-gray-100'
+function methodSelectedClass(_type: string): string {
+  return 'pm__btn--on border-primary-500'
 }
 </script>
+<style scoped>
+.pm { min-width: 0; }
+.pm__grid { min-width: 0; }
+.pm__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 62px;
+  padding: 8px 12px;
+  border-radius: var(--st-r-sm);
+  border: 1px solid var(--st-line-2);
+  background: var(--st-bg);
+  color: var(--st-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
+.pm__btn:hover:not(:disabled) { border-color: var(--st-ink-2); }
+.pm__btn--on { border-color: var(--st-brand); background: var(--st-brand-soft); }
+.pm__btn--off { opacity: 0.45; cursor: not-allowed; }
+.pm__btn:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
+.pm__icon { width: 26px; height: 26px; flex-shrink: 0; object-fit: contain; }
+.pm__copy { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.pm__label { width: 100%; font-size: 0.86rem; font-weight: 500; line-height: 1.3; }
+.pm__fee { font-size: 0.68rem; color: var(--st-ink-faint); white-space: nowrap; }
+
+@media (max-width: 400px) {
+  .pm__btn { height: auto; min-height: 58px; gap: 6px; padding: 8px; }
+  .pm__icon { width: 22px; height: 22px; }
+  .pm__label { font-size: 0.8rem; }
+}
+</style>
+

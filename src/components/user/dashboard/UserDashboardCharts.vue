@@ -304,7 +304,7 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
 .dash-charts__head-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .dash-charts__head-copy .st-display-3 { margin-top: 2px; }
 .dash-charts__lede { font-size: 0.88rem; max-width: 52ch; }
-.dash-charts__controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dash-charts__controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; max-width: 100%; }
 .dash-charts__spin { animation: dash-charts-spin 900ms linear infinite; }
 @keyframes dash-charts-spin { to { transform: rotate(360deg); } }
 
@@ -314,24 +314,24 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
   font-size: clamp(1.9rem, 3.4vw, 2.5rem);
   font-weight: 600;
   letter-spacing: -0.03em;
-  color: var(--st-ink-strong);
+  color: var(--st-ink);
   line-height: 1;
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
 }
-.dash-charts__summary-unit { font-size: 0.76rem; font-weight: 500; letter-spacing: 0.04em; color: var(--st-ink-faint); }
-.dash-charts__summary-meta { font-size: 0.8rem; color: var(--st-ink-faint); }
+.dash-charts__summary-unit { font-size: 0.76rem; font-weight: 500; letter-spacing: 0.04em; color: var(--st-ink-3); }
+.dash-charts__summary-meta { font-size: 0.8rem; color: var(--st-ink-3); }
 
 .dash-charts__legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-top: 4px; }
-.dash-charts__legend li { display: inline-flex; align-items: center; gap: 7px; font-size: 0.76rem; color: var(--st-ink-soft); }
+.dash-charts__legend li { display: inline-flex; align-items: center; gap: 7px; font-size: 0.76rem; color: var(--st-ink-2); }
 .dash-charts__swatch { width: 14px; height: 2px; border-radius: 999px; display: inline-block; }
 .dash-charts__swatch--dash {
   background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px) !important;
-  color: var(--st-accent);
+  color: var(--st-brand-text);
 }
 
-.dash-charts__canvas { position: relative; height: 260px; margin-top: 4px; }
+.dash-charts__canvas { position: relative; height: 220px; margin-top: 4px; }
 .dash-charts__skeleton { display: flex; align-items: flex-end; gap: 10px; height: 100%; }
 .dash-charts__bar { flex: 1; border-radius: 6px 6px 0 0; }
 
@@ -340,9 +340,9 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
   place-items: center;
   height: 100%;
   font-size: 0.86rem;
-  color: var(--st-ink-faint);
-  border-radius: var(--st-radius-md);
-  background: color-mix(in srgb, var(--st-bg-sunk) 60%, transparent);
+  color: var(--st-ink-3);
+  border-radius: var(--st-r-md);
+  background: color-mix(in srgb, var(--st-bg-sink) 60%, transparent);
 }
 
 /* 模型 */
@@ -360,15 +360,15 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dash-charts__model-cost { font-size: 0.82rem; font-weight: 600; color: var(--st-accent); }
-.dash-charts__model-bar { height: 4px; border-radius: 999px; background: var(--st-bg-sunk); overflow: hidden; }
+.dash-charts__model-cost { font-size: 0.82rem; font-weight: 600; color: var(--st-brand-text); }
+.dash-charts__model-bar { height: 4px; border-radius: 999px; background: var(--st-bg-sink); overflow: hidden; }
 .dash-charts__model-bar span {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--st-accent), color-mix(in srgb, var(--st-accent) 32%, transparent));
+  background: linear-gradient(90deg, var(--st-brand), color-mix(in srgb, var(--st-brand) 32%, transparent));
 }
-.dash-charts__model-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.72rem; color: var(--st-ink-faint); }
+.dash-charts__model-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.72rem; color: var(--st-ink-3); }
 .dash-charts__model-standard { margin-left: auto; }
 
 @media (min-width: 900px) {
@@ -377,4 +377,3 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
   .dash-charts__canvas { height: 300px; }
 }
 </style>
-

@@ -1,6 +1,6 @@
 <template>
   <UserShell>
-    <section class="keys">
+    <section class="st-section keys">
       <div class="st-shell keys__inner">
         <header class="keys__head">
           <div class="keys__head-copy">
@@ -306,7 +306,7 @@
       width="normal"
       @close="closeModals"
     >
-      <form id="key-form" @submit.prevent="handleSubmit" class="space-y-5">
+      <form id="key-form" @submit.prevent="handleSubmit" class="keys-stack keys-stack--loose">
         <div>
           <label class="st-label">{{ t('keys.nameLabel') }}</label>
           <input
@@ -321,12 +321,15 @@
 
         <fieldset v-if="!showEditModal" data-tour="key-form-provider">
           <legend class="st-label">{{ t('keys.providerLabel') }}</legend>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div class="keys-providers">
             <label
               v-for="provider in createProviderOptions"
               :key="provider.value"
-              class="relative min-w-0"
-              :class="provider.count === 0 ? 'cursor-not-allowed' : 'cursor-pointer'"
+              class="keys-provider"
+              :class="{
+                'keys-provider--on': createProvider === provider.value,
+                'keys-provider--off': provider.count === 0
+              }"
             >
               <input
                 type="radio"
@@ -334,35 +337,23 @@
                 :value="provider.value"
                 :checked="createProvider === provider.value"
                 :disabled="provider.count === 0"
-                class="peer sr-only"
+                class="keys-provider__input"
                 @change="selectCreateProvider(provider.value)"
               />
-              <span
-                class="flex h-full flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-3 text-center transition-colors peer-checked:border-primary-500 peer-checked:bg-primary-50/60 peer-checked:ring-1 peer-checked:ring-primary-500 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-500 peer-disabled:opacity-40 dark:border-dark-600 dark:bg-dark-800 dark:peer-checked:border-primary-500 dark:peer-checked:bg-primary-500/10"
-                :class="provider.count > 0 && 'hover:border-primary-300 dark:hover:border-primary-700'"
-              >
-                <span class="flex h-8 items-center justify-center gap-1.5" aria-hidden="true">
-                  <span
-                    v-for="platform in KEY_GROUP_PROVIDER_ICONS[provider.value]"
-                    :key="platform"
-                    class="flex h-8 w-8 items-center justify-center rounded-lg"
-                    :class="platformBadgeLightClass(platform)"
-                  >
-                    <PlatformIcon :platform="platform" size="lg" />
-                  </span>
+              <span class="keys-provider__icons" aria-hidden="true">
+                <span
+                  v-for="platform in KEY_GROUP_PROVIDER_ICONS[provider.value]"
+                  :key="platform"
+                  class="keys-provider__ico"
+                  :class="platformBadgeLightClass(platform)"
+                >
+                  <PlatformIcon :platform="platform" size="lg" />
                 </span>
-                <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ provider.label }}</span>
               </span>
-              <span
-                v-if="createProvider === provider.value"
-                class="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-white"
-                aria-hidden="true"
-              >
-                <Icon name="check" size="xs" :stroke-width="3" />
-              </span>
+              <span class="keys-provider__label">{{ provider.label }}</span>
             </label>
           </div>
-          <p class="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400" aria-live="polite">
+          <p class="keys-hint" aria-live="polite">
             {{ groups.length === 0 ? t('common.noGroupsAvailable') : t(`keys.providerHints.${createProvider}`) }}
           </p>
         </fieldset>
@@ -394,7 +385,7 @@
                 :peak-end="(option as unknown as GroupOption).peakEnd"
                 :peak-rate-multiplier="(option as unknown as GroupOption).peakRateMultiplier"
               />
-              <span v-else class="text-gray-400">{{ t('keys.selectGroup') }}</span>
+              <span v-else class="keys-hint">{{ t('keys.selectGroup') }}</span>
             </template>
             <template #option="{ option, selected }">
               <GroupOptionItem
@@ -415,24 +406,10 @@
         </div>
 
         <!-- Custom Key Section (only for create) -->
-        <div v-if="!showEditModal" class="space-y-3">
-          <div class="flex items-center justify-between">
+        <div v-if="!showEditModal" class="keys-stack keys-stack--tight">
+          <div class="keys-switch-row">
             <label class="st-label keys__label-inline">{{ t('keys.customKeyLabel') }}</label>
-            <button
-              type="button"
-              @click="formData.use_custom_key = !formData.use_custom_key"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.use_custom_key ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.use_custom_key ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <button type="button" role="switch" :aria-checked="formData.use_custom_key" class="keys-switch" :class="{ 'keys-switch--on': formData.use_custom_key }" @click="formData.use_custom_key = !formData.use_custom_key"><span class="keys-switch__knob" aria-hidden="true"></span></button>
           </div>
           <div v-if="formData.use_custom_key">
             <input
@@ -442,7 +419,7 @@
               :placeholder="t('keys.customKeyPlaceholder')"
               :class="{ 'border-red-500 dark:border-red-500': customKeyError }"
             />
-            <p v-if="customKeyError" class="mt-1 text-sm text-red-500">{{ customKeyError }}</p>
+            <p v-if="customKeyError" class="keys-hint keys-hint--danger">{{ customKeyError }}</p>
             <p v-else class="keys__hint">{{ t('keys.customKeyHint') }}</p>
           </div>
         </div>
@@ -457,27 +434,13 @@
         </div>
 
         <!-- IP Restriction Section -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
+        <div class="keys-stack keys-stack--tight">
+          <div class="keys-switch-row">
             <label class="st-label keys__label-inline">{{ t('keys.ipRestriction') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_ip_restriction = !formData.enable_ip_restriction"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_ip_restriction ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_ip_restriction ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <button type="button" role="switch" :aria-checked="formData.enable_ip_restriction" class="keys-switch" :class="{ 'keys-switch--on': formData.enable_ip_restriction }" @click="formData.enable_ip_restriction = !formData.enable_ip_restriction"><span class="keys-switch__knob" aria-hidden="true"></span></button>
           </div>
 
-          <div v-if="formData.enable_ip_restriction" class="space-y-4 pt-2">
+          <div v-if="formData.enable_ip_restriction" class="keys-stack">
             <div>
               <label class="st-label">{{ t('keys.ipWhitelist') }}</label>
               <textarea
@@ -503,33 +466,19 @@
         </div>
 
         <!-- Quota Limit Section -->
-        <div class="space-y-3">
+        <div class="keys-stack keys-stack--tight">
           <label class="st-label">{{ t('keys.quotaLimit') }}</label>
           <!-- Switch commented out - always show input, 0 = unlimited
-          <div class="flex items-center justify-between">
+          <div class="keys-switch-row">
             <label class="st-label keys__label-inline">{{ t('keys.quotaLimit') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_quota = !formData.enable_quota"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_quota ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_quota ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <button type="button" role="switch" :aria-checked="formData.enable_quota" class="keys-switch" :class="{ 'keys-switch--on': formData.enable_quota }" @click="formData.enable_quota = !formData.enable_quota"><span class="keys-switch__knob" aria-hidden="true"></span></button>
           </div>
           -->
 
-          <div class="space-y-4">
+          <div class="keys-stack">
             <div>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <div class="keys-prefixwrap">
+                <span class="keys-prefix">$</span>
                 <input
                   v-model.number="formData.quota"
                   type="number"
@@ -545,13 +494,13 @@
             <!-- Quota used display (only in edit mode) -->
             <div v-if="showEditModal && selectedKey && selectedKey.quota > 0">
               <label class="st-label">{{ t('keys.quotaUsed') }}</label>
-              <div class="flex items-center gap-2">
+              <div class="keys-usage__row">
                 <div class="keys__usage-box">
-                  <span class="font-medium text-gray-900 dark:text-white">
+                  <span class="keys-usage__now st-num">
                     ${{ selectedKey.quota_used?.toFixed(4) || '0.0000' }}
                   </span>
-                  <span class="mx-2 text-gray-400">/</span>
-                  <span class="text-gray-500 dark:text-gray-400">
+                  <span class="keys-usage__sep">/</span>
+                  <span class="keys-usage__max st-num">
                     ${{ selectedKey.quota?.toFixed(2) || '0.00' }}
                   </span>
                 </div>
@@ -569,33 +518,19 @@
         </div>
 
         <!-- Rate Limit Section -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
+        <div class="keys-stack keys-stack--tight">
+          <div class="keys-switch-row">
             <label class="st-label keys__label-inline">{{ t('keys.rateLimitSection') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_rate_limit = !formData.enable_rate_limit"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_rate_limit ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_rate_limit ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <button type="button" role="switch" :aria-checked="formData.enable_rate_limit" class="keys-switch" :class="{ 'keys-switch--on': formData.enable_rate_limit }" @click="formData.enable_rate_limit = !formData.enable_rate_limit"><span class="keys-switch__knob" aria-hidden="true"></span></button>
           </div>
 
-          <div v-if="formData.enable_rate_limit" class="space-y-4 pt-2">
+          <div v-if="formData.enable_rate_limit" class="keys-stack">
             <p class="keys__hint">{{ t('keys.rateLimitHint') }}</p>
             <!-- 5-Hour Limit -->
             <div>
               <label class="st-label">{{ t('keys.rateLimit5h') }}</label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <div class="keys-prefixwrap">
+                <span class="keys-prefix">$</span>
                 <input
                   v-model.number="formData.rate_limit_5h"
                   type="number"
@@ -607,29 +542,29 @@
               </div>
               <!-- Usage info (edit mode only) -->
               <div v-if="showEditModal && selectedKey && selectedKey.rate_limit_5h > 0" class="mt-2">
-                <div class="flex items-center gap-2">
+                <div class="keys-usage__row">
                   <div class="keys__usage-box">
                     <span :class="[
-                      'font-medium',
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'text-red-500' :
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'text-yellow-500' :
-                      'text-gray-900 dark:text-white'
+                      'keys-usage__now st-num',
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'keys-usage__now--danger' :
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'keys-usage__now--warn' :
+                      'keys-usage__now'
                     ]">
                       ${{ selectedKey.usage_5h?.toFixed(4) || '0.0000' }}
                     </span>
-                    <span class="mx-2 text-gray-400">/</span>
-                    <span class="text-gray-500 dark:text-gray-400">
+                    <span class="keys-usage__sep">/</span>
+                    <span class="keys-usage__max st-num">
                       ${{ selectedKey.rate_limit_5h?.toFixed(2) || '0.00' }}
                     </span>
                   </div>
                 </div>
-                <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
+                <div class="keys__bar">
                   <div
                     :class="[
-                      'h-full rounded-full transition-all',
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'bg-red-500' :
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'bg-yellow-500' :
-                      'bg-green-500'
+                      'keys__bar-fill',
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'keys__bar-fill--off' :
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'keys__bar-fill--warn' :
+                      'keys__bar-fill--ok'
                     ]"
                     :style="{ width: Math.min((selectedKey.usage_5h / selectedKey.rate_limit_5h) * 100, 100) + '%' }"
                   />
@@ -640,8 +575,8 @@
             <!-- Daily Limit -->
             <div>
               <label class="st-label">{{ t('keys.rateLimit1d') }}</label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <div class="keys-prefixwrap">
+                <span class="keys-prefix">$</span>
                 <input
                   v-model.number="formData.rate_limit_1d"
                   type="number"
@@ -653,29 +588,29 @@
               </div>
               <!-- Usage info (edit mode only) -->
               <div v-if="showEditModal && selectedKey && selectedKey.rate_limit_1d > 0" class="mt-2">
-                <div class="flex items-center gap-2">
+                <div class="keys-usage__row">
                   <div class="keys__usage-box">
                     <span :class="[
-                      'font-medium',
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'text-red-500' :
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'text-yellow-500' :
-                      'text-gray-900 dark:text-white'
+                      'keys-usage__now st-num',
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'keys-usage__now--danger' :
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'keys-usage__now--warn' :
+                      'keys-usage__now'
                     ]">
                       ${{ selectedKey.usage_1d?.toFixed(4) || '0.0000' }}
                     </span>
-                    <span class="mx-2 text-gray-400">/</span>
-                    <span class="text-gray-500 dark:text-gray-400">
+                    <span class="keys-usage__sep">/</span>
+                    <span class="keys-usage__max st-num">
                       ${{ selectedKey.rate_limit_1d?.toFixed(2) || '0.00' }}
                     </span>
                   </div>
                 </div>
-                <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
+                <div class="keys__bar">
                   <div
                     :class="[
-                      'h-full rounded-full transition-all',
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'bg-red-500' :
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'bg-yellow-500' :
-                      'bg-green-500'
+                      'keys__bar-fill',
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'keys__bar-fill--off' :
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'keys__bar-fill--warn' :
+                      'keys__bar-fill--ok'
                     ]"
                     :style="{ width: Math.min((selectedKey.usage_1d / selectedKey.rate_limit_1d) * 100, 100) + '%' }"
                   />
@@ -686,8 +621,8 @@
             <!-- 7-Day Limit -->
             <div>
               <label class="st-label">{{ t('keys.rateLimit7d') }}</label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <div class="keys-prefixwrap">
+                <span class="keys-prefix">$</span>
                 <input
                   v-model.number="formData.rate_limit_7d"
                   type="number"
@@ -699,29 +634,29 @@
               </div>
               <!-- Usage info (edit mode only) -->
               <div v-if="showEditModal && selectedKey && selectedKey.rate_limit_7d > 0" class="mt-2">
-                <div class="flex items-center gap-2">
+                <div class="keys-usage__row">
                   <div class="keys__usage-box">
                     <span :class="[
-                      'font-medium',
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'text-red-500' :
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'text-yellow-500' :
-                      'text-gray-900 dark:text-white'
+                      'keys-usage__now st-num',
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'keys-usage__now--danger' :
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'keys-usage__now--warn' :
+                      'keys-usage__now'
                     ]">
                       ${{ selectedKey.usage_7d?.toFixed(4) || '0.0000' }}
                     </span>
-                    <span class="mx-2 text-gray-400">/</span>
-                    <span class="text-gray-500 dark:text-gray-400">
+                    <span class="keys-usage__sep">/</span>
+                    <span class="keys-usage__max st-num">
                       ${{ selectedKey.rate_limit_7d?.toFixed(2) || '0.00' }}
                     </span>
                   </div>
                 </div>
-                <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
+                <div class="keys__bar">
                   <div
                     :class="[
-                      'h-full rounded-full transition-all',
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'bg-red-500' :
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'bg-yellow-500' :
-                      'bg-green-500'
+                      'keys__bar-fill',
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'keys__bar-fill--off' :
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'keys__bar-fill--warn' :
+                      'keys__bar-fill--ok'
                     ]"
                     :style="{ width: Math.min((selectedKey.usage_7d / selectedKey.rate_limit_7d) * 100, 100) + '%' }"
                   />
@@ -743,39 +678,25 @@
         </div>
 
         <!-- Expiration Section -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
+        <div class="keys-stack keys-stack--tight">
+          <div class="keys-switch-row">
             <label class="st-label keys__label-inline">{{ t('keys.expiration') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_expiration = !formData.enable_expiration"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_expiration ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_expiration ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <button type="button" role="switch" :aria-checked="formData.enable_expiration" class="keys-switch" :class="{ 'keys-switch--on': formData.enable_expiration }" @click="formData.enable_expiration = !formData.enable_expiration"><span class="keys-switch__knob" aria-hidden="true"></span></button>
           </div>
 
-          <div v-if="formData.enable_expiration" class="space-y-4 pt-2">
+          <div v-if="formData.enable_expiration" class="keys-stack">
             <!-- Quick select buttons (for both create and edit mode) -->
-            <div class="flex flex-wrap gap-2">
+            <div class="keys-chips">
               <button
                 v-for="days in ['7', '30', '90']"
                 :key="days"
                 type="button"
                 @click="setExpirationDays(parseInt(days))"
                 :class="[
-                  'rounded-lg px-3 py-1.5 text-sm transition-colors',
+                  'keys-chip',
                   formData.expiration_preset === days
-                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-700 dark:text-gray-400 dark:hover:bg-dark-600'
+                    ? 'keys-chip--on'
+                    : ''
                 ]"
               >
                 {{ showEditModal ? t('keys.extendDays', { days }) : t('keys.expiresInDays', { days }) }}
@@ -784,10 +705,10 @@
                 type="button"
                 @click="formData.expiration_preset = 'custom'"
                 :class="[
-                  'rounded-lg px-3 py-1.5 text-sm transition-colors',
+                  'keys-chip',
                   formData.expiration_preset === 'custom'
-                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-700 dark:text-gray-400 dark:hover:bg-dark-600'
+                    ? 'keys-chip--on'
+                    : ''
                 ]"
               >
                 {{ t('keys.customDate') }}
@@ -806,9 +727,9 @@
             </div>
 
             <!-- Current expiration display (only in edit mode) -->
-            <div v-if="showEditModal && selectedKey?.expires_at" class="text-sm">
-              <span class="text-gray-500 dark:text-gray-400">{{ t('keys.currentExpiration') }}: </span>
-              <span class="font-medium text-gray-900 dark:text-white">
+            <div v-if="showEditModal && selectedKey?.expires_at" class="keys-note">
+              <span class="keys-note__label">{{ t('keys.currentExpiration') }}: </span>
+              <span class="keys-usage__now st-num">
                 {{ formatDateTime(selectedKey.expires_at) }}
               </span>
             </div>
@@ -816,7 +737,7 @@
         </div>
       </form>
       <template #footer>
-        <div class="flex justify-end gap-3">
+        <div class="keys-form-actions">
           <button @click="closeModals" type="button" class="st-btn st-btn--quiet">
             {{ t('common.cancel') }}
           </button>
@@ -829,7 +750,7 @@
           >
             <svg
               v-if="submitting"
-              class="-ml-1 mr-2 h-4 w-4 animate-spin"
+              class="keys__spin"
               fill="none"
               viewBox="0 0 24 24"
             >
@@ -921,39 +842,39 @@
       width="narrow"
       @close="closeCcsClientSelect"
     >
-      <div class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
+      <div class="keys-stack">
+        <p class="st-body">
           {{ t('keys.ccsClientSelect.description') }}
 	        </p>
-	        <div class="grid grid-cols-2 gap-3">
+	        <div class="keys-ccs-grid">
 	          <button
 	            @click="handleCcsClientSelect('claude')"
-	            class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-200 dark:border-dark-600 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all"
+	            class="keys-ccs"
 	          >
-	            <Icon name="terminal" size="xl" class="text-gray-600 dark:text-gray-400" />
-	            <span class="font-medium text-gray-900 dark:text-white">{{
+	            <Icon name="terminal" size="xl" class="keys-ccs__icon" />
+	            <span class="keys-usage__now st-num">{{
 	              t('keys.ccsClientSelect.claudeCode')
 	            }}</span>
-	            <span class="text-xs text-gray-500 dark:text-gray-400">{{
+	            <span class="keys-ccs__desc">{{
 	              t('keys.ccsClientSelect.claudeCodeDesc')
 	            }}</span>
 	          </button>
 	          <button
 	            @click="handleCcsClientSelect('gemini')"
-	            class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-200 dark:border-dark-600 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all"
+	            class="keys-ccs"
 	          >
-	            <Icon name="sparkles" size="xl" class="text-gray-600 dark:text-gray-400" />
-	            <span class="font-medium text-gray-900 dark:text-white">{{
+	            <Icon name="sparkles" size="xl" class="keys-ccs__icon" />
+	            <span class="keys-usage__now st-num">{{
 	              t('keys.ccsClientSelect.geminiCli')
 	            }}</span>
-	            <span class="text-xs text-gray-500 dark:text-gray-400">{{
+	            <span class="keys-ccs__desc">{{
 	              t('keys.ccsClientSelect.geminiCliDesc')
 	            }}</span>
 	          </button>
 	        </div>
 	      </div>
       <template #footer>
-        <div class="flex justify-end">
+        <div class="keys-form-actions">
           <button @click="closeCcsClientSelect" class="st-btn st-btn--quiet">
             {{ t('common.cancel') }}
           </button>
@@ -966,7 +887,7 @@
       <div
         v-if="groupSelectorKeyId !== null && dropdownPosition"
         ref="dropdownRef"
-        class="animate-in fade-in slide-in-from-top-2 fixed z-[100000020] w-max max-w-[calc(100vw-16px)] overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5 duration-200 sm:min-w-[380px] dark:bg-dark-800 dark:ring-white/10"
+        class="keys-groups"
         style="pointer-events: auto !important;"
         :style="{
           top: dropdownPosition.top !== undefined ? dropdownPosition.top + 'px' : undefined,
@@ -975,33 +896,33 @@
         }"
       >
         <!-- Search box -->
-        <div class="border-b border-gray-100 p-2 dark:border-dark-700">
-          <div class="relative">
-            <svg class="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <div class="keys-groups__head">
+          <div class="keys-prefixwrap">
+            <svg class="keys-groups__searchicon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               v-model="groupSearchQuery"
               type="text"
-              class="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary-300 focus:ring-1 focus:ring-primary-300 dark:border-dark-600 dark:bg-dark-700 dark:text-white dark:placeholder-gray-500 dark:focus:border-primary-600 dark:focus:ring-primary-600"
+              class="st-input keys-groups__search"
               :placeholder="t('keys.searchGroup')"
               @click.stop
             />
           </div>
         </div>
         <!-- Group list -->
-        <div class="max-h-80 overflow-y-auto p-1.5">
+        <div class="keys-groups__list">
           <button
             v-for="option in filteredGroupOptions"
             :key="option.value ?? 'null'"
             @click="changeGroup(selectedKeyForGroup!, option.value)"
             :class="[
-              'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors',
-              'border-b border-gray-100 last:border-0 dark:border-dark-700',
+              'keys-groups__item',
+              
               selectedKeyForGroup?.group_id === option.value ||
               (!selectedKeyForGroup?.group_id && option.value === null)
-                ? 'bg-primary-50 dark:bg-primary-900/20'
-                : 'hover:bg-gray-100 dark:hover:bg-dark-700'
+                ? 'keys-groups__item--on'
+                : ''
             ]"
             :title="option.description || undefined"
           >
@@ -1023,7 +944,7 @@
             />
           </button>
           <!-- Empty state when search has no results -->
-          <div v-if="filteredGroupOptions.length === 0" class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
+          <div v-if="filteredGroupOptions.length === 0" class="keys-hint keys-groups__empty">
             {{ t('keys.noGroupFound') }}
           </div>
         </div>
@@ -1939,155 +1860,114 @@ onUnmounted(() => {
 })
 </script>
 <style scoped>
-.keys { padding-top: clamp(30px, 4.6vw, 54px); padding-bottom: clamp(48px, 6vw, 84px); }
-.keys__inner { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 28px); }
+.keys { padding-bottom: clamp(48px, 6vw, 84px); }
+.keys__inner { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 28px); min-width: 0; }
 
-.keys__head { display: flex; flex-direction: column; gap: 16px; }
-.keys__head-copy { display: flex; flex-direction: column; gap: 10px; max-width: 64ch; }
-.keys__title { margin-top: 2px; }
+.keys__head { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.keys__head-copy { display: flex; flex-direction: column; gap: 10px; max-width: 64ch; min-width: 0; }
+.keys__title { margin-top: 2px; overflow-wrap: anywhere; }
 .keys__lede { font-size: clamp(0.95rem, 1.2vw, 1.05rem); }
 .keys__head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .keys__toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.keys__search { width: 100%; max-width: 280px; }
-.keys__filter { width: 150px; }
+.keys__search { width: 100%; max-width: 280px; min-width: 0; }
+.keys__filter { width: 150px; max-width: 100%; }
 .keys__sortseg { flex-wrap: wrap; }
-.keys__toolbar-end { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.keys__toolbar-end { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-left: auto; }
 .keys__cols { position: relative; }
 .keys__cols-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  z-index: 60;
-  min-width: 220px;
-  padding: 8px;
-  border-radius: var(--st-radius-md);
-  border: 1px solid var(--st-line);
-  background: var(--st-bg-elev);
-  box-shadow: var(--st-shadow-md);
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 60;
+  min-width: 210px; max-width: calc(100vw - 24px); padding: 8px;
+  border-radius: var(--st-r-md); border: 1px solid var(--st-line);
+  background: var(--st-bg); box-shadow: var(--st-shadow-2);
 }
-.keys__cols-title { padding: 4px 8px 8px; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--st-ink-faint); border-bottom: 1px solid var(--st-line); margin-bottom: 4px; }
+.keys__cols-title { margin: 0 0 4px; padding: 4px 8px 8px; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--st-ink-3); border-bottom: 1px solid var(--st-line); }
 .keys__cols-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 8px;
-  border: 0;
-  border-radius: 9px;
-  background: none;
-  font-size: 0.84rem;
-  color: var(--st-ink-soft);
-  text-align: left;
-  cursor: pointer;
-  transition: background-color var(--st-dur-fast) var(--st-ease), color var(--st-dur-fast) var(--st-ease);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 8px; border: 0; border-radius: 9px; background: none;
+  font-family: inherit; font-size: 0.84rem; color: var(--st-ink-2); text-align: left; cursor: pointer;
+  transition: background-color var(--st-t-fast) var(--st-ease), color var(--st-t-fast) var(--st-ease);
 }
-.keys__cols-item:hover { background: var(--st-accent-soft); color: var(--st-ink); }
-.keys__cols-check { color: var(--st-accent); }
+.keys__cols-item:hover { background: var(--st-brand-soft); color: var(--st-ink); }
+.keys__cols-check { color: var(--st-brand-text); }
 .keys__spin { animation: keys-spin 900ms linear infinite; }
 @keyframes keys-spin { to { transform: rotate(360deg); } }
 
 .keys__bulk {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  border-radius: var(--st-radius-md);
-  border: 1px solid var(--st-accent-line);
-  background: var(--st-accent-soft);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: var(--st-r-md);
+  border: 1px solid var(--st-brand-line); background: var(--st-brand-soft);
 }
 .keys__bulk-count { font-size: 0.84rem; font-weight: 550; color: var(--st-ink); }
 
-.keys__grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-
-.keys__card { display: flex; flex-direction: column; gap: 14px; }
+.keys__grid { display: grid; grid-template-columns: 1fr; gap: 14px; min-width: 0; }
+.keys__card { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .keys__card-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .keys__select { display: inline-flex; align-items: center; flex: none; }
-.keys__select input { width: 15px; height: 15px; accent-color: var(--st-accent); cursor: pointer; }
+.keys__select input { width: 15px; height: 15px; accent-color: var(--st-brand); cursor: pointer; }
 .keys__name { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; color: var(--st-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.keys__shield { flex: none; color: var(--st-accent); }
-.keys__id { font-size: 0.72rem; color: var(--st-ink-faint); }
-.keys__status { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; flex: none; font-size: 0.74rem; font-weight: 550; color: var(--st-ink-soft); }
-.keys__status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--st-ink-faint); }
-.keys__status--active { color: var(--st-accent); }
-.keys__status--active .keys__status-dot { background: var(--st-accent); box-shadow: 0 0 0 3px var(--st-accent-soft); }
-.keys__status--quota_exhausted { color: #d9a520; }
-.keys__status--quota_exhausted .keys__status-dot { background: #d9a520; }
-.keys__status--expired, .keys__status--inactive { color: #e0554d; }
-.keys__status--expired .keys__status-dot, .keys__status--inactive .keys__status-dot { background: #e0554d; }
+.keys__shield { flex: none; color: var(--st-brand-text); }
+.keys__id { font-size: 0.72rem; color: var(--st-ink-3); }
+.keys__status { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; flex: none; font-size: 0.74rem; font-weight: 550; color: var(--st-ink-2); }
+.keys__status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--st-ink-3); }
+.keys__status--active { color: var(--st-brand-text); }
+.keys__status--active .keys__status-dot { background: var(--st-brand); box-shadow: 0 0 0 3px var(--st-brand-soft); }
+.keys__status--quota_exhausted { color: var(--st-warn); }
+.keys__status--quota_exhausted .keys__status-dot { background: var(--st-warn); }
+.keys__status--expired, .keys__status--inactive { color: var(--st-danger); }
+.keys__status--expired .keys__status-dot, .keys__status--inactive .keys__status-dot { background: var(--st-danger); }
 
 .keys__key {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: var(--st-radius-md);
-  border: 1px solid var(--st-line);
-  background: var(--st-bg-sunk);
-  cursor: pointer;
-  transition: border-color var(--st-dur) var(--st-ease), background-color var(--st-dur) var(--st-ease);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; min-width: 0; padding: 8px 10px; border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line); background: var(--st-bg-sink); cursor: pointer;
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
 }
-.keys__key:hover { border-color: var(--st-accent-line); background: color-mix(in srgb, var(--st-accent) 6%, var(--st-bg-sunk)); }
-.keys__key-code { background: transparent; border: 0; padding: 0; font-size: 0.78rem; color: var(--st-ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.keys__copy { display: inline-flex; align-items: center; gap: 5px; flex: none; font-size: 0.72rem; color: var(--st-ink-faint); }
-.keys__copy--done { color: var(--st-accent); }
+.keys__key:hover { border-color: var(--st-brand-line); background: color-mix(in srgb, var(--st-brand) 6%, var(--st-bg-sink)); }
+.keys__key-code { min-width: 0; background: transparent; border: 0; padding: 0; font-size: 0.78rem; color: var(--st-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.keys__copy { display: inline-flex; align-items: center; gap: 5px; flex: none; font-size: 0.72rem; color: var(--st-ink-3); }
+.keys__copy--done { color: var(--st-brand-text); }
 .keys__copy-label { white-space: nowrap; }
 
-.keys__facts { display: flex; flex-direction: column; gap: 7px; }
-.keys__fact { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.keys__fact dt { font-size: 0.74rem; color: var(--st-ink-faint); }
-.keys__fact dd { font-size: 0.84rem; color: var(--st-ink); display: inline-flex; align-items: baseline; gap: 4px; }
-.keys__fact-sub { font-size: 0.72rem; color: var(--st-ink-faint); }
-.keys__fact-muted { color: var(--st-ink-soft) !important; font-size: 0.8rem !important; }
-.keys__fact-danger { color: #e0554d !important; }
+.keys__facts { display: flex; flex-direction: column; gap: 7px; margin: 0; }
+.keys__fact { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0; }
+.keys__fact dt { font-size: 0.74rem; color: var(--st-ink-3); flex: none; }
+.keys__fact dd { margin: 0; font-size: 0.84rem; color: var(--st-ink); display: inline-flex; align-items: baseline; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.keys__fact-sub { font-size: 0.72rem; color: var(--st-ink-3); }
+.keys__fact-muted { color: var(--st-ink-2) !important; font-size: 0.8rem !important; }
+.keys__fact-danger { color: var(--st-danger) !important; }
+.keys__fact-warn { color: var(--st-warn) !important; }
 .keys__pending { display: inline-block; width: 56px; height: 11px; }
 
 .keys__quota, .keys__ratelimit { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--st-line); }
-.keys__quota-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 0.76rem; color: var(--st-ink-soft); }
-.keys__bar { height: 4px; border-radius: 999px; background: var(--st-bg-sunk); overflow: hidden; }
-.keys__bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--st-accent); transition: width var(--st-dur) var(--st-ease); }
-.keys__bar-fill--warn { background: #d9a520; }
-.keys__bar-fill--off { background: #e0554d; }
-.keys__textbtn { align-self: flex-start; margin-top: 2px; padding: 2px 6px; border: 0; border-radius: 8px; background: none; font-size: 0.72rem; color: var(--st-ink-faint); cursor: pointer; }
-.keys__textbtn:hover { background: var(--st-accent-soft); color: var(--st-accent); }
+.keys__quota-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 0.76rem; color: var(--st-ink-2); }
+.keys__rl-reset { font-size: 0.7rem; color: var(--st-ink-3); }
+.keys__bar { height: 4px; border-radius: 999px; background: var(--st-bg-sink); overflow: hidden; }
+.keys__bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--st-brand); transition: width var(--st-t) var(--st-ease); }
+.keys__bar-fill--ok { background: var(--st-brand); }
+.keys__bar-fill--warn { background: var(--st-warn); }
+.keys__bar-fill--off { background: var(--st-danger); }
+.keys__textbtn { align-self: flex-start; margin-top: 2px; padding: 2px 6px; border: 0; border-radius: 8px; background: none; font-family: inherit; font-size: 0.72rem; color: var(--st-ink-3); cursor: pointer; }
+.keys__textbtn:hover { background: var(--st-brand-soft); color: var(--st-brand-text); }
 
-.keys__card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--st-line); }
+.keys__card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--st-line); }
 .keys__group-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 4px 8px;
-  margin-left: -8px;
-  border: 0;
-  border-radius: 9px;
-  background: none;
-  cursor: pointer;
-  color: var(--st-ink-soft);
-  transition: background-color var(--st-dur-fast) var(--st-ease);
+  display: inline-flex; align-items: center; gap: 6px; min-width: 0;
+  padding: 4px 8px; margin-left: -8px;
+  border: 0; border-radius: 9px; background: none; cursor: pointer; color: var(--st-ink-2);
+  transition: background-color var(--st-t-fast) var(--st-ease);
 }
-.keys__group-btn:hover { background: var(--st-accent-soft); }
-.keys__group-empty { font-size: 0.78rem; color: var(--st-ink-faint); }
-.keys__group-caret { color: var(--st-ink-faint); flex: none; }
-.keys__actions { display: flex; align-items: center; gap: 2px; flex: none; }
+.keys__group-btn:hover { background: var(--st-brand-soft); }
+.keys__group-empty { font-size: 0.78rem; color: var(--st-ink-3); }
+.keys__group-caret { color: var(--st-ink-3); flex: none; }
+.keys__actions { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; flex: none; }
 .keys__action {
-  display: inline-grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--st-ink-faint);
-  cursor: pointer;
-  transition: background-color var(--st-dur-fast) var(--st-ease), color var(--st-dur-fast) var(--st-ease), transform var(--st-dur-fast) var(--st-ease);
+  display: inline-grid; place-items: center; width: 32px; height: 32px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--st-ink-3); cursor: pointer;
+  transition: background-color var(--st-t-fast) var(--st-ease), color var(--st-t-fast) var(--st-ease), transform var(--st-t-fast) var(--st-ease);
 }
-.keys__action:hover { background: var(--st-accent-soft); color: var(--st-ink); transform: translateY(-1px); }
-.keys__action--danger:hover { background: rgba(224, 85, 77, 0.12); color: #e0554d; }
+.keys__action:hover { background: var(--st-brand-soft); color: var(--st-ink); transform: translateY(-1px); }
+.keys__action--danger:hover { background: var(--st-danger-soft); color: var(--st-danger); }
 
 .keys__skeleton { display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
 .keys__sk-line { display: block; height: 12px; }
@@ -2095,37 +1975,118 @@ onUnmounted(() => {
 .keys__sk-line--sm { width: 40%; }
 
 .keys__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: clamp(32px, 6vw, 64px) 20px;
-  text-align: center;
-  border-radius: var(--st-radius-xl);
-  border: 1px dashed var(--st-line-strong);
-  background: radial-gradient(ellipse 60% 70% at 50% 0%, color-mix(in srgb, var(--st-accent) 7%, transparent), transparent 72%);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: clamp(32px, 6vw, 64px) 20px; text-align: center;
+  border-radius: var(--st-r-xl); border: 1px dashed var(--st-line-2);
+  background: radial-gradient(ellipse 60% 70% at 50% 0%, color-mix(in srgb, var(--st-brand) 7%, transparent), transparent 72%);
 }
-.keys__empty-art { margin-bottom: 4px; }
+.keys__empty-art { margin-bottom: 4px; max-width: 100%; height: auto; }
 .keys__empty-title { margin-top: 4px; }
 .keys__empty-body { font-size: 0.9rem; max-width: 44ch; }
 
-.keys__pager { display: flex; justify-content: center; padding-top: 8px; }
+.keys__pager { display: flex; justify-content: center; flex-wrap: wrap; padding-top: 8px; }
 
-/* 弹窗内表单微调（沿用原有结构，只换皮） */
-.keys__mono { font-family: var(--st-font-mono); }
-.keys__pl { padding-left: 30px; }
-.keys__hint { font-size: 0.74rem; color: var(--st-ink-faint); margin-top: 6px; line-height: 1.6; }
-.keys__label-inline { margin-bottom: 0; }
-.keys__usage-box {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: var(--st-radius-md);
-  background: var(--st-bg-sunk);
-  border: 1px solid var(--st-line);
-  font-size: 0.84rem;
-  color: var(--st-ink);
+/* 弹窗内表单 */
+.keys-stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.keys-stack--tight { gap: 9px; }
+.keys-stack--loose { gap: 20px; }
+.keys-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.keys-switch {
+  position: relative; display: inline-flex; align-items: center; flex: none;
+  width: 40px; height: 23px; padding: 2px; border-radius: 999px;
+  border: 1px solid var(--st-line-2); background: var(--st-bg-sink); cursor: pointer;
+  transition: background-color var(--st-t) var(--st-ease), border-color var(--st-t) var(--st-ease);
 }
+.keys-switch--on { background: var(--st-brand); border-color: var(--st-brand); }
+.keys-switch__knob { display: block; width: 17px; height: 17px; border-radius: 50%; background: var(--st-bg); border: 1px solid var(--st-line-2); transition: transform var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease); }
+.keys-switch--on .keys-switch__knob { transform: translateX(17px); background: var(--st-brand-ink); border-color: transparent; }
+.keys-switch:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
+.keys-providers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.keys-provider {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 10px 6px; border-radius: var(--st-r-md); text-align: center; cursor: pointer;
+  border: 1px solid var(--st-line); background: var(--st-bg); min-width: 0;
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
+.keys-provider:hover { border-color: var(--st-line-2); }
+.keys-provider--on { border-color: var(--st-brand); background: var(--st-brand-soft); }
+.keys-provider--off { opacity: 0.45; cursor: not-allowed; }
+.keys-provider__input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.keys-provider__icons { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.keys-provider__ico { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; }
+.keys-provider__label { font-size: 0.8rem; font-weight: 550; color: var(--st-ink); overflow-wrap: anywhere; }
+.keys-usage__row { display: flex; align-items: baseline; gap: 6px; min-width: 0; flex-wrap: wrap; }
+.keys__usage-box { display: flex; align-items: baseline; gap: 6px; min-width: 0; padding: 8px 12px; border-radius: var(--st-r-md); background: var(--st-bg-soft); border: 1px solid var(--st-line); font-size: 0.84rem; color: var(--st-ink); }
+.keys-usage__now { color: var(--st-ink); }
+.keys-usage__now--warn { color: var(--st-warn); }
+.keys-usage__now--danger { color: var(--st-danger); }
+.keys-usage__sep { color: var(--st-ink-3); }
+.keys-usage__max { color: var(--st-ink-3); }
+.keys-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.keys-chip {
+  height: 32px; padding-inline: 13px; border-radius: 999px;
+  border: 1px solid var(--st-line); background: var(--st-bg);
+  font-family: inherit; font-size: 0.8rem; color: var(--st-ink-2); cursor: pointer;
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease);
+}
+.keys-chip:hover { border-color: var(--st-line-2); color: var(--st-ink); }
+.keys-chip--on { background: var(--st-brand-soft); border-color: var(--st-brand-line); color: var(--st-brand-text); }
+.keys-prefixwrap { position: relative; min-width: 0; }
+.keys-prefix { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--st-ink-3); pointer-events: none; }
+.keys__pl { padding-left: 30px; }
+.keys__mono { font-family: var(--st-font-mono); }
+.keys__hint { margin-top: 6px; font-size: 0.74rem; line-height: 1.6; color: var(--st-ink-3); }
+.keys-hint { margin-top: 6px; font-size: 0.74rem; line-height: 1.6; color: var(--st-ink-3); }
+.keys-hint--danger { color: var(--st-danger); }
+.keys__label-inline { margin-bottom: 0; }
+.keys-note { display: flex; flex-wrap: wrap; gap: 4px; font-size: 0.8rem; }
+.keys-note__label { color: var(--st-ink-3); }
+.keys-note__value { color: var(--st-ink); font-weight: 500; }
+.keys-form-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+.keys-pager-note { color: var(--st-ink-3); }
 
+/* 分组浮层 */
+.keys-groups {
+  position: fixed; z-index: 100000020;
+  width: max-content; max-width: calc(100vw - 16px);
+  overflow: hidden; border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line); background: var(--st-bg);
+  box-shadow: var(--st-shadow-3);
+}
+.keys-groups__head { border-bottom: 1px solid var(--st-line); padding: 8px; }
+.keys-groups__searchwrap { position: relative; }
+.keys-groups__searchicon { position: absolute; left: 10px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--st-ink-3); }
+.keys-groups__search { padding-left: 32px; font-size: 0.84rem; }
+.keys-groups__list { max-height: 300px; overflow-y: auto; padding: 6px; }
+.keys-groups__item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; padding: 9px 10px; border: 0; border-radius: 9px; background: none;
+  font-family: inherit; font-size: 0.84rem; color: var(--st-ink-2); text-align: left; cursor: pointer;
+  transition: background-color var(--st-t-fast) var(--st-ease);
+}
+.keys-groups__item + .keys-groups__item { border-top: 1px solid var(--st-line); }
+.keys-groups__item:hover { background: var(--st-bg-soft); }
+.keys-groups__item--on { background: var(--st-brand-soft); color: var(--st-ink); }
+.keys-groups__empty { padding: 16px 8px; text-align: center; }
+
+/* CCS 客户端选择 */
+.keys-ccs-wrap { display: flex; flex-direction: column; gap: 14px; }
+.keys-ccs-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.keys-ccs {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 16px; border-radius: var(--st-r-md); cursor: pointer;
+  border: 1px solid var(--st-line); background: var(--st-bg);
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
+.keys-ccs:hover { border-color: var(--st-brand-line); background: var(--st-bg-soft); }
+.keys-ccs__icon { color: var(--st-ink-2); }
+.keys-ccs__title { font-size: 0.9rem; font-weight: 550; color: var(--st-ink); }
+.keys-ccs__desc { font-size: 0.74rem; color: var(--st-ink-3); }
+
+@media (min-width: 480px) {
+  .keys-providers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .keys-ccs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (min-width: 720px) {
   .keys__head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
   .keys__head-actions { padding-bottom: 6px; }
@@ -2136,4 +2097,3 @@ onUnmounted(() => {
   .keys__card { min-height: 280px; }
 }
 </style>
-

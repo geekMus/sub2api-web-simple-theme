@@ -1,155 +1,133 @@
 <template>
-  <div class="card">
-    <div class="border-b border-gray-100 px-6 py-4 dark:border-dark-700">
-      <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-        {{ t('profile.balanceNotify.title') }}
-      </h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('profile.balanceNotify.description') }}
-      </p>
-    </div>
-    <div class="px-6 py-6 space-y-6">
-      <!-- Enable toggle -->
-      <div class="flex items-center justify-between">
-        <label class="input-label mb-0">{{ t('profile.balanceNotify.enabled') }}</label>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" v-model="notifyEnabled" @change="handleToggle" class="sr-only peer" />
-          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:after:border-gray-600 peer-checked:bg-primary-600"></div>
+  <div class="st-card st-card--pad profile-panel">
+    <header class="profile-block__head">
+      <h2 class="st-display-3">{{ t('profile.balanceNotify.title') }}</h2>
+      <p class="st-body">{{ t('profile.balanceNotify.description') }}</p>
+    </header>
+
+    <div class="profile-body">
+      <div class="profile-switch-row">
+        <span class="st-label profile-switch-row__label">{{ t('profile.balanceNotify.enabled') }}</span>
+        <label class="profile-switch">
+          <input type="checkbox" v-model="notifyEnabled" class="profile-switch__input" @change="handleToggle" />
+          <span class="profile-switch__track" aria-hidden="true"><span class="profile-switch__knob"></span></span>
         </label>
       </div>
 
       <template v-if="notifyEnabled">
-        <!-- Custom threshold with save button -->
-        <div>
-          <label class="input-label">
+        <div class="profile-field">
+          <label class="st-label">
             {{ t('profile.balanceNotify.threshold') }}
-            <span class="text-xs text-gray-400 ml-2">{{ t('profile.balanceNotify.thresholdHint') }}</span>
+            <span class="profile-hint profile-hint--inline">{{ t('profile.balanceNotify.thresholdHint') }}</span>
           </label>
-          <div class="flex items-center gap-2">
-            <span class="text-gray-500">$</span>
+          <div class="profile-inline">
+            <span class="profile-prefix">$</span>
             <input
               v-model.number="customThreshold"
               type="number"
               min="0"
               step="0.01"
-              class="input flex-1"
+              class="st-input profile-inline__input profile-inline__input--prefix"
               :placeholder="systemDefaultThreshold > 0 ? `${t('profile.balanceNotify.systemDefault')} $${systemDefaultThreshold}` : t('profile.balanceNotify.thresholdPlaceholder')"
             />
-            <button
-              @click="handleThresholdUpdate"
-              :disabled="savingThreshold"
-              class="btn btn-primary btn-sm whitespace-nowrap"
-            >
+            <button @click="handleThresholdUpdate" :disabled="savingThreshold" class="st-btn st-btn--primary st-btn--sm">
               {{ savingThreshold ? t('common.saving') : t('common.save') }}
             </button>
           </div>
         </div>
 
-        <!-- Email list with toggles -->
-        <div>
-          <label class="input-label">{{ t('profile.balanceNotify.extraEmails') }}</label>
-          <p class="mb-2 text-xs text-yellow-600 dark:text-yellow-400">{{ t('profile.balanceNotify.extraEmailsHint') }}</p>
+        <div class="profile-field">
+          <label class="st-label">{{ t('profile.balanceNotify.extraEmails') }}</label>
+          <p class="profile-hint profile-hint--warn">{{ t('profile.balanceNotify.extraEmailsHint') }}</p>
 
-          <!-- Saved email entries -->
-          <div v-if="emailEntries.length > 0" class="space-y-2 mb-3">
-            <div v-for="(entry, idx) in emailEntries" :key="idx"
-              class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-dark-700 rounded-lg">
-              <div class="flex items-center gap-2 min-w-0 flex-1">
-                <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input type="checkbox" :checked="!entry.disabled" @change="handleEmailToggle(entry)" class="sr-only peer" />
-                  <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-500 peer-checked:bg-primary-600"></div>
+          <div v-if="emailEntries.length > 0" class="profile-email-list">
+            <div v-for="(entry, idx) in emailEntries" :key="idx" class="profile-email">
+              <div class="profile-email__main">
+                <label class="profile-switch profile-switch--sm">
+                  <input type="checkbox" :checked="!entry.disabled" class="profile-switch__input" @change="handleEmailToggle(entry)" />
+                  <span class="profile-switch__track" aria-hidden="true"><span class="profile-switch__knob"></span></span>
                 </label>
-                <span class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ entry.email }}</span>
+                <span class="profile-email__address">{{ entry.email }}</span>
               </div>
-              <div class="flex items-center gap-2 shrink-0">
+              <div class="profile-email__actions">
                 <template v-if="!entry.verified">
-                  <!-- Inline verify flow for saved unverified emails -->
                   <template v-if="verifyingEmail === entry.email">
                     <input
                       v-model="verifyCode"
                       type="text"
                       maxlength="6"
-                      class="w-20 rounded border border-gray-300 px-2 py-1 text-xs dark:border-dark-500 dark:bg-dark-700"
+                      class="st-input profile-code"
                       :placeholder="t('profile.balanceNotify.codePlaceholder')"
                     />
-                    <button @click="verifySavedEmail(entry.email)" :disabled="!verifyCode || verifyCode.length !== 6 || verifyingSaved" class="text-xs text-primary-600 hover:text-primary-700">
+                    <button @click="verifySavedEmail(entry.email)" :disabled="!verifyCode || verifyCode.length !== 6 || verifyingSaved" class="profile-link">
                       {{ t('profile.balanceNotify.verify') }}
                     </button>
-                    <span v-if="verifyCountdown > 0" class="text-xs text-gray-400">{{ verifyCountdown }}s</span>
-                    <button v-else @click="sendCodeForSaved(entry.email)" :disabled="sendingSavedCode" class="text-xs text-gray-500 hover:text-gray-700">
+                    <span v-if="verifyCountdown > 0" class="profile-hint">{{ verifyCountdown }}s</span>
+                    <button v-else @click="sendCodeForSaved(entry.email)" :disabled="sendingSavedCode" class="profile-link profile-link--muted">
                       {{ t('profile.balanceNotify.resend') }}
                     </button>
-                    <button @click="verifyingEmail = ''" class="text-xs text-gray-400 hover:text-gray-600">
+                    <button @click="verifyingEmail = ''" class="profile-link profile-link--muted">
                       {{ t('common.cancel') }}
                     </button>
                   </template>
                   <template v-else>
-                    <button @click="sendCodeForSaved(entry.email)" :disabled="sendingSavedCode" class="text-xs text-primary-600 hover:text-primary-700">
+                    <button @click="sendCodeForSaved(entry.email)" :disabled="sendingSavedCode" class="profile-link">
                       {{ t('profile.balanceNotify.verify') }}
                     </button>
-                    <span class="text-xs text-yellow-500">{{ t('profile.balanceNotify.unverified') }}</span>
+                    <span class="profile-tag profile-tag--warn">{{ t('profile.balanceNotify.unverified') }}</span>
                   </template>
                 </template>
-                <span v-else class="text-xs text-green-500">{{ t('profile.balanceNotify.verified') }}</span>
-                <button @click="handleRemoveEmail(entry.email)" class="text-red-500 hover:text-red-700 text-xs">
+                <span v-else class="profile-tag profile-tag--ok">{{ t('profile.balanceNotify.verified') }}</span>
+                <button @click="handleRemoveEmail(entry.email)" class="profile-link profile-link--danger">
                   {{ t('profile.balanceNotify.removeEmail') }}
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Pending (unverified) emails in verification flow -->
-          <div v-if="pendingEmails.length > 0" class="space-y-2 mb-3">
-            <div v-for="(pe, idx) in pendingEmails" :key="pe.email"
-              class="flex items-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-200 dark:border-yellow-800">
-              <span class="flex-1 text-sm text-gray-700 dark:text-gray-300">{{ pe.email }}</span>
-              <div v-if="!pe.codeSent" class="flex items-center gap-1">
-                <button @click="sendCodeFor(idx)" :disabled="pe.sending" class="text-xs text-primary-600 hover:text-primary-700">
+          <div v-if="pendingEmails.length > 0" class="profile-email-list">
+            <div v-for="(pe, idx) in pendingEmails" :key="pe.email" class="profile-email profile-email--pending">
+              <span class="profile-email__address profile-email__address--pending">{{ pe.email }}</span>
+              <div v-if="!pe.codeSent" class="profile-email__actions">
+                <button @click="sendCodeFor(idx)" :disabled="pe.sending" class="profile-link">
                   {{ t('profile.balanceNotify.sendCode') }}
                 </button>
-                <button @click="pendingEmails.splice(idx, 1)" class="text-xs text-red-500 hover:text-red-700 ml-1">
+                <button @click="pendingEmails.splice(idx, 1)" class="profile-link profile-link--danger">
                   {{ t('profile.balanceNotify.removeEmail') }}
                 </button>
               </div>
-              <div v-else class="flex items-center gap-1">
+              <div v-else class="profile-email__actions">
                 <input
                   v-model="pe.code"
                   type="text"
                   maxlength="6"
-                  class="w-20 rounded border border-gray-300 px-2 py-1 text-xs dark:border-dark-500 dark:bg-dark-700"
+                  class="st-input profile-code"
                   :placeholder="t('profile.balanceNotify.codePlaceholder')"
                 />
-                <button @click="verifyPending(idx)" :disabled="!pe.code || pe.code.length !== 6 || pe.verifying" class="text-xs text-primary-600 hover:text-primary-700">
+                <button @click="verifyPending(idx)" :disabled="!pe.code || pe.code.length !== 6 || pe.verifying" class="profile-link">
                   {{ t('profile.balanceNotify.verify') }}
                 </button>
-                <span v-if="pe.countdown > 0" class="text-xs text-gray-400">{{ pe.countdown }}s</span>
-                <button v-else @click="sendCodeFor(idx)" :disabled="pe.sending" class="text-xs text-gray-500 hover:text-gray-700">
+                <span v-if="pe.countdown > 0" class="profile-hint">{{ pe.countdown }}s</span>
+                <button v-else @click="sendCodeFor(idx)" :disabled="pe.sending" class="profile-link profile-link--muted">
                   {{ t('profile.balanceNotify.resend') }}
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Add new email input (hidden when at limit) -->
-          <div v-if="canAddMore" class="flex gap-2">
+          <div v-if="canAddMore" class="profile-inline">
             <input
               v-model="newEmail"
               type="email"
-              class="input flex-1"
+              class="st-input profile-inline__input"
               :placeholder="t('profile.balanceNotify.emailPlaceholder')"
               @keyup.enter="addPendingEmail"
             />
-            <button
-              @click="addPendingEmail"
-              :disabled="!newEmail"
-              class="btn btn-secondary whitespace-nowrap"
-            >
+            <button @click="addPendingEmail" :disabled="!newEmail" class="st-btn st-btn--quiet st-btn--sm">
               {{ t('common.add') }}
             </button>
           </div>
-          <p v-else class="text-xs text-gray-400">
-            {{ t('profile.balanceNotify.maxEmailsReached') }}
-          </p>
+          <p v-else class="profile-hint">{{ t('profile.balanceNotify.maxEmailsReached') }}</p>
         </div>
       </template>
     </div>
@@ -376,3 +354,49 @@ async function verifySavedEmail(email: string) {
   }
 }
 </script>
+
+<style scoped>
+.profile-panel { min-width: 0; }
+.profile-embed { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.profile-block__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.profile-block__head--tight { margin-bottom: 4px; }
+.profile-body { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.profile-field { min-width: 0; }
+.profile-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.profile-switch-row__label { margin-bottom: 0; }
+.profile-switch { position: relative; display: inline-flex; align-items: center; flex: none; cursor: pointer; }
+.profile-switch__input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.profile-switch__track { display: block; width: 40px; height: 23px; border-radius: 999px; background: var(--st-bg-sink); border: 1px solid var(--st-line-2); transition: background-color var(--st-t) var(--st-ease), border-color var(--st-t) var(--st-ease); }
+.profile-switch__knob { display: block; width: 17px; height: 17px; margin: 2px; border-radius: 50%; background: var(--st-bg); border: 1px solid var(--st-line-2); transition: transform var(--st-t) var(--st-ease); }
+.profile-switch__input:checked + .profile-switch__track { background: var(--st-brand); border-color: var(--st-brand); }
+.profile-switch__input:checked + .profile-switch__track .profile-switch__knob { transform: translateX(17px); background: var(--st-brand-ink); border-color: transparent; }
+.profile-switch__input:focus-visible + .profile-switch__track { outline: 2px solid var(--st-brand); outline-offset: 2px; }
+.profile-switch--sm .profile-switch__track { width: 34px; height: 20px; }
+.profile-switch--sm .profile-switch__knob { width: 14px; height: 14px; }
+.profile-switch--sm .profile-switch__input:checked + .profile-switch__track .profile-switch__knob { transform: translateX(14px); }
+.profile-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; position: relative; }
+.profile-inline__input { flex: 1 1 160px; min-width: 0; }
+.profile-inline__input--prefix { padding-left: 28px; }
+.profile-prefix { position: absolute; left: 12px; transform: translateY(-50%); top: 50%; font-size: 0.86rem; color: var(--st-ink-3); pointer-events: none; }
+.profile-hint { font-size: 0.74rem; line-height: 1.6; color: var(--st-ink-3); }
+.profile-hint--inline { margin-left: 6px; }
+.profile-hint--warn { color: var(--st-warn); margin-bottom: 10px; }
+.profile-email-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.profile-email { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid var(--st-line); border-radius: var(--st-r-sm); background: var(--st-bg-soft); }
+.profile-email--pending { border-color: var(--st-warn); background: var(--st-warn-soft); }
+.profile-email__main { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 180px; }
+.profile-email__address { font-size: 0.85rem; color: var(--st-ink); overflow-wrap: anywhere; min-width: 0; }
+.profile-email__address--pending { flex: 1 1 180px; }
+.profile-email__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.profile-code { width: 88px; padding: 7px 9px; font-size: 0.82rem; }
+.profile-link { border: 0; background: none; padding: 0; font: inherit; font-size: 0.76rem; color: var(--st-brand-text); cursor: pointer; }
+.profile-link:hover { text-decoration: underline; }
+.profile-link--muted { color: var(--st-ink-3); }
+.profile-link--danger { color: var(--st-danger); }
+.profile-tag { display: inline-flex; align-items: center; height: 22px; padding-inline: 9px; border-radius: 999px; font-size: 0.72rem; }
+.profile-tag--ok { background: var(--st-ok-soft); color: var(--st-ok); }
+.profile-tag--warn { background: var(--st-warn-soft); color: var(--st-warn); }
+.profile-providers { display: flex; flex-direction: column; }
+.profile-bind { padding: 14px 0; }
+.profile-bind + .profile-bind { border-top: 1px solid var(--st-line); }
+</style>

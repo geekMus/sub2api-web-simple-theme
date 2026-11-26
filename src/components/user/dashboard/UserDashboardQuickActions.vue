@@ -1,7 +1,7 @@
 <template>
   <aside class="dash-quick st-card st-card--pad st-card--halo">
     <header class="dash-quick__head">
-      <p class="st-eyebrow">{{ c('usercore.dash.quickTitle') }}</p>
+      <p class="st-eyebrow">{{ c('usercore.dash.quickEyebrow') }}</p>
       <h2 class="st-display-3">{{ c('usercore.dash.quickTitle') }}</h2>
       <p class="st-body dash-quick__lede">{{ c('usercore.dash.quickLede') }}</p>
     </header>
@@ -100,14 +100,14 @@ onMounted(() => {
   width: 100%;
   padding: 12px 10px;
   border: 0;
-  border-radius: var(--st-radius-md);
+  border-radius: var(--st-r-md);
   background: transparent;
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--st-dur) var(--st-ease), transform var(--st-dur-fast) var(--st-ease);
+  transition: background-color var(--st-t) var(--st-ease), transform var(--st-t-fast) var(--st-ease);
 }
-.dash-quick__item:hover { background: color-mix(in srgb, var(--st-accent) 6%, transparent); transform: translateX(2px); }
-.dash-quick__item:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+.dash-quick__item:hover { background: color-mix(in srgb, var(--st-brand) 6%, transparent); transform: translateX(2px); }
+.dash-quick__item:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
 .dash-quick__icon {
   display: grid;
   place-items: center;
@@ -116,13 +116,12 @@ onMounted(() => {
   flex: none;
   border-radius: 12px;
   border: 1px solid var(--st-line);
-  background: var(--st-bg-sunk);
-  color: var(--st-accent);
+  background: var(--st-bg-sink);
+  color: var(--st-brand-text);
 }
 .dash-quick__copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .dash-quick__title { font-size: 0.9rem; font-weight: 550; color: var(--st-ink); }
-.dash-quick__body { font-size: 0.76rem; color: var(--st-ink-faint); }
-.dash-quick__arrow { margin-left: auto; color: var(--st-ink-faint); flex: none; transition: transform var(--st-dur) var(--st-ease); }
-.dash-quick__item:hover .dash-quick__arrow { transform: translateX(2px); color: var(--st-accent); }
+.dash-quick__body { font-size: 0.76rem; color: var(--st-ink-3); }
+.dash-quick__arrow { margin-left: auto; color: var(--st-ink-3); flex: none; transition: transform var(--st-t) var(--st-ease); }
+.dash-quick__item:hover .dash-quick__arrow { transform: translateX(2px); color: var(--st-brand-text); }
 </style>
-

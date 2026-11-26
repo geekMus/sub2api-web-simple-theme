@@ -1,42 +1,53 @@
 <template>
-  <AppLayout>
-    <div class="mx-auto flex max-w-md flex-col items-center space-y-6 py-8">
-      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-        {{ qrUrl ? scanTitle : t('payment.qr.payInNewWindow') }}
-      </h2>
-      <div v-if="qrUrl" class="rounded-2xl bg-white p-6 shadow-lg dark:bg-dark-800">
-        <canvas ref="qrCanvas" class="mx-auto"></canvas>
+  <UserShell>
+    <section class="st-section--tight qrpay">
+      <div class="st-shell qrpay__wrap">
+        <header class="qrpay__hero">
+          <p class="st-eyebrow">{{ c('pay.qr.title') }}</p>
+          <h1 class="st-display-2 qrpay__title">{{ qrUrl ? scanTitle : t('payment.qr.payInNewWindow') }}</h1>
+          <p v-if="qrUrl && !expired && scanHint" class="st-lede">{{ scanHint }}</p>
+        </header>
+
+        <div v-if="qrUrl && !expired" class="st-card st-card--pad qrpay__card">
+          <div class="qrpay__paper">
+            <canvas ref="qrCanvas" class="qrpay__canvas"></canvas>
+          </div>
+          <p class="st-body qrpay__hint">{{ c('pay.qr.scanHint') }}</p>
+        </div>
+
+        <div v-if="expired" class="st-card st-card--pad qrpay__card qrpay__card--center">
+          <div class="qrpay__mark qrpay__mark--bad">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v5m0 3.5h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+            </svg>
+          </div>
+          <h2 class="st-display-3">{{ t('payment.qr.expired') }}</h2>
+          <p class="st-body">{{ c('pay.qr.expiredBody') }}</p>
+          <button class="st-btn st-btn--primary qrpay__btn" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
+        </div>
+
+        <div v-else class="st-card st-card--pad qrpay__card qrpay__card--center">
+          <p class="st-row__meta">{{ qrUrl ? t('payment.qr.expiresIn') : t('payment.qr.payInNewWindowHint') }}</p>
+          <p class="st-display-2 qrpay__time st-num">{{ countdownDisplay }}</p>
+          <p class="st-row__meta">{{ t('payment.qr.waitingPayment') }}</p>
+          <a v-if="payUrl && !qrUrl" :href="payUrl" target="_blank" rel="noopener noreferrer"
+            class="st-btn st-btn--primary qrpay__btn">{{ t('payment.qr.openPayWindow') }}</a>
+        </div>
+
+        <button v-if="!expired && orderId" class="st-btn st-btn--quiet qrpay__btn" :disabled="cancelling" @click="handleCancel">
+          {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
+        </button>
       </div>
-      <!-- Scan prompt for QR code -->
-      <p v-if="qrUrl && !expired && scanHint" class="text-center text-sm text-gray-500 dark:text-gray-400">
-        {{ scanHint }}
-      </p>
-      <div v-if="expired" class="text-center">
-        <p class="text-lg font-medium text-red-500">{{ t('payment.qr.expired') }}</p>
-        <button class="btn btn-primary mt-4" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
-      </div>
-      <div v-else class="text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ qrUrl ? t('payment.qr.expiresIn') : t('payment.qr.payInNewWindowHint') }}</p>
-        <p class="mt-1 text-2xl font-bold tabular-nums text-gray-900 dark:text-white">{{ countdownDisplay }}</p>
-        <p class="mt-2 text-sm text-gray-400 dark:text-gray-500">{{ t('payment.qr.waitingPayment') }}</p>
-      </div>
-      <a v-if="payUrl && !qrUrl && !expired" :href="payUrl" target="_blank" rel="noopener noreferrer"
-        class="btn btn-primary w-full py-3">
-        {{ t('payment.qr.openPayWindow') }}
-      </a>
-      <!-- Cancel button -->
-      <button v-if="!expired && orderId" class="btn btn-secondary w-full" :disabled="cancelling" @click="handleCancel">
-        {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
-      </button>
-    </div>
-  </AppLayout>
+    </section>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import AppLayout from '@/components/layout/AppLayout.vue'
+import UserShell from '@/components/shell/UserShell.vue'
+import { useBillingCopy } from '@/composables/copy/billing'
 import { usePaymentStore } from '@/stores/payment'
 import { paymentAPI } from '@/api/payment'
 import { extractI18nErrorMessage } from '@/utils/apiError'
@@ -47,6 +58,7 @@ import alipayIcon from '@/assets/icons/alipay.svg'
 import wxpayIcon from '@/assets/icons/wxpay.svg'
 
 const { t } = useI18n()
+const { c } = useBillingCopy()
 const route = useRoute()
 const router = useRouter()
 const paymentStore = usePaymentStore()
@@ -213,3 +225,38 @@ onMounted(() => {
 
 onUnmounted(() => cleanup())
 </script>
+<style scoped>
+.qrpay { padding-bottom: clamp(56px, 8vw, 96px); }
+.qrpay__wrap { max-width: 460px; }
+.qrpay__hero { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.qrpay__title { margin-top: 6px; }
+
+.qrpay__card { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 12px; text-align: center; }
+.qrpay__hint { font-size: 0.86rem; text-align: center; }
+
+.qrpay__paper {
+  display: grid;
+  place-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 14px;
+  border-radius: var(--st-r-md);
+  /* 二维码必须印在白色底上才能被相机识别，这是功能性例外 */
+  background: white;
+}
+.qrpay__canvas { display: block; width: 256px; max-width: 100%; height: auto; }
+
+.qrpay__mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--st-danger-soft);
+  color: var(--st-danger);
+}
+
+.qrpay__time { font-size: clamp(1.8rem, 6vw, 2.4rem); letter-spacing: 0.02em; }
+.qrpay__btn { width: 100%; min-width: 0; }
+</style>
+

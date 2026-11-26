@@ -7,18 +7,16 @@
     :show-close-button="!submitting"
     @close="close"
   >
-    <form id="bulk-edit-keys-form" class="space-y-5" @submit.prevent="submit">
-      <div class="space-y-1 text-sm">
-        <p class="font-medium text-gray-900 dark:text-white">
-          {{ t('keys.bulkEdit.selectedCount', { count: pendingKeys.length }) }}
-        </p>
-        <p class="text-gray-500 dark:text-gray-400">{{ t('keys.bulkEdit.hint') }}</p>
+    <form id="bulk-edit-keys-form" class="bulk-stack" @submit.prevent="submit">
+      <div class="bulk-intro">
+        <p class="st-display-4">{{ t('keys.bulkEdit.selectedCount', { count: pendingKeys.length }) }}</p>
+        <p class="st-body">{{ t('keys.bulkEdit.hint') }}</p>
       </div>
 
-      <fieldset :disabled="submitting" class="space-y-5">
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 text-sm font-medium">
-            <input v-model="enabled.group_id" type="checkbox" class="checkbox" data-test="enable-group" />
+      <fieldset :disabled="submitting" class="bulk-stack">
+        <div class="bulk-stack bulk-stack--tight">
+          <label class="bulk-check">
+            <input v-model="enabled.group_id" type="checkbox" class="bulk-check__box" data-test="enable-group" />
             {{ t('keys.groupLabel') }}
           </label>
           <Select
@@ -33,9 +31,9 @@
           />
         </div>
 
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 text-sm font-medium">
-            <input v-model="enabled.status" type="checkbox" class="checkbox" data-test="enable-status" />
+        <div class="bulk-stack bulk-stack--tight">
+          <label class="bulk-check">
+            <input v-model="enabled.status" type="checkbox" class="bulk-check__box" data-test="enable-status" />
             {{ t('keys.statusLabel') }}
           </label>
           <Select
@@ -48,12 +46,12 @@
           />
         </div>
 
-        <div v-for="field in limitFields" :key="field.key" class="space-y-2">
-          <label class="flex items-center gap-2 text-sm font-medium">
+        <div v-for="field in limitFields" :key="field.key" class="bulk-stack bulk-stack--tight">
+          <label class="bulk-check">
             <input
               v-model="enabled[field.key]"
               type="checkbox"
-              class="checkbox"
+              class="bulk-check__box"
               :data-test="`enable-${field.key}`"
             />
             {{ t(field.label) }}
@@ -65,22 +63,22 @@
               min="0"
               step="any"
               required
-              class="input"
+              class="st-input"
               :aria-label="t(field.label)"
               :data-test="`${field.key}-input`"
             />
-            <p class="input-hint">{{ t('keys.bulkEdit.limitHint') }}</p>
+            <p class="bulk-hint">{{ t('keys.bulkEdit.limitHint') }}</p>
           </div>
         </div>
 
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 text-sm font-medium">
-            <input v-model="enabled.expires_at" type="checkbox" class="checkbox" data-test="enable-expiration" />
+        <div class="bulk-stack bulk-stack--tight">
+          <label class="bulk-check">
+            <input v-model="enabled.expires_at" type="checkbox" class="bulk-check__box" data-test="enable-expiration" />
             {{ t('keys.expiration') }}
           </label>
-          <div v-if="enabled.expires_at" class="space-y-2">
-            <label class="flex items-center gap-2 text-sm">
-              <input v-model="neverExpires" type="checkbox" class="checkbox" data-test="never-expires" />
+          <div v-if="enabled.expires_at" class="bulk-stack bulk-stack--tight">
+            <label class="bulk-check bulk-check--plain">
+              <input v-model="neverExpires" type="checkbox" class="bulk-check__box" data-test="never-expires" />
               {{ t('keys.noExpiration') }}
             </label>
             <input
@@ -88,19 +86,19 @@
               v-model="expirationDate"
               type="datetime-local"
               required
-              class="input"
+              class="st-input"
               :aria-label="t('keys.expirationDate')"
               data-test="expiration-input"
             />
           </div>
         </div>
 
-        <div v-for="field in ipFields" :key="field.key" class="space-y-2">
-          <label class="flex items-center gap-2 text-sm font-medium">
+        <div v-for="field in ipFields" :key="field.key" class="bulk-stack bulk-stack--tight">
+          <label class="bulk-check">
             <input
               v-model="enabled[field.key]"
               type="checkbox"
-              class="checkbox"
+              class="bulk-check__box"
               :data-test="`enable-${field.key}`"
             />
             {{ t(field.label) }}
@@ -109,22 +107,22 @@
             <textarea
               v-model="ipLists[field.key]"
               rows="3"
-              class="input font-mono text-sm"
+              class="st-input bulk-mono"
               :aria-label="t(field.label)"
               :data-test="`${field.key}-input`"
             />
-            <p class="input-hint">{{ t('keys.bulkEdit.ipHint') }}</p>
+            <p class="bulk-hint">{{ t('keys.bulkEdit.ipHint') }}</p>
           </div>
         </div>
       </fieldset>
 
-      <p v-if="validationError" role="alert" class="text-sm text-red-600 dark:text-red-400">
+      <p v-if="validationError" role="alert" class="bulk-error">
         {{ validationError }}
       </p>
-      <div v-if="failures.length" role="alert" class="space-y-2 text-sm text-red-600 dark:text-red-400">
+      <div v-if="failures.length" role="alert" class="bulk-error">
         <p>{{ t('keys.bulkEdit.failureHint') }}</p>
-        <ul class="max-h-40 space-y-1 overflow-y-auto">
-          <li v-for="failure in failures" :key="failure.id" class="break-words">
+        <ul class="bulk-error__list">
+          <li v-for="failure in failures" :key="failure.id" class="bulk-error__item">
             #{{ failure.id }} {{ failure.name }}: {{ failure.message }}
           </li>
         </ul>
@@ -132,13 +130,13 @@
     </form>
 
     <template #footer>
-      <button type="button" class="btn btn-secondary" :disabled="submitting" @click="close">
+      <button type="button" class="st-btn st-btn--quiet" :disabled="submitting" @click="close">
         {{ t('common.cancel') }}
       </button>
       <button
         type="submit"
         form="bulk-edit-keys-form"
-        class="btn btn-primary"
+        class="st-btn st-btn--primary"
         :disabled="!canSubmit"
         data-test="submit"
       >
@@ -296,3 +294,26 @@ const submit = async () => {
   }
 }
 </script>
+
+<style scoped>
+.bulk-stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.bulk-stack--tight { gap: 8px; }
+.bulk-intro { display: flex; flex-direction: column; gap: 4px; }
+.bulk-check {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.86rem; font-weight: 500; color: var(--st-ink);
+  cursor: pointer;
+}
+.bulk-check--plain { font-weight: 400; color: var(--st-ink-2); }
+.bulk-check__box { width: 15px; height: 15px; accent-color: var(--st-brand); cursor: pointer; flex: none; }
+.bulk-hint { margin-top: 6px; font-size: 0.74rem; line-height: 1.6; color: var(--st-ink-3); }
+.bulk-mono { font-family: var(--st-font-mono); }
+.bulk-error {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 12px; border-radius: var(--st-r-sm);
+  background: var(--st-danger-soft); color: var(--st-danger);
+  font-size: 0.82rem; line-height: 1.6;
+}
+.bulk-error__list { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.bulk-error__item { overflow-wrap: anywhere; }
+</style>

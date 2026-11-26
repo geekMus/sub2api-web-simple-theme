@@ -77,6 +77,53 @@
       </div>
     </section>
 
+    <!-- ============ 站内模型 ============ -->
+    <section v-if="plazaModels.length" class="st-section models">
+      <div class="st-shell">
+        <header class="models__head">
+          <div>
+            <h2 class="st-display-2">{{ c('home.modelsTitle') }}</h2>
+            <p class="st-lede models__lede">{{ c('home.modelsLede') }}</p>
+          </div>
+          <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="models__link">
+            {{ c('home.modelsMore') }}
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </router-link>
+        </header>
+
+        <div class="models__tabs st-seg" role="tablist">
+          <button
+            type="button"
+            class="st-seg__item"
+            :class="{ 'st-seg__item--active': activePlatform === 'all' }"
+            @click="activePlatform = 'all'"
+          >{{ c('home.modelsAll') }}</button>
+          <button
+            v-for="pl in plazaPlatforms"
+            :key="pl.key"
+            type="button"
+            class="st-seg__item"
+            :class="{ 'st-seg__item--active': activePlatform === pl.key }"
+            @click="activePlatform = pl.key"
+          >{{ pl.label }}</button>
+        </div>
+
+        <div class="models__grid">
+          <article v-for="m in plazaModels" :key="m.platform + '/' + m.model" class="st-card models__card">
+            <div class="models__row">
+              <span class="models__name">{{ m.model }}</span>
+              <span class="models__price" v-if="m.price">{{ m.price }}</span>
+            </div>
+            <div class="models__meta">
+              <span class="models__dot" :class="'models__dot--' + m.tone"></span>
+              <span>{{ m.platformLabel }}</span>
+              <span v-if="m.rate" class="models__rate">×{{ m.rate }}</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ 账单 ============ -->
     <section class="st-section">
       <div class="st-shell duo duo--rev">
@@ -121,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useAppStore, useAuthStore } from '@/stores'
 import UserShell from '@/components/shell/UserShell.vue'
 import TerminalArt from '@/components/shell/art/TerminalArt.vue'
@@ -132,6 +179,7 @@ import RingsArt from '@/components/shell/art/RingsArt.vue'
 import { useSimpleCopy } from '@/composables/useSimpleCopy'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
+import { getModelPlaza, type ModelPlazaResponse } from '@/api/modelPlaza'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -159,9 +207,62 @@ const showModelPlazaEntry = computed(
   () => modelPlazaEnabled.value && (isAuthenticated.value || appStore.cachedPublicSettings?.model_plaza_require_auth !== true),
 )
 
+const plaza = ref<ModelPlazaResponse | null>(null)
+const activePlatform = ref('all')
+
+const PLATFORM_LABELS: Record<string, string> = {
+  anthropic: 'Claude', openai: 'OpenAI', gemini: 'Gemini', antigravity: 'Antigravity',
+  deepseek: 'DeepSeek', qwen: 'Qwen', grok: 'Grok', glm: 'GLM', moonshot: 'Kimi', mistral: 'Mistral',
+}
+const TONES = ['brand', 'ok', 'warn', 'muted']
+
+const plazaPlatforms = computed(() => {
+  const keys = [...new Set((plaza.value?.groups ?? []).map((g) => g.platform).filter(Boolean))]
+  return keys.map((key) => ({ key, label: PLATFORM_LABELS[key] ?? key }))
+})
+
+function formatPrice(p: { input_price: number | null; output_price: number | null } | null): string {
+  if (!p || p.input_price == null) return ''
+  const inp = (p.input_price * 1_000_000).toFixed(2).replace(/\.00$/, '')
+  return `$${inp}/M`
+}
+
+const plazaModels = computed(() => {
+  const groups = plaza.value?.groups ?? []
+  const seen = new Set<string>()
+  const rows: Array<Record<string, unknown>> = []
+  for (const g of groups) {
+    if (activePlatform.value !== 'all' && g.platform !== activePlatform.value) continue
+    for (const m of g.models ?? []) {
+      const key = g.platform + '/' + m.name
+      if (seen.has(key)) continue
+      seen.add(key)
+      rows.push({
+        model: m.name,
+        platform: g.platform,
+        platformLabel: PLATFORM_LABELS[g.platform] ?? g.platform,
+        price: formatPrice(m.official_pricing),
+        rate: g.rate_multiplier && g.rate_multiplier !== 1 ? g.rate_multiplier : '',
+        tone: TONES[rows.length % TONES.length],
+      })
+    }
+  }
+  return rows.slice(0, 12)
+})
+
+async function loadPlaza() {
+  if (!modelPlazaEnabled.value) return
+  try {
+    plaza.value = await getModelPlaza()
+  } catch {
+    plaza.value = null
+  }
+}
+
 onMounted(() => {
   if (!authStore.isAuthenticated || authStore.isAdmin) authStore.checkAuth?.()
   if (!authStore.isAdmin) appStore.fetchPublicSettings?.()
+  void loadPlaza()
 })
 
 function scrollDown() {
@@ -295,6 +396,41 @@ function scrollDown() {
 .compact__t { margin: 0; }
 .compact__a { display: flex; flex-wrap: wrap; gap: 10px; }
 
+/* ---------- 站内模型 ---------- */
+.models__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.models__lede { margin-top: 10px; }
+.models__link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; color: var(--st-ink-2); text-decoration: none; }
+.models__link:hover { color: var(--st-brand-text); }
+.models__tabs { margin-bottom: 20px; max-width: 100%; overflow-x: auto; }
+.models__grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.models__card {
+  padding: 15px 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  background: var(--st-bg);
+  box-shadow: var(--st-shadow-2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease),
+    border-color var(--st-t) var(--st-ease);
+}
+.models__card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--st-shadow-3);
+  border-color: var(--st-line-2);
+}
+.models__row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.models__name { font-family: var(--st-font-mono); font-size: 0.84rem; color: var(--st-ink); overflow-wrap: anywhere; }
+.models__price { font-size: 0.8rem; color: var(--st-ink-2); white-space: nowrap; }
+.models__meta { display: flex; align-items: center; gap: 8px; font-size: 0.74rem; opacity: 0.62; }
+.models__dot { width: 6px; height: 6px; border-radius: 50%; }
+.models__dot--brand { background: var(--st-brand); }
+.models__dot--ok { background: var(--st-ok); }
+.models__dot--warn { background: var(--st-warn); }
+.models__dot--muted { background: currentColor; opacity: 0.4; }
+.models__rate { margin-left: auto; color: var(--st-brand-text); }
+@media (min-width: 700px) { .models__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .models__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
 /* ---------- 路由扇出（覆盖旧的 strip 样式） ---------- */
 .route { border-block: 1px solid var(--st-line); background: var(--st-bg-soft); }
 .route__grid { display: grid; grid-template-columns: 1fr; gap: clamp(24px, 3vw, 48px); align-items: center; }
@@ -309,7 +445,31 @@ function scrollDown() {
 .route__art { min-width: 0; }
 
 /* ---------- CTA 覆盖：左文右图 ---------- */
-.cta { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 3vw, 40px); text-align: left; align-items: center; }
+.cta {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  text-align: left;
+  align-items: center;
+  border-radius: 26px;
+  padding: clamp(30px, 4.2vw, 56px);
+  border: 1px solid var(--st-line);
+  background:
+    radial-gradient(120% 150% at 88% 6%, var(--st-brand-soft), transparent 58%),
+    radial-gradient(90% 120% at 8% 100%, rgba(110, 130, 255, 0.08), transparent 62%),
+    var(--st-bg-soft);
+  box-shadow: var(--st-shadow-3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 34%);
+}
 .cta__copy { max-width: min(440px, 100%); }
 .cta__t { max-width: none; }
 .cta__b { margin-top: 12px; }

@@ -219,7 +219,7 @@ onMounted(() => {
 .aff__stat--accent { border-color: var(--st-accent-line); background: color-mix(in srgb, var(--st-accent) 6%, var(--st-bg-elev)); }
 .aff__value--accent { color: var(--st-accent); }
 .aff__hint { font-size: 0.76rem; line-height: 1.6; color: var(--st-ink-faint); }
-.aff__hint--warn { color: hsl(36 88% 48%); }
+.aff__hint--warn { color: var(--st-warn); }
 
 .aff__card { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
 
@@ -304,5 +304,14 @@ onMounted(() => {
 @media (max-width: 640px) {
   .aff__transfer { flex-direction: column; align-items: stretch; }
   .aff__transfer .st-btn { width: 100%; }
+
+  /* 窄屏：复制按钮换到下一行，避免和长链接互相挤压 */
+  .aff__valuebox { flex-wrap: wrap; }
+  .aff__code,
+  .aff__link { flex: 1 1 100%; white-space: normal; overflow-wrap: anywhere; }
+  .aff__valuebox .st-btn { width: 100%; }
+
+  .aff__invitee { align-items: flex-start; }
+  .aff__invitee-main .st-row__meta { white-space: normal; }
 }
 </style>

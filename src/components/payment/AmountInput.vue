@@ -1,68 +1,49 @@
 <template>
-  <div class="space-y-4">
-    <!-- Quick Amount Buttons -->
-    <div>
-      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ t('payment.quickAmounts') }}
-      </label>
-      <div class="grid grid-cols-3 gap-x-4 gap-y-4 pt-2">
+  <div class="amount">
+    <div class="amount__block">
+      <label class="st-label">{{ t('payment.quickAmounts') }}</label>
+      <div class="amount__grid">
         <button
           v-for="amt in filteredAmounts"
           :key="amt"
           type="button"
-          :class="[
-            'relative rounded-lg border-2 px-3 py-3 text-center font-medium transition-colors',
-            modelValue === amt
-              ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-400 dark:bg-primary-900/40 dark:text-primary-300'
-              : quoteFor(amt).percent > 0
-                ? 'border-red-200 bg-white text-gray-700 hover:border-red-300 dark:border-red-500/40 dark:bg-dark-800 dark:text-gray-200 dark:hover:border-red-400/60'
-                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200 dark:hover:border-dark-500',
-          ]"
+          class="amount__btn"
+          :class="{ 'amount__btn--on': modelValue === amt }"
           :data-testid="`quick-amount-${amt}`"
           @click="selectAmount(amt)"
         >
-          <!-- 促销价签（单行）：仅命中档位的金额显示；红底白字、内圈点线、右侧圆孔、整体旋转 -->
           <span
             v-if="quoteFor(amt).percent > 0"
-            class="pointer-events-none absolute -right-2 -top-3 z-10 rotate-12"
             data-testid="quick-amount-bonus-badge"
+            class="amount__tag"
           >
-            <span
-              class="relative flex items-center gap-1 whitespace-nowrap rounded bg-red-600 py-0.5 pl-1.5 pr-1 text-[11px] font-extrabold leading-tight tracking-tight text-white shadow-md ring-2 ring-white before:pointer-events-none before:absolute before:inset-[2px] before:rounded-sm before:border before:border-dotted before:border-white/70 dark:bg-red-500 dark:ring-dark-800"
-            >
+            <span class="amount__tag-inner">
               <span>{{ badgeText(amt) }}</span>
-              <span class="h-1 w-1 shrink-0 rounded-full bg-white"></span>
+              <span class="amount__tag-dot"></span>
             </span>
           </span>
-          <span class="block">{{ amt }}</span>
-          <!-- 配置了优惠阶梯时，所有按钮都显示第二行，保持高度一致：赠金显示到账 USD，折扣显示折后实付 -->
+          <span class="amount__value st-num">{{ amt }}</span>
           <span
             v-if="showSecondLine"
-            :class="[
-              'mt-0.5 block text-[11px] font-normal leading-tight',
-              quoteFor(amt).percent > 0 ? 'text-red-600 dark:text-red-300' : 'text-gray-400 dark:text-gray-500',
-            ]"
             data-testid="quick-amount-credited"
+            class="amount__second"
+            :class="{ 'amount__second--promo': quoteFor(amt).percent > 0 }"
           >{{ secondLine(amt) }}</span>
         </button>
       </div>
     </div>
 
-    <!-- Custom Amount Input -->
-    <div>
-      <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ t('payment.customAmount') }}
-      </label>
-      <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-dark-500">
-          $
-        </span>
+    <div class="amount__block">
+      <label class="st-label" for="amount-custom">{{ t('payment.customAmount') }}</label>
+      <div class="amount__field">
+        <span class="amount__prefix" aria-hidden="true">$</span>
         <input
+          id="amount-custom"
           type="text"
           inputmode="decimal"
           :value="customText"
           :placeholder="placeholderText"
-          class="input w-full py-3 pl-8 pr-4"
+          class="st-input amount__input"
           @input="handleInput"
         />
       </div>
@@ -186,3 +167,70 @@ watch(() => props.modelValue, (v) => {
   }
 }, { immediate: true })
 </script>
+<style scoped>
+.amount { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.amount__block { min-width: 0; }
+.amount__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 10px;
+  padding-top: 2px;
+}
+.amount__btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 10px 8px;
+  border-radius: var(--st-r-sm);
+  border: 1px solid var(--st-line-2);
+  background: var(--st-bg);
+  color: var(--st-ink);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
+.amount__btn:hover { border-color: var(--st-ink-2); }
+.amount__btn--on { border-color: var(--st-brand); background: var(--st-brand-soft); }
+.amount__btn:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
+.amount__value { line-height: 1.2; font-variant-numeric: tabular-nums; }
+.amount__second { font-size: 0.7rem; line-height: 1.35; color: var(--st-ink-faint); }
+.amount__second--promo { color: var(--st-brand-text); }
+
+.amount__tag { position: absolute; right: -6px; top: -10px; transform: rotate(10deg); pointer-events: none; }
+.amount__tag-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--st-r-xs);
+  border: 1px solid var(--st-brand-line);
+  background: var(--st-brand);
+  color: var(--st-brand-ink);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.amount__tag-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--st-brand-ink); }
+
+.amount__field { position: relative; min-width: 0; }
+.amount__prefix {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: var(--st-ink-faint);
+  pointer-events: none;
+}
+.amount__input { padding-left: 28px; }
+</style>
+

@@ -716,35 +716,40 @@
     </BaseDialog>
 
     <BaseDialog :show="showGuideModal" :title="t('batchImage.guide.title')" width="wide" @close="showGuideModal = false">
-	      <div class="space-y-5">
-	        <section class="space-y-3">
-	          <h3 class="text-sm font-semibold text-gray-900 dark:text-white">{{ t('batchImage.guide.uiTitle') }}</h3>
-	          <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm leading-6 text-gray-700 dark:border-dark-700 dark:bg-dark-900/50 dark:text-gray-200">
-	            <p>{{ t('batchImage.guide.step1') }}</p>
-	            <p>{{ t('batchImage.guide.step2') }}</p>
-	            <p>{{ t('batchImage.guide.step3') }}</p>
-	            <p>{{ t('batchImage.guide.step4') }}</p>
-	          </div>
-	        </section>
-	        <section class="space-y-3">
-	          <div class="flex flex-wrap items-center justify-between gap-3">
-	            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">{{ t('batchImage.guide.skillTitle') }}</h3>
-	            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('batchImage.guide.skillDesc') }}</p>
-	          </div>
-	        <textarea
-	          :value="agentInstruction"
-	          readonly
-	          class="min-h-[420px] w-full resize-y rounded-md border border-gray-200 bg-gray-50 p-4 font-mono text-sm leading-6 text-gray-800 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:border-dark-600 dark:bg-dark-900 dark:text-gray-100 dark:focus:border-primary-500 dark:focus:ring-primary-900/40"
-	        />
-	        </section>
-	      </div>
+      <div class="guide">
+        <header class="guide__head">
+          <p class="st-eyebrow">{{ c('guide.eyebrow') }}</p>
+          <h3 class="st-display-3">{{ c('guide.title') }}</h3>
+          <p class="st-body">{{ c('guide.lede') }}</p>
+        </header>
+
+        <ol class="guide__steps">
+          <li v-for="step in [1, 2, 3, 4]" :key="step" class="guide__step">
+            <span class="guide__num st-num">{{ step }}</span>
+            <div class="guide__step-copy">
+              <p class="guide__step-title">{{ c(`guide.step${step}Title`) }}</p>
+              <p class="guide__step-body">{{ t(`batchImage.guide.step${step}`).replace(/^\d+\.\s*/, '') }}</p>
+            </div>
+          </li>
+        </ol>
+
+        <section class="guide__skill">
+          <div class="guide__skill-head">
+            <div class="guide__skill-copy">
+              <p class="guide__step-title">{{ t('batchImage.guide.skillTitle') }}</p>
+              <p class="guide__step-body">{{ t('batchImage.guide.skillDesc') }}</p>
+            </div>
+            <button type="button" class="st-btn st-btn--quiet st-btn--sm" @click="copyInstruction">
+              <Icon name="copy" size="sm" />
+              {{ t('batchImage.actions.copyInstruction') }}
+            </button>
+          </div>
+          <pre class="st-code guide__code">{{ agentInstruction }}</pre>
+        </section>
+      </div>
       <template #footer>
-        <div class="flex justify-end gap-3">
-          <button type="button" class="btn btn-secondary" @click="showGuideModal = false">{{ t('common.close') }}</button>
-          <button type="button" class="btn btn-primary" @click="copyInstruction">
-            <Icon name="copy" size="sm" class="mr-2" />
-            {{ t('batchImage.actions.copyInstruction') }}
-          </button>
+        <div class="guide__foot">
+          <button type="button" class="st-btn st-btn--ghost" @click="showGuideModal = false">{{ t('common.close') }}</button>
         </div>
       </template>
     </BaseDialog>
@@ -761,6 +766,7 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 import Select, { type SelectOption } from '@/components/common/Select.vue'
 import SearchInput from '@/components/common/SearchInput.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { useMiscCopy } from '@/composables/copy/misc'
 import { useClipboard } from '@/composables/useClipboard'
 import { getPersistedPageSize, setPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { useAppStore } from '@/stores/app'
@@ -837,6 +843,7 @@ const batchPageSizeOptions: SelectOption[] = [20, 50, 100].map(size => ({ value:
 const appStore = useAppStore()
 const { copyToClipboard } = useClipboard()
 const { t, locale } = useI18n()
+const { c } = useMiscCopy()
 
 const columns = computed<Column[]>(() => [
   { key: 'select', label: '', sortable: false, class: 'w-12 text-center' },
@@ -2689,5 +2696,66 @@ onBeforeUnmount(() => {
   padding-left: 14px;
   padding-right: 34px;
   line-height: 36px;
+}
+</style>
+
+<style scoped>
+.guide { display: flex; flex-direction: column; gap: clamp(18px, 3vw, 26px); }
+.guide__head { display: flex; flex-direction: column; gap: 8px; }
+.guide__steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.guide__step {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+}
+.guide__num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--st-brand-line);
+  background: var(--st-brand-soft);
+  color: var(--st-brand-text);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.guide__step-copy { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.guide__step-title { font-size: 0.85rem; font-weight: 600; color: var(--st-ink); }
+.guide__step-body { font-size: 0.79rem; line-height: 1.65; color: var(--st-ink-2); overflow-wrap: anywhere; }
+.guide__skill { display: flex; flex-direction: column; gap: 10px; padding-top: clamp(16px, 2.4vw, 22px); border-top: 1px solid var(--st-line); }
+.guide__skill-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.guide__skill-copy { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.guide__code {
+  display: block;
+  margin: 0;
+  max-height: min(46vh, 420px);
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: var(--st-r-md);
+  background: var(--st-bg-sink);
+  border: 1px solid var(--st-line);
+  font-family: var(--st-font-mono);
+  font-size: 0.74rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--st-ink-2);
+}
+.guide__foot { display: flex; justify-content: flex-end; }
+@media (max-width: 720px) {
+  .guide__steps { grid-template-columns: 1fr; }
 }
 </style>

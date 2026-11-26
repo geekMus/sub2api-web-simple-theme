@@ -1,17 +1,17 @@
 <template>
-  <div class="card p-4">
-    <h3 class="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+  <div class="chart-box">
+    <h3 class="chart-box__title chart-box__title--mb">
       {{ t('admin.dashboard.tokenUsageTrend') }}
     </h3>
-    <div v-if="loading" class="flex h-48 items-center justify-center">
+    <div v-if="loading" class="chart-state">
       <LoadingSpinner />
     </div>
-    <div v-else-if="trendData.length > 0 && chartData" class="h-48">
+    <div v-else-if="trendData.length > 0 && chartData" class="chart-line">
       <Line :data="chartData" :options="lineOptions" />
     </div>
     <div
       v-else
-      class="flex h-48 items-center justify-center text-sm text-gray-500 dark:text-gray-400"
+      class="flex h-48 items-center justify-center text-sm chart-muted"
     >
       {{ t('admin.dashboard.noDataAvailable') }}
     </div>
@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Chart as ChartJS,
@@ -49,23 +49,61 @@ ChartJS.register(
 
 const { t } = useI18n()
 
+const themeTick = ref(0)
+let themeObserver: MutationObserver | null = null
+onMounted(() => {
+  if (typeof MutationObserver === 'undefined') return
+  themeObserver = new MutationObserver(() => { themeTick.value++ })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
+onUnmounted(() => { themeObserver?.disconnect() })
+
+// 颜色全部来自 src/styles/simple-theme.css 的设计令牌，fallback 与令牌取值保持一致
+const readToken = (name: string, fallback: string): string => {
+  void themeTick.value
+  if (typeof document === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+const chartTokens = computed(() => ({
+  text: readToken('--st-ink-2', '#55565c'),
+  grid: readToken('--st-line', '#e6e6e8'),
+  border: readToken('--st-line-2', '#d2d2d6'),
+  ink: readToken('--st-ink', '#060607'),
+  bg: readToken('--st-bg', '#ffffff'),
+  brand: readToken('--st-brand', '#c9f24a'),
+  brandText: readToken('--st-brand-text', '#5c7a00'),
+  ok: readToken('--st-ok', '#16a34a'),
+  warn: readToken('--st-warn', '#b45309'),
+  danger: readToken('--st-danger', '#dc2626'),
+  ink2: readToken('--st-ink-2', '#55565c'),
+  ink3: readToken('--st-ink-3', '#8a8b92'),
+}))
+
+const withAlpha = (color: string, alpha: number): string => {
+  const hex = color.trim().replace('#', '')
+  const parse = (pair: string) => parseInt(pair, 16)
+  if (/^[0-9a-f]{3}$/i.test(hex)) {
+    return `rgba(${parse(hex[0] + hex[0])}, ${parse(hex[1] + hex[1])}, ${parse(hex[2] + hex[2])}, ${alpha})`
+  }
+  if (/^[0-9a-f]{6}$/i.test(hex)) {
+    return `rgba(${parse(hex.slice(0, 2))}, ${parse(hex.slice(2, 4))}, ${parse(hex.slice(4, 6))}, ${alpha})`
+  }
+  return color
+}
+
 const props = defineProps<{
   trendData: TrendDataPoint[]
   loading?: boolean
 }>()
 
-const isDarkMode = computed(() => {
-  return document.documentElement.classList.contains('dark')
-})
-
 const chartColors = computed(() => ({
-  text: isDarkMode.value ? '#e5e7eb' : '#374151',
-  grid: isDarkMode.value ? '#374151' : '#e5e7eb',
-  input: '#3b82f6',
-  output: '#10b981',
-  cacheCreation: '#f59e0b',
-  cacheRead: '#06b6d4',
-  cacheHitRate: '#8b5cf6'
+  text: chartTokens.value.ink2,
+  grid: chartTokens.value.grid,
+  input: chartTokens.value.brand,
+  output: chartTokens.value.ok,
+  cacheCreation: chartTokens.value.warn,
+  cacheRead: chartTokens.value.ink2,
+  cacheHitRate: chartTokens.value.ink3
 }))
 
 const chartData = computed(() => {
@@ -78,7 +116,7 @@ const chartData = computed(() => {
         label: 'Input',
         data: props.trendData.map((d) => d.input_tokens),
         borderColor: chartColors.value.input,
-        backgroundColor: `${chartColors.value.input}20`,
+        backgroundColor: withAlpha(chartColors.value.input, 0.12),
         fill: true,
         tension: 0.3
       },
@@ -86,7 +124,7 @@ const chartData = computed(() => {
         label: 'Output',
         data: props.trendData.map((d) => d.output_tokens),
         borderColor: chartColors.value.output,
-        backgroundColor: `${chartColors.value.output}20`,
+        backgroundColor: withAlpha(chartColors.value.output, 0.12),
         fill: true,
         tension: 0.3
       },
@@ -94,7 +132,7 @@ const chartData = computed(() => {
         label: 'Cache Creation',
         data: props.trendData.map((d) => d.cache_creation_tokens),
         borderColor: chartColors.value.cacheCreation,
-        backgroundColor: `${chartColors.value.cacheCreation}20`,
+        backgroundColor: withAlpha(chartColors.value.cacheCreation, 0.12),
         fill: true,
         tension: 0.3
       },
@@ -102,7 +140,7 @@ const chartData = computed(() => {
         label: 'Cache Read',
         data: props.trendData.map((d) => d.cache_read_tokens),
         borderColor: chartColors.value.cacheRead,
-        backgroundColor: `${chartColors.value.cacheRead}20`,
+        backgroundColor: withAlpha(chartColors.value.cacheRead, 0.12),
         fill: true,
         tension: 0.3
       },
@@ -113,7 +151,7 @@ const chartData = computed(() => {
           return totalPromptTokens > 0 ? (d.cache_read_tokens / totalPromptTokens) * 100 : 0
         }),
         borderColor: chartColors.value.cacheHitRate,
-        backgroundColor: `${chartColors.value.cacheHitRate}20`,
+        backgroundColor: withAlpha(chartColors.value.cacheHitRate, 0.12),
         borderDash: [5, 5],
         fill: false,
         tension: 0.3,
@@ -144,6 +182,13 @@ const lineOptions = computed(() => ({
       }
     },
     tooltip: {
+      backgroundColor: chartTokens.value.ink,
+      titleColor: chartTokens.value.bg,
+      bodyColor: chartTokens.value.bg,
+      borderColor: chartTokens.value.border,
+      borderWidth: 1,
+      padding: 10,
+      cornerRadius: 8,
       callbacks: {
         label: (context: any) => {
           if (context.dataset.yAxisID === 'yPercent') {
@@ -167,8 +212,14 @@ const lineOptions = computed(() => ({
       grid: {
         color: chartColors.value.grid
       },
+      border: {
+        color: chartColors.value.grid
+      },
       ticks: {
         color: chartColors.value.text,
+        maxTicksLimit: 8,
+        maxRotation: 0,
+        autoSkip: true,
         font: {
           size: 10
         }
@@ -176,6 +227,9 @@ const lineOptions = computed(() => ({
     },
     y: {
       grid: {
+        color: chartColors.value.grid
+      },
+      border: {
         color: chartColors.value.grid
       },
       ticks: {
@@ -194,7 +248,7 @@ const lineOptions = computed(() => ({
         drawOnChartArea: false
       },
       ticks: {
-        color: chartColors.value.cacheHitRate,
+        color: chartColors.value.text,
         font: {
           size: 10
         },
@@ -226,3 +280,43 @@ const formatCost = (value: number): string => {
   return value.toFixed(4)
 }
 </script>
+
+<style scoped>
+.chart-box { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.chart-box__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.chart-box__title { margin: 0; font-family: var(--st-font-display); font-size: 0.95rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink); }
+.chart-box__title--mb { margin-bottom: 2px; }
+.chart-toggle { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--st-line); background: var(--st-bg-soft); }
+.chart-tab { height: 26px; padding-inline: 10px; border: 0; border-radius: 999px; background: transparent; font-family: inherit; font-size: 0.75rem; color: var(--st-ink-2); cursor: pointer; transition: background-color var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease); }
+.chart-tab:hover { color: var(--st-ink); }
+.chart-tab--active { background: var(--st-bg); color: var(--st-ink); box-shadow: var(--st-shadow-1); }
+.chart-tab--idle { color: var(--st-ink-2); }
+.chart-body { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 0; }
+.chart-doughnut { width: 100%; max-width: 190px; height: 190px; flex-shrink: 0; }
+.chart-tablewrap { width: 100%; min-width: 0; max-height: 220px; overflow: auto; flex: 1; }
+.chart-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.chart-table th { padding-bottom: 8px; font-weight: 400; white-space: nowrap; color: var(--st-ink-3); }
+.chart-table td { padding: 6px 6px; white-space: nowrap; }
+.chart-tr { border-top: 1px solid var(--st-line); }
+.chart-tr--click { cursor: pointer; }
+.chart-tr--click:hover { background: var(--st-bg-soft); }
+.chart-tr--other { background: var(--st-bg-soft); }
+.chart-muted { color: var(--st-ink-3); }
+.chart-cell { color: var(--st-ink-2); }
+.chart-dim { color: var(--st-ink-3); }
+.chart-strong { color: var(--st-ink); }
+.chart-money { color: var(--st-ok); }
+.chart-account { color: var(--st-warn); }
+.chart-link { color: var(--st-brand-text); }
+.chart-link:hover { text-decoration: underline; }
+.chart-state, .chart-empty { display: flex; align-items: center; justify-content: center; height: 190px; font-size: 0.82rem; color: var(--st-ink-3); }
+.chart-line { position: relative; height: 220px; min-width: 0; }
+@media (min-width: 640px) {
+  .chart-body { flex-direction: row; gap: 22px; }
+  .chart-doughnut { width: 190px; }
+}
+@media (max-width: 520px) {
+  .chart-tab { height: 24px; padding-inline: 8px; font-size: 0.7rem; }
+  .chart-table { font-size: 0.7rem; }
+}
+</style>

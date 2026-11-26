@@ -1,52 +1,32 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950">
-    <div
-      class="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-900"
-    >
-      <!-- Amount + Order ID -->
-      <div v-if="amount" class="text-center">
-        <p class="text-3xl font-bold" :style="{ color: methodColor }">¥{{ amount }}</p>
-        <p v-if="orderId" class="mt-1 text-sm text-gray-500 dark:text-slate-400">
-          {{ t('payment.orders.orderId') }}: {{ orderId }}
-        </p>
-      </div>
-
-      <!-- Error -->
-      <div v-if="error" class="space-y-3">
-        <div
-          class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-700 dark:bg-red-900/30 dark:text-red-400"
-        >
-          {{ error }}
+  <div class="st-root stripe-pop">
+    <div class="stripe-pop__wrap">
+      <div class="stripe-pop__panel st-card st-card--pad">
+        <div v-if="amount" class="stripe-pop__amount">
+          <p class="st-eyebrow">{{ t('payment.actualPay') }}</p>
+          <p class="st-display-2 stripe-pop__money st-num" :style="{ color: methodColor }">¥{{ amount }}</p>
+          <p v-if="orderId" class="st-row__meta">{{ t('payment.orders.orderId') }}: {{ orderId }}</p>
         </div>
-        <button
-          class="w-full text-sm underline dark:text-blue-400 dark:hover:text-blue-300"
-          :style="{ color: methodColor }"
-          @click="closeWindow"
-        >
-          {{ t('common.close') }}
-        </button>
-      </div>
 
-      <!-- Success -->
-      <div v-else-if="success" class="space-y-3 py-4 text-center">
-        <div class="text-5xl text-green-600 dark:text-green-400">✓</div>
-        <p class="text-sm text-gray-500 dark:text-slate-400">{{ t('payment.result.success') }}</p>
-        <button
-          class="text-sm underline dark:text-blue-400 dark:hover:text-blue-300"
-          :style="{ color: methodColor }"
-          @click="closeWindow"
-        >
-          {{ t('common.close') }}
-        </button>
-      </div>
+        <div v-if="error" class="stripe-pop__state">
+          <div class="stripe-pop__error">{{ error }}</div>
+          <button class="st-btn st-btn--quiet stripe-pop__btn" @click="closeWindow">{{ t('common.close') }}</button>
+        </div>
 
-      <!-- Loading / Redirecting -->
-      <div v-else class="flex items-center justify-center py-8">
-        <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          :style="{ borderColor: methodColor, borderTopColor: 'transparent' }"
-        />
-        <span class="ml-3 text-sm text-gray-500 dark:text-slate-400">{{ hint }}</span>
+        <div v-else-if="success" class="stripe-pop__state">
+          <div class="stripe-pop__mark">
+            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p class="st-display-3">{{ t('payment.result.success') }}</p>
+          <button class="st-btn st-btn--primary stripe-pop__btn" @click="closeWindow">{{ t('common.close') }}</button>
+        </div>
+
+        <div v-else class="stripe-pop__state stripe-pop__state--loading">
+          <span class="stripe-pop__spin" :style="{ borderColor: methodColor }"></span>
+          <p class="st-body stripe-pop__hint">{{ hint }}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -196,3 +176,45 @@ function startPolling() {
   }, 3000)
 }
 </script>
+<style scoped>
+.stripe-pop { display: flex; align-items: center; justify-content: center; padding: 16px; }
+.stripe-pop__wrap { width: 100%; max-width: 420px; }
+.stripe-pop__panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.stripe-pop__amount { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.stripe-pop__money { font-size: clamp(1.9rem, 6vw, 2.5rem); }
+.stripe-pop__state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.stripe-pop__state--loading { padding-block: 20px; }
+
+.stripe-pop__mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--st-ok-soft);
+  color: var(--st-ok);
+}
+.stripe-pop__error {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--st-r-sm);
+  background: var(--st-danger-soft);
+  color: var(--st-danger);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.stripe-pop__hint { overflow-wrap: anywhere; }
+.stripe-pop__spin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 3px;
+  border-top-color: transparent !important;
+  animation: stripe-pop-spin 0.9s linear infinite;
+}
+@keyframes stripe-pop-spin { to { transform: rotate(360deg); } }
+.stripe-pop__btn { width: 100%; min-width: 0; white-space: normal; }
+</style>
+

@@ -192,7 +192,7 @@
                 v-model="codexModelCatalogMode"
                 data-testid="codex-model-catalog-mode"
                 :aria-label="t('keys.useKeyModal.codexModelCatalog.mode')"
-                class="input mt-2 text-sm"
+                class="st-input mt-2"
               >
                 <option value="remote" :disabled="codexModelCatalogOversized">{{ t('keys.useKeyModal.codexModelCatalog.remote') }}</option>
                 <option value="file">{{ t('keys.useKeyModal.codexModelCatalog.local') }}</option>
@@ -204,7 +204,7 @@
             <button
               v-if="codexModelManifestState === 'ready'"
               type="button"
-              class="btn btn-primary min-h-9 flex-shrink-0 px-3 text-xs"
+              class="st-btn st-btn--primary st-btn--sm"
               @click="downloadCodexModelManifest"
             >
               <Icon name="download" size="sm" class="mr-1.5" />
@@ -214,7 +214,7 @@
               v-else
               type="button"
               data-testid="codex-model-catalog-fetch"
-              class="btn btn-primary min-h-9 flex-shrink-0 px-3 text-xs"
+              class="st-btn st-btn--primary st-btn--sm"
               :disabled="codexModelManifestState === 'loading' || !apiKey"
               @click="loadCodexModelManifest"
             >
@@ -257,7 +257,7 @@
       <div class="flex justify-end">
         <button
           @click="emit('close')"
-          class="btn btn-secondary"
+          class="st-btn st-btn--quiet"
         >
           {{ t('common.close') }}
         </button>

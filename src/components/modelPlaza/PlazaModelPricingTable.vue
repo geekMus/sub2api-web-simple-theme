@@ -579,5 +579,7 @@ function trimZero(n: number): string {
   .pz-store { padding: 12px; gap: 10px; }
   .pz-tier { grid-template-columns: auto 1fr; grid-template-areas: 'label pair' 'cache cache'; }
   .pz-tier__cache { text-align: left; max-width: none; }
+  .pz-model__foot { flex-direction: column; align-items: flex-start; }
+  .pz-model__ratebox { align-self: flex-end; }
 }
 </style>
