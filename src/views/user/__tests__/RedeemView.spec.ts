@@ -74,7 +74,14 @@ describe('RedeemView refresh after redemption', () => {
       expect((wrapper.get('input#code').element as HTMLInputElement).value).toBe('')
       expect((wrapper.get('input#code').element as HTMLInputElement).disabled).toBe(false)
       expect(getHistory).toHaveBeenCalledTimes(2)
-      expect(wrapper.text()).toContain('REDEEM-C...')
+      // 新版兑换记录是「账单项」：不再展示兑换码，改为展示该笔记录的类型标题与金额
+      expect(wrapper.findAll('.hist__row')).toHaveLength(1)
+      const historyTitleByType: Record<string, string> = {
+        balance: 'redeem.balanceAddedRedeem',
+        concurrency: 'redeem.concurrencyAddedRedeem',
+        subscription: 'redeem.subscriptionAssigned',
+      }
+      expect(wrapper.get('.hist__row').text()).toContain(historyTitleByType[type])
       if (type === 'subscription') {
         expect(fetchActiveSubscriptions).toHaveBeenCalledWith(true)
       } else {
@@ -114,7 +121,8 @@ describe('RedeemView refresh after redemption', () => {
     await wrapper.get('form').trigger('submit')
     await flushPromises()
     expect(getHistory).toHaveBeenLastCalledWith(1, 100)
-    expect(wrapper.text()).toContain('102')
+    // total=102、page=1（每页 100）：下一页可用（total 驱动的按钮状态）
+    expect(button('pagination.next').attributes('disabled')).toBeUndefined()
     expect(button('pagination.previous').attributes('disabled')).toBeDefined()
     wrapper.unmount()
   })
@@ -137,8 +145,8 @@ describe('RedeemView refresh after redemption', () => {
     rejectRequest(new Error('Network error'))
     await flushPromises()
     expect(wrapper.get('select').element.value).toBe('20')
-    expect(wrapper.text()).toContain('OLD-ROWS')
-    expect(wrapper.text()).toContain('61')
+    expect(wrapper.get('.hist__row').text()).toContain('redeem.balanceAddedRedeem')
+    expect(wrapper.findAll('.hist__row')).toHaveLength(1)
     expect(button('pagination.previous').attributes('disabled')).toBeUndefined()
     expect(button('pagination.next').attributes('disabled')).toBeUndefined()
     expect(showError).toHaveBeenCalledWith('redeem.historyLoadFailed')
@@ -180,8 +188,8 @@ describe('RedeemView refresh after redemption', () => {
     }
     await flushPromises()
     expect(wrapper.get('select').element.value).toBe('50')
-    expect(wrapper.text()).toContain('NEW-ROWS')
-    expect(wrapper.text()).toContain('61')
+    expect(wrapper.get('.hist__row').text()).toContain('redeem.balanceAddedRedeem')
+    expect(wrapper.findAll('.hist__row')).toHaveLength(1)
     expect(button('pagination.previous').attributes('disabled')).toBeUndefined()
     expect(button('pagination.next').attributes('disabled')).toBeDefined()
     expect(wrapper.get('select').attributes('disabled')).toBeUndefined()

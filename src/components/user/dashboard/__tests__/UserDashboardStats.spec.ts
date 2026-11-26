@@ -145,7 +145,8 @@ describe('UserDashboardStats 按平台拆分', () => {
       makeStats({ total_actual_cost: 1.0, today_actual_cost: 0, by_platform: [usage('anthropic', 0.4)] })
     )
     expect(cardPlatforms(w)).toEqual(['anthropic', '__other__'])
-    expect(w.text()).toContain('dashboard.platformOther')
+    // "其他"卡片改用新版用户端文案（userCore 英文文案在测试的 i18n mock 下渲染为 Other）
+    expect(w.get('[data-testid="platform-card"][data-platform="__other__"]').text()).toContain('Other')
     expect(w.text()).toContain('dashboard.platformCount:{"count":1}')
   })
 

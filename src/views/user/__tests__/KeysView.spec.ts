@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 
 import type { ApiKey } from '@/types'
 import { keysAPI } from '@/api'
@@ -139,55 +139,14 @@ const createApiKey = (): ApiKey => ({
   reset_7d_at: null,
 })
 
-const AppLayoutStub = {
-  template: '<div><slot /></div>',
-}
-
-const TablePageLayoutStub = {
+const PaginationStub = {
+  name: 'Pagination',
+  props: ['page', 'total', 'pageSize'],
+  emits: ['update:page', 'update:pageSize'],
   template: `
     <div>
-      <slot name="filters" />
-      <slot name="actions" />
-      <slot name="table" />
-      <slot name="pagination" />
-    </div>
-  `,
-}
-
-const DataTableStub = {
-  name: 'DataTable',
-  props: { columns: Array, data: Array, selectedKeys: Array, selectable: Boolean, loading: Boolean },
-  emits: ['sort', 'update:selectedKeys'],
-  template: `
-    <div>
-      <div data-test="columns">{{ columns.map((col) => col.key).join(',') }}</div>
-      <div data-test="columns-meta">{{ JSON.stringify(columns.map((col) => ({ key: col.key, sortable: !!col.sortable }))) }}</div>
-      <button data-test="sort-current-concurrency" @click="$emit('sort', 'current_concurrency', 'asc')">
-        Sort Current Concurrency
-      </button>
-      <div v-for="row in data" :key="row.id">
-        <div
-          v-if="columns.some((col) => col.key === 'id')"
-          data-test="key-id"
-        >
-          <slot name="cell-id" :value="row.id" :row="row" />
-        </div>
-        <slot name="cell-name" :value="row.name" :row="row" />
-        <slot name="cell-actions" :row="row" />
-        <div data-test="current-concurrency">
-          <slot name="cell-current_concurrency" :value="row.current_concurrency" :row="row" />
-        </div>
-        <div data-test="usage">
-          <slot name="cell-usage" :row="row" />
-        </div>
-        <div
-          v-if="columns.some((col) => col.key === 'last_used_ip')"
-          data-test="last-used-ip"
-        >
-          <slot name="cell-last_used_ip" :value="row.last_used_ip" :row="row" />
-        </div>
-      </div>
-      <slot name="empty" />
+      <button data-test="page-size-50" @click="$emit('update:pageSize', 50)">50</button>
+      <button data-test="page-2" @click="$emit('update:page', 2)">Page 2</button>
     </div>
   `,
 }
@@ -206,43 +165,52 @@ const SearchInputStub = {
   template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
 }
 
-const PaginationStub = {
-  name: 'Pagination',
-  props: ['page', 'total', 'pageSize'],
-  emits: ['update:page', 'update:pageSize'],
-  template: `
-    <div>
-      <button data-test="page-size-50" @click="$emit('update:pageSize', 50)">50</button>
-      <button data-test="page-2" @click="$emit('update:page', 2)">Page 2</button>
-    </div>
-  `,
-}
-
 const IconStub = {
   props: ['name'],
   template: '<span data-test="icon">{{ name }}</span>',
 }
 
+// 新版弹层仍用同一个 BulkEditKeysModal 契约（show / selected-keys / updated）
+const BulkEditKeysModalStub = defineComponent({
+  name: 'BulkEditKeysModal',
+  props: {
+    show: { type: Boolean, default: false },
+    selectedKeys: { type: Array as () => ApiKey[], default: () => [] },
+  },
+  emits: ['close', 'updated'],
+  template: '<div data-test="bulk-edit-modal" />',
+})
+
+const ConfirmDialogStub = defineComponent({
+  name: 'ConfirmDialog',
+  props: {
+    show: { type: Boolean, default: false },
+    title: { type: String, default: '' },
+    message: { type: String, default: '' },
+    confirmText: { type: String, default: '' },
+    cancelText: { type: String, default: '' },
+    danger: { type: Boolean, default: false },
+  },
+  emits: ['confirm', 'cancel'],
+  template: '<div data-test="confirm-dialog" />',
+})
+
 const mountView = async () => {
   const wrapper = mount(KeysView, {
     global: {
       stubs: {
-        AppLayout: AppLayoutStub,
-        TablePageLayout: TablePageLayoutStub,
-        DataTable: DataTableStub,
-        Pagination: PaginationStub,
         BaseDialog: {
           props: ['show', 'title'],
           emits: ['close'],
           template: '<div v-if="show" role="dialog"><button data-test="close-dialog" @click="$emit(\'close\')">Close</button><slot /><slot name="footer" /></div>',
         },
-        ConfirmDialog: true,
-        EmptyState: true,
+        ConfirmDialog: ConfirmDialogStub,
+        BulkEditKeysModal: BulkEditKeysModalStub,
         Select: SelectStub,
         SearchInput: SearchInputStub,
         Icon: IconStub,
+        Pagination: PaginationStub,
         UseKeyModal: true,
-        BulkEditKeysModal: true,
         EndpointPopover: true,
         GroupBadge: true,
         GroupOptionItem: true,
@@ -255,11 +223,20 @@ const mountView = async () => {
   return wrapper
 }
 
-const visibleColumnKeys = (wrapper: VueWrapper) =>
-  wrapper.get('[data-test="columns"]').text().split(',').filter(Boolean)
-
-const visibleColumnMeta = (wrapper: VueWrapper): Array<{ key: string; sortable: boolean }> =>
-  JSON.parse(wrapper.get('[data-test="columns-meta"]').text())
+/** 新版列表是卡片网格：每张卡片带 data-key-id，关键信息用 data-test 标记 */
+const keyCard = (wrapper: VueWrapper, id = 1) => wrapper.get(`[data-key-id="${id}"]`)
+const cardStatus = (wrapper: VueWrapper, id = 1) => keyCard(wrapper, id).get('.keys__status').text()
+const selectKey = async (wrapper: VueWrapper, id: number) => {
+  await keyCard(wrapper, id).get('input[data-test="key-select"]').setValue(true)
+  await nextTick()
+}
+const selectionCheckbox = (wrapper: VueWrapper, id = 1) =>
+  keyCard(wrapper, id).get('input[data-test="key-select"]')
+const sortButtons = (wrapper: VueWrapper) => wrapper.get('.keys__sortseg').findAll('button')
+const openColumnMenu = async (wrapper: VueWrapper) => {
+  await wrapper.get('button[title="Column Settings"]').trigger('click')
+  await nextTick()
+}
 
 const getButtonByText = (wrapper: VueWrapper, text: string) => {
   const button = wrapper.findAll('button').find((item) => item.text().includes(text))
@@ -268,6 +245,12 @@ const getButtonByText = (wrapper: VueWrapper, text: string) => {
   }
   return button
 }
+
+const groupSelect = (wrapper: VueWrapper) => wrapper.findComponent('[data-tour="key-form-group"]')
+const optionIds = (wrapper: VueWrapper) =>
+  groupSelect(wrapper).props('options').map((option: { value: number }) => option.value)
+const chooseProvider = (wrapper: VueWrapper, value: string) =>
+  wrapper.get(`input[name="key-provider"][value="${value}"]`).setValue()
 
 describe('user KeysView column settings', () => {
   beforeEach(() => {
@@ -325,8 +308,9 @@ describe('user KeysView column settings', () => {
     await flushPromises()
 
     expect(updateKey).toHaveBeenNthCalledWith(1, key.id, { reset_quota: true })
-    expect(wrapper.findComponent({ name: 'DataTable' }).props('data')[0])
-      .toMatchObject({ status, quota_used: 0 })
+    // 表格 -> 卡片：同一条记录的状态与已用额度在卡片里同步刷新
+    expect(cardStatus(wrapper, key.id)).toBe(messages['keys.status.' + status])
+    expect(keyCard(wrapper, key.id).get('.keys__quota-line .st-num').text()).toContain('$0.00')
     expect(statusSelect.props('modelValue')).toBe(formStatus)
     expect((wrapper.get('[data-tour="key-form-name"]').element as HTMLInputElement).value)
       .toBe('Unsaved name')
@@ -340,107 +324,104 @@ describe('user KeysView column settings', () => {
   it('uses the default API key columns with low-frequency columns hidden', async () => {
     const wrapper = await mountView()
 
-    expect(visibleColumnKeys(wrapper)).toEqual([
-      'name',
-      'key',
-      'group',
-      'current_concurrency',
-      'usage',
-      'expires_at',
-      'status',
-      'created_at',
-      'actions',
-    ])
-    expect(visibleColumnKeys(wrapper)).not.toContain('rate_limit')
-    expect(visibleColumnKeys(wrapper)).not.toContain('last_used_at')
-    expect(visibleColumnKeys(wrapper)).not.toContain('last_used_ip')
-    expect(visibleColumnKeys(wrapper)).not.toContain('id')
+    const card = keyCard(wrapper)
+    // 默认可见：名称、密钥、状态、并发、用量、到期时间、创建时间
+    expect(card.text()).toContain('test-key')
+    expect(card.text()).toContain('sk-t***')
+    expect(cardStatus(wrapper)).toBe(messages['keys.status.active'])
+    expect(card.get('[data-test="current-concurrency"]').text()).toBe('3')
+    expect(card.find('[data-test="usage"]').exists()).toBe(true)
+    expect(card.text()).toContain(messages['keys.created'])
+    expect(card.text()).toContain('No expiry')
+    // 默认隐藏：ID / 速率限制 / 最后使用时间 / 最后使用 IP
+    expect(wrapper.find('[data-test="key-id"]').exists()).toBe(false)
+    expect(wrapper.find('.keys__ratelimit').exists()).toBe(false)
+    expect(wrapper.find('[data-test="last-used-ip"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain(messages['keys.lastUsedAt'])
   })
 
   it('opens bulk editing with only selected visible keys', async () => {
     const wrapper = await mountView()
-    const table = wrapper.findComponent({ name: 'DataTable' })
-    expect(table.props('selectable')).toBe(true)
-    table.vm.$emit('update:selectedKeys', [1, 99])
-    await nextTick()
+    await selectKey(wrapper, 1)
+    expect(wrapper.get('[data-test="bulk-edit-keys"]').exists()).toBe(true)
     await wrapper.get('[data-test="bulk-edit-keys"]').trigger('click')
     const modal = wrapper.findComponent({ name: 'BulkEditKeysModal' })
     expect(modal.props('show')).toBe(true)
-    expect(modal.props('selectedKeys').map((key: ApiKey) => key.id)).toEqual([1])
+    expect((modal.props('selectedKeys') as ApiKey[]).map((key) => key.id)).toEqual([1])
     wrapper.unmount()
   })
 
   it.each(['filter', 'page size', 'sort'])('clears selection on %s changes', async (change) => {
     const wrapper = await mountView()
-    const table = wrapper.findComponent({ name: 'DataTable' })
-    table.vm.$emit('update:selectedKeys', [1])
-    await nextTick()
+    await selectKey(wrapper, 1)
     if (change === 'filter') {
       wrapper.findComponent({ name: 'SearchInput' }).vm.$emit('search')
     } else if (change === 'page size') {
       await wrapper.get('[data-test="page-size-50"]').trigger('click')
     } else {
-      table.vm.$emit('sort', 'created_at', 'asc')
+      // 新版排序控件：第 2 个是「oldest first」（created_at asc）
+      await sortButtons(wrapper)[1].trigger('click')
     }
     await flushPromises()
-    expect(table.props('selectedKeys')).toEqual([])
+    expect((selectionCheckbox(wrapper).element as HTMLInputElement).checked).toBe(false)
     expect(wrapper.find('[data-test="bulk-edit-keys"]').exists()).toBe(false)
     wrapper.unmount()
   })
 
-  it('removes successful keys from the selection and refreshes the table', async () => {
+  it('removes successful keys from the selection and refreshes the list', async () => {
     listKeys.mockResolvedValue({
       items: [createApiKey(), { ...createApiKey(), id: 2, name: 'Second' }],
       total: 2, pages: 1
     })
     const wrapper = await mountView()
-    const table = wrapper.findComponent({ name: 'DataTable' })
-    table.vm.$emit('update:selectedKeys', [1, 2])
-    await nextTick()
+    await selectKey(wrapper, 1)
+    await selectKey(wrapper, 2)
     await wrapper.get('[data-test="bulk-edit-keys"]').trigger('click')
     wrapper.findComponent({ name: 'BulkEditKeysModal' }).vm.$emit('updated', [1])
     await flushPromises()
     expect(listKeys).toHaveBeenCalledTimes(2)
-    expect(table.props('selectedKeys')).toEqual([2])
+    const modal = wrapper.findComponent({ name: 'BulkEditKeysModal' })
+    expect((modal.props('selectedKeys') as ApiKey[]).map((key) => key.id)).toEqual([2])
+    expect((selectionCheckbox(wrapper, 2).element as HTMLInputElement).checked).toBe(true)
     wrapper.unmount()
   })
 
   it('drops keys that are no longer visible after a refresh', async () => {
     const wrapper = await mountView()
-    const table = wrapper.findComponent({ name: 'DataTable' })
-    table.vm.$emit('update:selectedKeys', [1])
-    await nextTick()
+    await selectKey(wrapper, 1)
     listKeys.mockResolvedValue({ items: [], total: 0, pages: 0 })
     await wrapper.get('button[title="Refresh"]').trigger('click')
     await flushPromises()
-    expect(table.props('selectedKeys')).toEqual([])
+    expect(wrapper.find('[data-test="keys-empty"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="bulk-edit-keys"]').exists()).toBe(false)
     wrapper.unmount()
   })
 
   it('shows a hidden column when toggled and persists the preference', async () => {
     const wrapper = await mountView()
 
-    await wrapper.get('button[title="Column Settings"]').trigger('click')
+    await openColumnMenu(wrapper)
     await getButtonByText(wrapper, 'Rate Limit').trigger('click')
     await nextTick()
 
-    expect(visibleColumnKeys(wrapper)).toContain('rate_limit')
+    expect(wrapper.find('.keys__ratelimit').exists()).toBe(true)
     expect(localStorage.getItem('api-key-hidden-columns')).toBe(
       JSON.stringify(['id', 'last_used_at', 'last_used_ip'])
     )
     expect(localStorage.getItem('api-key-column-settings-version')).toBe('3')
   })
 
-  it('shows the API key ID column when toggled', async () => {
+  it('shows the API key ID when toggled', async () => {
     const wrapper = await mountView()
 
-    await wrapper.get('button[title="Column Settings"]').trigger('click')
-    await getButtonByText(wrapper, 'ID').trigger('click')
+    await openColumnMenu(wrapper)
+    await getButtonByText(wrapper, messages['keys.id']).trigger('click')
     await nextTick()
 
-    expect(visibleColumnKeys(wrapper)).toContain('id')
     expect(wrapper.get('[data-test="key-id"]').text()).toBe('#1')
-    expect(visibleColumnMeta(wrapper).find((column) => column.key === 'id')?.sortable).toBe(true)
+    expect(localStorage.getItem('api-key-hidden-columns')).toBe(
+      JSON.stringify(['rate_limit', 'last_used_at', 'last_used_ip'])
+    )
   })
 
   it('shows the last used IP column when toggled', async () => {
@@ -453,11 +434,10 @@ describe('user KeysView column settings', () => {
     })
     const wrapper = await mountView()
 
-    await wrapper.get('button[title="Column Settings"]').trigger('click')
+    await openColumnMenu(wrapper)
     await getButtonByText(wrapper, 'Last Used IP').trigger('click')
     await nextTick()
 
-    expect(visibleColumnKeys(wrapper)).toContain('last_used_ip')
     expect(wrapper.get('[data-test="last-used-ip"]').text()).toBe('203.0.113.10')
   })
 
@@ -467,30 +447,23 @@ describe('user KeysView column settings', () => {
 
     const wrapper = await mountView()
 
-    expect(visibleColumnKeys(wrapper)).toEqual([
-      'name',
-      'key',
-      'current_concurrency',
-      'usage',
-      'rate_limit',
-      'expires_at',
-      'status',
-      'last_used_at',
-      'actions',
-    ])
     expect(localStorage.getItem('api-key-hidden-columns')).toBe(
       JSON.stringify(['group', 'created_at', 'last_used_ip', 'id'])
     )
     expect(localStorage.getItem('api-key-column-settings-version')).toBe('3')
+    // created_at 被隐藏 -> 卡片不再显示 Created；rate_limit 保持可见
+    expect(wrapper.text()).not.toContain(messages['keys.created'])
+    expect(wrapper.find('.keys__ratelimit').exists()).toBe(true)
+    expect(wrapper.find('[data-test="key-id"]').exists()).toBe(false)
   })
 
   it('does not include always-visible columns in the toggleable menu', async () => {
     const wrapper = await mountView()
 
-    await wrapper.get('button[title="Column Settings"]').trigger('click')
+    await openColumnMenu(wrapper)
     await nextTick()
 
-    const columnMenuText = wrapper.text()
+    const columnMenuText = wrapper.get('.keys__cols-menu').text()
     expect(columnMenuText).toContain('API Key')
     expect(columnMenuText).toContain('ID')
     expect(columnMenuText).toContain('Current Concurrency')
@@ -508,18 +481,27 @@ describe('user KeysView column settings', () => {
 
   it('marks current concurrency as sortable', async () => {
     const wrapper = await mountView()
+    listKeys.mockClear()
 
-    const currentConcurrencyColumn = visibleColumnMeta(wrapper).find(
-      (column) => column.key === 'current_concurrency'
+    const concatSortButton = sortButtons(wrapper)[2]
+    expect(concatSortButton.text()).toBe('Busiest first')
+    await concatSortButton.trigger('click')
+    await flushPromises()
+
+    expect(listKeys).toHaveBeenLastCalledWith(
+      1,
+      20,
+      expect.objectContaining({ sort_by: 'current_concurrency', sort_order: 'asc' }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
     )
-    expect(currentConcurrencyColumn?.sortable).toBe(true)
+    expect(concatSortButton.classes()).toContain('st-seg__item--active')
   })
 
   it.each([
-    { key: 'current_concurrency', order: 'asc' },
-    { key: 'group', order: 'asc' },
-    { key: 'group', order: 'desc' },
-  ] as const)('keeps filters and resets pagination and selection when sorting $key $order', async ({ key, order }) => {
+    { index: 0, sort_by: 'created_at', order: 'desc', label: 'newest' },
+    { index: 1, sort_by: 'created_at', order: 'asc', label: 'oldest' },
+    { index: 2, sort_by: 'current_concurrency', order: 'asc', label: 'concurrency' },
+  ] as const)('keeps filters and resets pagination and selection when sorting by $label', async ({ index, sort_by, order }) => {
     getAvailableGroups.mockResolvedValue([{ id: 42, name: 'OpenAI' }])
     const wrapper = await mountView()
 
@@ -538,17 +520,14 @@ describe('user KeysView column settings', () => {
 
     await wrapper.get('[data-test="page-2"]').trigger('click')
     await flushPromises()
-    const table = wrapper.findComponent({ name: 'DataTable' })
-    table.vm.$emit('update:selectedKeys', [1])
-    await nextTick()
-    expect(table.props('selectedKeys')).toEqual([1])
-    expect(visibleColumnMeta(wrapper).find((column) => column.key === key)?.sortable).toBe(true)
+    await selectKey(wrapper, 1)
+    expect((selectionCheckbox(wrapper).element as HTMLInputElement).checked).toBe(true)
     listKeys.mockClear()
 
-    table.vm.$emit('sort', key, order)
+    await sortButtons(wrapper)[index].trigger('click')
     await flushPromises()
 
-    expect(table.props('selectedKeys')).toEqual([])
+    expect((selectionCheckbox(wrapper).element as HTMLInputElement).checked).toBe(false)
     expect(listKeys).toHaveBeenLastCalledWith(
       1,
       50,
@@ -556,7 +535,7 @@ describe('user KeysView column settings', () => {
         search: 'target',
         status: 'active',
         group_id: 42,
-        sort_by: key,
+        sort_by,
         sort_order: order,
       },
       expect.objectContaining({ signal: expect.any(AbortSignal) })
@@ -573,9 +552,7 @@ describe('user KeysView column settings', () => {
       rate_multiplier: 1,
       subscription_type: 'standard',
     }))
-    const groupSelect = (wrapper: VueWrapper) => wrapper.findComponent('[data-tour="key-form-group"]')
-    const optionIds = (wrapper: VueWrapper) => groupSelect(wrapper).props('options').map((option: { value: number }) => option.value)
-    const chooseProvider = (wrapper: VueWrapper, value: string) => wrapper.get(`input[name="key-provider"][value="${value}"]`).setValue()
+
     const openCreate = async () => {
       const wrapper = await mountView()
       await wrapper.get('[data-tour="keys-create-btn"]').trigger('click')
@@ -664,9 +641,9 @@ describe('user KeysView column settings', () => {
       getDashboardApiKeysUsage.mockReturnValue(new Promise((resolve) => { resolveUsage = resolve }))
       const wrapper = await mountView()
 
-      const table = wrapper.findComponent({ name: 'DataTable' })
-      expect(table.props('loading')).toBe(false)
-      expect(table.props('data')).toHaveLength(1)
+      // 卡片先渲染（不再等 usage 统计），用量区显示占位骨架
+      expect(wrapper.findAll('[data-test="key-card"]')).toHaveLength(1)
+      expect(wrapper.find('.keys__skeleton').exists()).toBe(false)
       expect(wrapper.find('[data-test="usage-pending"]').exists()).toBe(true)
 
       resolveUsage({

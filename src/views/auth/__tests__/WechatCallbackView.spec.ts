@@ -902,7 +902,10 @@ describe('WechatCallbackView', () => {
 
     await flushPromises()
 
-    await wrapper.get('button.btn-secondary').trigger('click')
+    // 新版切换按钮改用 st-btn + 文案定位（仍是同一个「新建账户」切换动作）
+    const switchButton = wrapper.findAll('button').find((button) => button.text() === 'auth.oauthFlow.createNewAccount')
+    if (!switchButton) throw new Error('switch to create-account button not found')
+    await switchButton.trigger('click')
     await flushPromises()
 
     const createAccountEmail = wrapper.get('[data-testid="wechat-create-account-email"]')

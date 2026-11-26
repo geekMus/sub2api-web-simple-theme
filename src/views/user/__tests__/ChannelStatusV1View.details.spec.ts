@@ -27,31 +27,36 @@ beforeEach(() => {
 function mountView() {
   return shallowMount(ChannelStatusV1View, {
     global: { stubs: {
-      AppLayout: { template: '<div><slot /></div>' },
-      MonitorHero: { props: ['loading'], emits: ['update:window', 'refresh'], template: `<div :data-loading="loading">
-        <button class="fifteen" @click="$emit('update:window', '15d')">15d</button>
-        <button class="thirty" @click="$emit('update:window', '30d')">30d</button>
-        <button class="refresh" @click="$emit('refresh')">Refresh</button>
-      </div>` },
-      MonitorCardGrid: false,
-      MonitorCard: { props: ['availabilityValue'], template: '<output>{{ availabilityValue }}</output>' }
+      // 新外壳 UserShell 需要保留默认插槽，页面内容才会渲染
+      UserShell: { template: '<div><slot /></div>' },
+      MonitorDetailDialog: true,
     } }
   })
 }
 
+const availabilityText = (wrapper: ReturnType<typeof mountView>) => wrapper.get('.board__avail-v').text()
+const windowButton = (wrapper: ReturnType<typeof mountView>, label: string) => {
+  const button = wrapper.findAll('button').find((candidate) => candidate.text() === label)
+  if (!button) throw new Error(`window button not found: ${label}`)
+  return button
+}
+const refreshButton = (wrapper: ReturnType<typeof mountView>) => wrapper.get('button[title="common.refresh"]')
+const refreshReady = (wrapper: ReturnType<typeof mountView>) =>
+  !(refreshButton(wrapper).element as HTMLButtonElement).disabled
+
 describe('channel monitor automatic detail refresh', () => {
-  it.each(['fifteen', 'thirty'])('refreshes the cached %s-day availability on timer ticks', async (tab) => {
+  it.each(['15d', '30d'])('refreshes the cached %s availability on timer ticks', async (windowLabel) => {
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.get('.' + tab).trigger('click')
+    await windowButton(wrapper, windowLabel).trigger('click')
     await flushPromises()
-    expect(wrapper.get('output').text()).toBe('90')
+    expect(availabilityText(wrapper)).toBe('90.0%')
     mocks.status.mockResolvedValue(detail(98))
     await vi.advanceTimersByTimeAsync(30000)
     await flushPromises()
-    expect(wrapper.get('output').text()).toBe('98')
+    expect(availabilityText(wrapper)).toBe('98.0%')
     expect(mocks.status).toHaveBeenCalledTimes(2)
-    expect(wrapper.get('[data-loading]').attributes('data-loading')).toBe('false')
+    expect(refreshReady(wrapper)).toBe(true)
   })
 
   it('keeps the seven-day view on the list endpoint without extra detail requests', async () => {
@@ -61,17 +66,17 @@ describe('channel monitor automatic detail refresh', () => {
     await flushPromises()
     expect(mocks.list).toHaveBeenCalledTimes(2)
     expect(mocks.status).not.toHaveBeenCalled()
-    expect(wrapper.get('output').text()).toBe('99')
+    expect(availabilityText(wrapper)).toBe('99.0%')
   })
 
   it('still refreshes cached availability on manual reload', async () => {
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.get('.fifteen').trigger('click')
+    await windowButton(wrapper, '15d').trigger('click')
     await flushPromises()
     mocks.status.mockResolvedValue(detail(98))
-    await wrapper.get('.refresh').trigger('click')
+    await refreshButton(wrapper).trigger('click')
     await flushPromises()
-    expect(wrapper.get('output').text()).toBe('98')
+    expect(availabilityText(wrapper)).toBe('98.0%')
   })
 })

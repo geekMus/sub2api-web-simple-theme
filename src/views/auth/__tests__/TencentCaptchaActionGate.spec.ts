@@ -95,6 +95,13 @@ function mountLogin() {
   })
 }
 
+/** 新版登录页 passkey 按钮不再有 btn-secondary/w-full，改用新版 auth-alt 按钮类定位同一个控件 */
+function passkeyLoginButton(wrapper: ReturnType<typeof mountLogin>) {
+  const button = wrapper.find('button.auth-alt__btn')
+  if (!button.exists()) throw new Error('passkey login button not found')
+  return button
+}
+
 describe('Tencent captcha action gate', () => {
   beforeEach(() => {
     loginMock.mockReset()
@@ -205,7 +212,7 @@ describe('Tencent captcha action gate', () => {
     const wrapper = mountLogin()
     await flushPromises()
 
-    await wrapper.get('button.btn-secondary.w-full').trigger('click')
+    await passkeyLoginButton(wrapper).trigger('click')
     await flushPromises()
 
     expect(verifyActionMock).toHaveBeenCalledOnce()
@@ -221,7 +228,7 @@ describe('Tencent captcha action gate', () => {
     const wrapper = mountLogin()
     await flushPromises()
 
-    await wrapper.get('button.btn-secondary.w-full').trigger('click')
+    await passkeyLoginButton(wrapper).trigger('click')
     await flushPromises()
 
     expect(loginWithPasskeyMock).not.toHaveBeenCalled()

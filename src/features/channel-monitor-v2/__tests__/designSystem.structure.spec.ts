@@ -13,11 +13,13 @@ function read(rel: string) {
 }
 
 describe('channel-monitor-v2 design system structure', () => {
-  it('user ChannelStatus V2 shell uses page-header, card, btn, tabs utilities', () => {
+  it('user ChannelStatus V2 shell uses st-* design-system utilities', () => {
     // Route wrapper may switch V1/V2; design chrome lives on the V2 implementation.
     const src = read('views/user/ChannelStatusV2View.vue')
-    expect(src).toContain('page-header')
-    expect(src).toContain('page-title')
+    // 新版改用 st-* 设计系统外壳：st-shell 页壳 / st-card 卡片 / st-display-2 展示型标题
+    expect(src).toContain('class="st-shell monitor-v2"')
+    expect(src).toContain('st-card monitor-v2__toolbar')
+    expect(src).toContain('st-display-2 monitor-v2__title')
     expect(src).toContain('class="card')
     expect(src).toContain('btn btn-secondary')
     expect(src).toContain('class="tab')

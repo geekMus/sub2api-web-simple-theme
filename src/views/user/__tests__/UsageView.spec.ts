@@ -4,7 +4,6 @@ import { flushPromises, mount } from '@vue/test-utils'
 import UsageView from '../UsageView.vue'
 import Select, { type SelectOption } from '@/components/common/Select.vue'
 import DateRangePicker from '@/components/common/DateRangePicker.vue'
-import UsageTable from '@/components/admin/usage/UsageTable.vue'
 
 const {
   query,
@@ -160,7 +159,6 @@ function mountUsageView() {
         DateRangePicker: true,
         Icon: true,
         UsageStatsCards: chartStub,
-        UsageTable: { ...chartStub, props: ['columns'] },
         UserErrorRequestsTable: chartStub,
         ModelDistributionChart: chartStub,
         GroupDistributionChart: chartStub,
@@ -221,7 +219,10 @@ describe('user UsageView', () => {
     const wrapper = mountUsageView()
     await flushPromises()
 
-    expect(wrapper.findComponent(UsageTable).props('columns').map((column: { key: string }) => column.key)).toContain('latency')
+    // 新版明细是账单行 + 列设置下拉：latency 属于默认可见列（列设置里带勾选图标），user_agent 默认隐藏
+    await wrapper.get('[data-testid="usage-column-settings"]').trigger('click')
+    expect(wrapper.get('[data-testid="usage-column-toggle-latency"]').find('icon-stub').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="usage-column-toggle-user_agent"]').find('icon-stub').exists()).toBe(false)
     expect(query).toHaveBeenCalled()
     expect(getStats).toHaveBeenCalled()
     expect(getDashboardModels).toHaveBeenCalled()
@@ -489,11 +490,13 @@ describe('user UsageView', () => {
       keySelect.vm.$emit('update:modelValue', 1)
       keySelect.vm.$emit('change', 1)
       datePicker.vm.$emit('change', { startDate: '2026-04-01', endDate: '2026-04-08', preset: null })
-      wrapper.findComponent(UsageTable).vm.$emit('sort', 'actual_cost', 'asc')
+      // 新版只暴露「时间」维度的排序按钮；点击 oldest 仍走同一个 handleSort 管线
+      const sortButtons = wrapper.get('.tabs__tools .st-seg').findAll('button')
+      await sortButtons[1].trigger('click')
       await flushPromises()
       expect(query).toHaveBeenCalledWith(expect.objectContaining({
         api_key_id: 1, start_date: '2026-04-01', end_date: '2026-04-08',
-        sort_by: 'actual_cost', sort_order: 'asc',
+        sort_by: 'created_at', sort_order: 'asc',
       }), expect.anything())
 
       resolveFirstPage(pageResponse)

@@ -75,19 +75,17 @@ describe('AffiliateView', () => {
 
     const values = wrapper.findAll('code')
     expect(values).toHaveLength(2)
+    // 新结构：邀请码 / 邀请链接各占一个 aff__field，长值与复制按钮同处一个 aff__valuebox。
+    // 长值用 overflow-wrap/ellipsis 自我约束、按钮 flex-shrink:0，移动端不会把控件挤出可视区。
+    expect(values[0].classes()).toContain('aff__code')
+    expect(values[1].classes()).toContain('aff__link')
+    expect(values[0].text()).toBe(affiliateCode)
+    expect(values[1].text()).toContain(encodeURIComponent(affiliateCode))
+    expect(wrapper.findAll('.aff__field')).toHaveLength(2)
     for (const value of values) {
-      expect(value.classes()).toEqual(expect.arrayContaining([
-        'min-w-0',
-        'break-all',
-        'sm:flex-1',
-        'sm:truncate',
-      ]))
-      expect(Array.from(value.element.parentElement?.classList ?? [])).toEqual(expect.arrayContaining([
-        'flex-col',
-        'items-stretch',
-        'sm:flex-row',
-        'sm:items-center',
-      ]))
+      const box = value.element.parentElement
+      expect(box?.classList.contains('aff__valuebox')).toBe(true)
+      expect(box?.querySelectorAll('button')).toHaveLength(1)
     }
 
     const copyButtons = wrapper.findAll('button').filter((button) =>
@@ -95,11 +93,8 @@ describe('AffiliateView', () => {
     )
     expect(copyButtons).toHaveLength(2)
     for (const button of copyButtons) {
-      expect(button.classes()).toEqual(expect.arrayContaining([
-        'w-full',
-        'sm:w-auto',
-        'sm:shrink-0',
-      ]))
+      expect(button.classes()).toContain('st-btn')
+      expect(button.element.parentElement?.classList.contains('aff__valuebox')).toBe(true)
     }
 
     await copyButtons[0].trigger('click')

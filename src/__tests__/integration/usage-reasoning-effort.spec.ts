@@ -217,6 +217,13 @@ function reasoningCellText(wrapper: ReturnType<typeof mount>): string {
   return wrapper.get('[data-testid="reasoning-effort-cell"]').text()
 }
 
+/** 用户端新版用量明细是「账单行」，reasoning effort 渲染在行内 meta 里 */
+function userLogText(wrapper: ReturnType<typeof mount>): string {
+  const rows = wrapper.findAll('.log')
+  if (rows.length === 0) throw new Error('usage log rows not found')
+  return rows.map((row) => row.text()).join('\n')
+}
+
 describe('usage reasoning effort page display', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -252,7 +259,7 @@ describe('usage reasoning effort page display', () => {
     })
     await flushPromises()
 
-    const cell = reasoningCellText(wrapper)
+    const cell = userLogText(wrapper)
     expect(cell).toContain('Max')
     expect(cell).not.toContain('XHigh')
     expect(cell).not.toContain('↳')

@@ -66,6 +66,15 @@ function modelPlazaDestination(wrapper: ReturnType<typeof mountHome>) {
     ?.props('to')
 }
 
+/** 新版首页外壳顶部导航自带模型广场入口；compact 首屏入口的显隐只在 compact 区域内断言 */
+function compactModelPlazaDestination(wrapper: ReturnType<typeof mountHome>) {
+  return wrapper
+    .get('[data-testid="compact-home"]')
+    .findAllComponents(RouterLinkStub)
+    .find((link) => link.props('to') === '/model-plaza')
+    ?.props('to')
+}
+
 describe('HomeView compact mode', () => {
   beforeEach(() => {
     authStore.isAuthenticated = false
@@ -138,7 +147,7 @@ describe('HomeView compact mode', () => {
       model_plaza_require_auth: false,
     })
 
-    expect(modelPlazaDestination(wrapper)).toBe('/model-plaza')
+    expect(compactModelPlazaDestination(wrapper)).toBe('/model-plaza')
   })
 
   it('hides the model plaza link from anonymous visitors when sign-in is required', () => {
@@ -148,7 +157,7 @@ describe('HomeView compact mode', () => {
       model_plaza_require_auth: true,
     })
 
-    expect(modelPlazaDestination(wrapper)).toBeUndefined()
+    expect(compactModelPlazaDestination(wrapper)).toBeUndefined()
   })
 
   it('shows the model plaza link to authenticated visitors when sign-in is required', () => {
@@ -160,7 +169,7 @@ describe('HomeView compact mode', () => {
       model_plaza_require_auth: true,
     })
 
-    expect(modelPlazaDestination(wrapper)).toBe('/model-plaza')
+    expect(compactModelPlazaDestination(wrapper)).toBe('/model-plaza')
   })
 
   it('shows the model plaza link in the default home header', () => {
@@ -179,6 +188,6 @@ describe('HomeView compact mode', () => {
       model_plaza_require_auth: false,
     })
 
-    expect(modelPlazaDestination(wrapper)).toBeUndefined()
+    expect(compactModelPlazaDestination(wrapper)).toBeUndefined()
   })
 })
