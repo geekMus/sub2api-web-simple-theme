@@ -1,176 +1,122 @@
 <template>
-  <div class="card">
-    <div class="flex items-start justify-between border-b border-gray-100 px-6 py-4 dark:border-dark-700">
+  <div class="st-card st-card--pad profile-panel">
+    <header class="profile-block__head profile-block__head--row">
       <div>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-          {{ t('profile.passkey.title') }}
-        </h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('profile.passkey.description') }}
-        </p>
+        <h2 class="st-display-3">{{ t('profile.passkey.title') }}</h2>
+        <p class="st-body">{{ t('profile.passkey.description') }}</p>
       </div>
       <button
         v-if="enabled && supported && !showAddForm"
         type="button"
-        class="btn btn-primary"
+        class="st-btn st-btn--primary st-btn--sm"
         :disabled="busy"
         @click="showAddForm = true"
       >
         {{ t('profile.passkey.add') }}
       </button>
+    </header>
+
+    <p v-if="!enabled" class="st-body profile-note">{{ t('profile.passkey.featureDisabled') }}</p>
+    <p v-if="enabled && !supported" class="st-body profile-note profile-note--warn">{{ t('profile.passkey.unsupported') }}</p>
+
+    <form
+      v-if="enabled && supported && showAddForm"
+      class="profile-inline-form"
+      @submit.prevent="addPasskey"
+    >
+      <div class="profile-inline-form__grid">
+        <div>
+          <label for="passkey-name" class="st-label">{{ t('profile.passkey.name') }}</label>
+          <input
+            id="passkey-name"
+            v-model="newName"
+            class="st-input"
+            maxlength="100"
+            :placeholder="t('profile.passkey.namePlaceholder')"
+            autofocus
+          />
+        </div>
+        <div>
+          <label for="passkey-add-password" class="st-label">{{ t('profile.currentPassword') }}</label>
+          <input
+            id="passkey-add-password"
+            v-model="newPassword"
+            type="password"
+            autocomplete="current-password"
+            class="st-input"
+            :placeholder="t('profile.passkey.passwordPlaceholder')"
+          />
+        </div>
+      </div>
+      <div class="profile-form__actions">
+        <button type="button" class="st-btn st-btn--quiet st-btn--sm" :disabled="busy" @click="cancelAdd">
+          {{ t('common.cancel') }}
+        </button>
+        <button type="submit" class="st-btn st-btn--primary st-btn--sm" :disabled="busy || newPassword.length === 0">
+          {{ busy ? t('common.processing') : t('profile.passkey.continue') }}
+        </button>
+      </div>
+    </form>
+
+    <div v-if="loading" class="profile-loading">
+      <span class="st-skeleton profile-loading__bar"></span>
     </div>
 
-    <div class="px-6 py-6">
-      <div v-if="!enabled" class="mb-5 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('profile.passkey.featureDisabled') }}
-      </div>
-      <div v-if="enabled && !supported" class="mb-5 text-sm text-amber-600 dark:text-amber-400">
-        {{ t('profile.passkey.unsupported') }}
-      </div>
-      <div>
-        <form
-          v-if="enabled && supported && showAddForm"
-          class="mb-5 flex flex-col gap-3 rounded-lg border border-gray-200 p-4 dark:border-dark-700"
-          @submit.prevent="addPasskey"
-        >
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label for="passkey-name" class="input-label">{{ t('profile.passkey.name') }}</label>
-              <input
-                id="passkey-name"
-                v-model="newName"
-                class="input"
-                maxlength="100"
-                :placeholder="t('profile.passkey.namePlaceholder')"
-                autofocus
-              />
-            </div>
-            <div>
-              <label for="passkey-add-password" class="input-label">{{
-                t('profile.currentPassword')
-              }}</label>
-              <input
-                id="passkey-add-password"
-                v-model="newPassword"
-                type="password"
-                autocomplete="current-password"
-                class="input"
-                :placeholder="t('profile.passkey.passwordPlaceholder')"
-              />
-            </div>
+    <p v-else-if="credentials.length === 0" class="profile-empty">{{ t('profile.passkey.empty') }}</p>
+
+    <div v-else class="st-list">
+      <div v-for="credential in credentials" :key="credential.id" class="st-row profile-credential">
+        <div class="profile-credential__main">
+          <div class="profile-credential__name">
+            <Icon name="key" size="sm" class="profile-credential__icon" />
+            <span class="st-row__title profile-credential__label">{{ credential.name }}</span>
+            <span v-if="credential.backup" class="st-pill st-pill--ok">{{ t('profile.passkey.synced') }}</span>
           </div>
-          <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-secondary" :disabled="busy" @click="cancelAdd">
+          <p class="st-row__meta">
+            {{ t('profile.passkey.createdAt', { date: formatDate(credential.created_at) }) }}
+            <template v-if="credential.last_used_at">
+              · {{ t('profile.passkey.lastUsed', { date: formatDate(credential.last_used_at) }) }}
+            </template>
+          </p>
+        </div>
+        <div class="profile-credential__actions">
+          <button type="button" class="st-btn st-btn--quiet st-btn--sm" :disabled="busy" @click="renamePasskey(credential)">
+            {{ t('common.edit') }}
+          </button>
+          <button type="button" class="st-btn st-btn--ghost st-btn--sm profile-btn-danger" :disabled="busy" @click="deletePasskey(credential)">
+            {{ t('common.delete') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="deleteTarget" class="profile-sheet" role="dialog" aria-modal="true">
+      <div class="profile-sheet__scrim" @click="closeDeleteDialog"></div>
+      <div class="st-card st-card--pad profile-sheet__panel">
+        <h3 class="st-display-3">{{ t('profile.passkey.deleteTitle') }}</h3>
+        <p class="st-body profile-sheet__body">{{ t('profile.passkey.deleteConfirm', { name: deleteTarget.name }) }}</p>
+        <form class="profile-form" @submit.prevent="confirmDelete">
+          <div>
+            <label for="passkey-delete-password" class="st-label">{{ t('profile.currentPassword') }}</label>
+            <input
+              id="passkey-delete-password"
+              v-model="deletePassword"
+              type="password"
+              autocomplete="current-password"
+              class="st-input"
+              :placeholder="t('profile.passkey.passwordPlaceholder')"
+              autofocus
+            />
+          </div>
+          <div class="profile-form__actions">
+            <button type="button" class="st-btn st-btn--quiet st-btn--sm" :disabled="busy" @click="closeDeleteDialog">
               {{ t('common.cancel') }}
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="busy || newPassword.length === 0">
-              {{ busy ? t('common.processing') : t('profile.passkey.continue') }}
+            <button type="submit" class="st-btn st-btn--primary st-btn--sm" :disabled="busy || deletePassword.length === 0">
+              {{ busy ? t('common.processing') : t('common.delete') }}
             </button>
           </div>
         </form>
-
-        <div v-if="loading" class="flex justify-center py-6">
-          <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-500"></div>
-        </div>
-
-        <div
-          v-else-if="credentials.length === 0"
-          class="rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500 dark:border-dark-700 dark:text-gray-400"
-        >
-          {{ t('profile.passkey.empty') }}
-        </div>
-
-        <div v-else class="divide-y divide-gray-100 dark:divide-dark-700">
-          <div
-            v-for="credential in credentials"
-            :key="credential.id"
-            class="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
-          >
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <Icon name="key" size="md" class="shrink-0 text-primary-500" />
-                <p class="truncate font-medium text-gray-900 dark:text-white">
-                  {{ credential.name }}
-                </p>
-                <span
-                  v-if="credential.backup"
-                  class="rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                >
-                  {{ t('profile.passkey.synced') }}
-                </span>
-              </div>
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {{ t('profile.passkey.createdAt', { date: formatDate(credential.created_at) }) }}
-                <template v-if="credential.last_used_at">
-                  · {{ t('profile.passkey.lastUsed', { date: formatDate(credential.last_used_at) }) }}
-                </template>
-              </p>
-            </div>
-            <div class="flex shrink-0 gap-2">
-              <button
-                type="button"
-                class="btn btn-secondary btn-sm"
-                :disabled="busy"
-                @click="renamePasskey(credential)"
-              >
-                {{ t('common.edit') }}
-              </button>
-              <button
-                type="button"
-                class="btn btn-ghost btn-sm text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/30"
-                :disabled="busy"
-                @click="deletePasskey(credential)"
-              >
-                {{ t('common.delete') }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 删除确认：吊销凭据需验证当前密码，防止被窃会话静默移除 Passkey -->
-    <div v-if="deleteTarget" class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex min-h-full items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/50 transition-opacity" @click="closeDeleteDialog"></div>
-        <div
-          class="relative w-full max-w-md transform rounded-xl bg-white p-6 shadow-xl transition-all dark:bg-dark-800"
-        >
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{ t('profile.passkey.deleteTitle') }}
-          </h3>
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('profile.passkey.deleteConfirm', { name: deleteTarget.name }) }}
-          </p>
-          <form class="mt-4 space-y-4" @submit.prevent="confirmDelete">
-            <div>
-              <label for="passkey-delete-password" class="input-label">{{
-                t('profile.currentPassword')
-              }}</label>
-              <input
-                id="passkey-delete-password"
-                v-model="deletePassword"
-                type="password"
-                autocomplete="current-password"
-                class="input"
-                :placeholder="t('profile.passkey.passwordPlaceholder')"
-                autofocus
-              />
-            </div>
-            <div class="flex justify-end gap-3">
-              <button type="button" class="btn btn-secondary" :disabled="busy" @click="closeDeleteDialog">
-                {{ t('common.cancel') }}
-              </button>
-              <button
-                type="submit"
-                class="btn btn-danger"
-                :disabled="busy || deletePassword.length === 0"
-              >
-                {{ busy ? t('common.processing') : t('common.delete') }}
-              </button>
-            </div>
-          </form>
-        </div>
       </div>
     </div>
   </div>
@@ -305,3 +251,48 @@ watch(
   { immediate: true }
 )
 </script>
+
+<style scoped>
+.profile-panel { min-width: 0; }
+.profile-block__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.profile-block__head--row { gap: 12px; }
+.profile-status { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.profile-status__icon {
+  display: grid; place-items: center; flex: none;
+  width: 42px; height: 42px; border-radius: 12px;
+  background: var(--st-bg-soft); color: var(--st-ink-2);
+}
+.profile-status__icon--ok { background: var(--st-ok-soft); color: var(--st-ok); }
+.profile-status__copy { min-width: 0; flex: 1 1 180px; }
+.profile-status__action { flex: none; }
+.profile-loading { padding: 12px 0; }
+.profile-loading__bar { display: block; height: 16px; width: 60%; }
+.profile-note { margin-bottom: 10px; }
+.profile-note--warn { color: var(--st-warn); }
+.profile-empty {
+  padding: 22px 16px; text-align: center;
+  font-size: 0.86rem; color: var(--st-ink-3);
+  border: 1px dashed var(--st-line-2); border-radius: var(--st-r-md);
+}
+.profile-inline-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; padding: 16px; border: 1px solid var(--st-line); border-radius: var(--st-r-md); background: var(--st-bg-soft); }
+.profile-inline-form__grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.profile-form { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.profile-form__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.profile-credential { grid-template-columns: minmax(0, 1fr); align-items: start; }
+.profile-credential__main { min-width: 0; }
+.profile-credential__name { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.profile-credential__icon { color: var(--st-ink-3); flex: none; }
+.profile-credential__label { min-width: 0; overflow-wrap: anywhere; }
+.profile-credential__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.profile-btn-danger { color: var(--st-danger); }
+.profile-btn-danger:hover { background: var(--st-danger-soft); color: var(--st-danger); }
+.profile-sheet { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; }
+.profile-sheet__scrim { position: absolute; inset: 0; background: var(--st-overlay); backdrop-filter: blur(4px); }
+.profile-sheet__panel { position: relative; width: 100%; max-width: 420px; box-shadow: var(--st-shadow-3); }
+.profile-sheet__body { margin: 10px 0 16px; }
+@media (min-width: 640px) {
+  .profile-block__head--row { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+  .profile-inline-form__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-credential { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+}
+</style>

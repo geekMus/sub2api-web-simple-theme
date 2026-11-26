@@ -1,72 +1,41 @@
 <template>
-  <div :class="props.embedded ? 'space-y-4' : 'card'">
-    <div
-      v-if="!props.embedded"
-      class="border-b border-gray-100 px-6 py-4 dark:border-dark-700"
-    >
-      <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-        {{ t('profile.avatar.title') }}
-      </h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('profile.avatar.description') }}
-      </p>
-    </div>
-
-    <div :class="props.embedded ? 'space-y-3' : 'flex flex-col gap-5 px-6 py-6 sm:flex-row sm:items-start'">
-      <div
-        :class="props.embedded
-          ? 'flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 text-xl font-bold text-white shadow-lg shadow-primary-500/20'
-          : 'flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 text-3xl font-bold text-white shadow-lg shadow-primary-500/20'"
-      >
-        <img
-          v-if="avatarPreviewUrl"
-          data-testid="profile-avatar-preview"
-          :src="avatarPreviewUrl"
-          :alt="displayName"
-          class="h-full w-full object-cover"
-        >
+  <div :class="props.embedded ? 'profile-embed' : 'st-card st-card--pad profile-panel'">
+    <header v-if="!props.embedded" class="profile-block__head">
+      <h2 class="st-display-3">{{ t('profile.avatar.title') }}</h2>
+      <p class="st-body">{{ t('profile.avatar.description') }}</p>
+    </header>
+    <div class="profile-avatar">
+      <div class="profile-avatar__pic" :class="{ 'profile-avatar__pic--sm': props.embedded }">
+        <img v-if="avatarPreviewUrl" data-testid="profile-avatar-preview" :src="avatarPreviewUrl" :alt="displayName" />
         <span v-else>{{ avatarInitial }}</span>
       </div>
-
-      <div :class="props.embedded ? 'space-y-3' : 'min-w-0 flex-1 space-y-4'">
-        <div class="space-y-1">
-          <p v-if="props.embedded" class="text-sm font-semibold text-gray-900 dark:text-white">
-            {{ t('profile.avatar.title') }}
-          </p>
-          <p v-else class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ displayName }}
-          </p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ t('profile.avatar.uploadHint') }}
-          </p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3">
-          <label class="btn btn-secondary btn-sm cursor-pointer">
+      <div class="profile-avatar__body">
+        <p class="st-display-4">{{ props.embedded ? t('profile.avatar.title') : displayName }}</p>
+        <p class="st-body profile-avatar__hint">{{ t('profile.avatar.uploadHint') }}</p>
+        <div class="profile-avatar__actions">
+          <label class="st-btn st-btn--quiet st-btn--sm profile-avatar__upload">
             <input
               data-testid="profile-avatar-file-input"
               type="file"
               accept="image/*"
-              class="hidden"
+              class="profile-avatar__file"
               @change="handleAvatarFileChange"
             >
             {{ t('profile.avatar.uploadAction') }}
           </label>
-
           <button
             data-testid="profile-avatar-save"
             type="button"
-            class="btn btn-primary btn-sm"
+            class="st-btn st-btn--primary st-btn--sm"
             :disabled="avatarSaving || !avatarDraft"
             @click="handleAvatarSave"
           >
             {{ t('common.save') }}
           </button>
-
           <button
             data-testid="profile-avatar-delete"
             type="button"
-            class="btn btn-secondary btn-sm"
+            class="st-btn st-btn--ghost st-btn--sm"
             :disabled="avatarSaving"
             @click="handleAvatarDelete"
           >
@@ -268,3 +237,59 @@ async function handleAvatarDelete() {
   }
 }
 </script>
+
+<style scoped>
+.profile-info { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-hero { display: flex; flex-direction: column; gap: 22px; }
+.profile-hero__top { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-hero__avatar {
+  display: grid; place-items: center; flex: none;
+  width: 68px; height: 68px; border-radius: var(--st-r-lg);
+  background: var(--st-brand); color: var(--st-brand-ink);
+  font-family: var(--st-font-display); font-size: 1.5rem; font-weight: 600;
+  overflow: hidden;
+}
+.profile-hero__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-hero__copy { min-width: 0; }
+.profile-hero__name { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.profile-hero__name .st-display-3 { min-width: 0; overflow-wrap: anywhere; }
+.profile-hero__email { margin-top: 8px; overflow-wrap: anywhere; }
+.profile-hero__hints { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.profile-hero__metrics { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 0; padding-top: 18px; border-top: 1px solid var(--st-line); }
+.profile-hero__metrics dt { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--st-ink-3); }
+.profile-hero__metrics dd { margin: 4px 0 0; font-family: var(--st-font-display); font-size: 1.15rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink); }
+.profile-block__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.profile-basics { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.profile-basics__cell { min-width: 0; padding: 16px; border: 1px solid var(--st-line); border-radius: var(--st-r-md); background: var(--st-bg-soft); }
+.profile-source { grid-template-columns: auto minmax(0, 1fr); }
+.profile-source__icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--st-bg-sink); color: var(--st-ink-3); }
+.profile-source__text { font-size: 0.86rem; color: var(--st-ink-2); overflow-wrap: anywhere; }
+.profile-panel { min-width: 0; }
+.profile-embed { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.profile-form { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.profile-form__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.profile-hint { margin-top: 6px; font-size: 0.75rem; line-height: 1.6; color: var(--st-ink-3); }
+.profile-avatar { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-avatar__pic {
+  display: grid; place-items: center; flex: none;
+  width: 84px; height: 84px; border-radius: var(--st-r-lg);
+  background: var(--st-brand); color: var(--st-brand-ink);
+  font-family: var(--st-font-display); font-size: 1.9rem; font-weight: 600;
+  overflow: hidden;
+}
+.profile-avatar__pic--sm { width: 60px; height: 60px; font-size: 1.35rem; border-radius: var(--st-r-md); }
+.profile-avatar__pic img { width: 100%; height: 100%; object-fit: cover; }
+.profile-avatar__body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.profile-avatar__hint { font-size: 0.84rem; }
+.profile-avatar__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.profile-avatar__upload { position: relative; cursor: pointer; }
+.profile-avatar__file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+@media (min-width: 640px) {
+  .profile-hero__top { flex-direction: row; align-items: flex-start; }
+  .profile-hero__metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .profile-avatar { flex-direction: row; align-items: flex-start; }
+}
+@media (min-width: 900px) {
+  .profile-basics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>
