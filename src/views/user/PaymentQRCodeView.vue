@@ -5,14 +5,14 @@
         <header class="qrpay__hero">
           <p class="st-eyebrow">{{ c('pay.qr.title') }}</p>
           <h1 class="st-display-2 qrpay__title">{{ qrUrl ? scanTitle : t('payment.qr.payInNewWindow') }}</h1>
-          <p v-if="qrUrl && !expired && scanHint" class="st-lede">{{ scanHint }}</p>
+          <p v-if="!expired" class="st-lede">{{ c('qr.ledeShort') }}</p>
         </header>
 
         <div v-if="qrUrl && !expired" class="st-card st-card--pad qrpay__card">
           <div class="qrpay__paper">
             <canvas ref="qrCanvas" class="qrpay__canvas"></canvas>
           </div>
-          <p class="st-body qrpay__hint">{{ c('pay.qr.scanHint') }}</p>
+          <p v-if="scanHint" class="st-body qrpay__hint">{{ scanHint }}</p>
         </div>
 
         <div v-if="expired" class="st-card st-card--pad qrpay__card qrpay__card--center">
@@ -22,14 +22,14 @@
             </svg>
           </div>
           <h2 class="st-display-3">{{ t('payment.qr.expired') }}</h2>
-          <p class="st-body">{{ c('pay.qr.expiredBody') }}</p>
+          <p class="st-lede qrpay__expired-lede">{{ c('pay.qr.expiredBody') }}</p>
           <button class="st-btn st-btn--primary qrpay__btn" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
         </div>
 
-        <div v-else class="st-card st-card--pad qrpay__card qrpay__card--center">
-          <p class="st-row__meta">{{ qrUrl ? t('payment.qr.expiresIn') : t('payment.qr.payInNewWindowHint') }}</p>
-          <p class="st-display-2 qrpay__time st-num">{{ countdownDisplay }}</p>
-          <p class="st-row__meta">{{ t('payment.qr.waitingPayment') }}</p>
+        <div v-else class="st-card st-card--pad qrpay__card qrpay__card--center qrpay__countdown">
+          <p class="st-stat__label">{{ qrUrl ? t('payment.qr.expiresIn') : t('payment.qr.payInNewWindowHint') }}</p>
+          <p class="st-stat__value qrpay__time st-num">{{ countdownDisplay }}</p>
+          <p class="qrpay__live"><span class="qrpay__dot"></span>{{ t('payment.qr.waitingPayment') }}</p>
           <a v-if="payUrl && !qrUrl" :href="payUrl" target="_blank" rel="noopener noreferrer"
             class="st-btn st-btn--primary qrpay__btn">{{ t('payment.qr.openPayWindow') }}</a>
         </div>
@@ -225,6 +225,39 @@ onMounted(() => {
 
 onUnmounted(() => cleanup())
 </script>
+<style scoped>
+.qrpay__hero { gap: 10px; margin-bottom: clamp(26px, 4vw, 40px); }
+.qrpay .st-card { box-shadow: var(--st-shadow-2); }
+.qrpay__card { gap: 16px; }
+.qrpay__paper {
+  border-radius: var(--st-r-lg);
+  padding: 16px;
+  box-shadow: var(--st-shadow-2);
+}
+.qrpay__time { font-size: clamp(2.1rem, 8vw, 2.8rem); line-height: 1.05; }
+.qrpay__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--st-ink-faint);
+}
+.qrpay__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--st-brand);
+  animation: qrpay-pulse 1.6s var(--st-ease) infinite;
+}
+@keyframes qrpay-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.qrpay__mark { width: 56px; height: 56px; }
+.qrpay__btn { min-height: 44px; }
+@media (max-width: 480px) {
+  .qrpay__wrap { max-width: none; }
+  .qrpay__btn { min-height: 48px; }
+}
+</style>
+
 <style scoped>
 .qrpay { padding-bottom: clamp(56px, 8vw, 96px); }
 .qrpay__wrap { max-width: 460px; }

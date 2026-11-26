@@ -1,13 +1,26 @@
 <template>
   <UserShell>
     <div class="st-shell monitor-v2">
+      <header class="monitor-v2__hero">
+        <p class="st-eyebrow">{{ c('status.eyebrow') }}</p>
+        <h1 class="st-display-2 monitor-v2__title">{{ t('channelMonitorV2.title') }}</h1>
+        <p class="st-lede">{{ c('status.lede') }}</p>
+      </header>
+
+      <div v-if="loadError && !snapshot" class="monitor-v2__error st-card st-card--pad" role="alert">
+        <Icon name="exclamationCircle" size="lg" />
+        <div class="monitor-v2__error-copy">
+          <p class="monitor-v2__error-title">{{ c('status.loadFailed') }}</p>
+          <button type="button" class="st-btn st-btn--primary st-btn--sm" :disabled="loading" @click="reload(false)">
+            {{ c('action.retry') }}
+          </button>
+        </div>
+      </div>
+
       <!-- Ops-style elevated shell: title toolbar + filters (mirrors OpsDashboardHeader) -->
       <section class="st-card monitor-v2__toolbar">
         <header class="monitor-v2__head">
           <div class="min-w-0">
-            <h1 class="st-display-2 monitor-v2__title">
-              {{ t('channelMonitorV2.title') }}
-            </h1>
             <div class="monitor-v2__status">
               <span class="relative flex h-2 w-2 shrink-0">
                 <span
@@ -428,7 +441,6 @@
               </tbody>
             </table>
           </div>
-
           <div v-if="tabLoading" class="empty-state py-10 text-sm text-gray-400">{{ t('common.loading') }}</div>
           <div v-else-if="activeRowsEmpty" class="empty-state py-10">
             <p class="empty-state-title text-base">
@@ -445,6 +457,15 @@
                   : t('channelMonitorV2.empty.description')
               }}
             </p>
+            <button
+              v-if="!bootstrapActive"
+              type="button"
+              class="st-btn st-btn--quiet st-btn--sm"
+              :disabled="loading"
+              @click="reload(false)"
+            >
+              {{ c('action.retry') }}
+            </button>
           </div>
         </div>
       </section>
@@ -455,6 +476,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useMiscCopy } from '@/composables/copy/misc'
 import { useRoute, useRouter } from 'vue-router'
 import UserShell from '@/components/shell/UserShell.vue'
 import Icon from '@/components/icons/Icon.vue'
@@ -507,6 +529,7 @@ const appStore = useAppStore()
 const { t, te, locale } = useI18n()
 const isAdmin = computed(() => authStore.isAdmin)
 /** Admins always see RPM/TPM; users honor the hide-throughput system setting. */
+const { c } = useMiscCopy()
 const showThroughput = computed(() => isAdmin.value || !isChannelMonitorThroughputHidden())
 /** Admins always see ranking; users honor the hide-user-ranking system setting. */
 const showUserRanking = computed(() => isAdmin.value || !isChannelMonitorUserRankingHidden())
@@ -559,6 +582,7 @@ const userRows = ref<MonitorUserRow[]>([])
 const loading = ref(false)
 const tabLoading = ref(false)
 const refreshing = ref(false)
+const loadError = ref(false)
 const expandedErrors = ref(new Set<string>())
 let controller: AbortController | null = null
 let sequence = 0
@@ -736,8 +760,10 @@ async function reload(silent = true) {
       loadDimensions(request.signal, id),
       loadMetrics(request.signal, id),
     ])
+    loadError.value = false
   } catch (error) {
     if ((error as { name?: string }).name !== 'CanceledError') {
+      loadError.value = true
       appStore.showError(extractApiErrorMessage(error, t('channelMonitorV2.loadFailed')))
     }
   } finally {
@@ -926,6 +952,14 @@ onBeforeUnmount(() => {
 })
 </script>
 
+<style scoped>
+.status-dot {
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+  flex: none;
+  border-radius: 9999px;
+}
 /* Multi-stop green → yellow → red score bands (all derived from status tokens) */
 .health-score10 { background: var(--st-ok); }
 .health-score9  { background: color-mix(in srgb, var(--st-ok) 92%, var(--st-warn)); }
@@ -942,6 +976,7 @@ onBeforeUnmount(() => {
 .health-warning  { background: var(--st-warn); }
 .health-critical { background: var(--st-danger); }
 .health-unknown  { background: var(--st-ink-3); }
+.matrix-select {
   min-width: 10rem;
 }
 details > summary::-webkit-details-marker {
@@ -955,35 +990,56 @@ details > summary::-webkit-details-marker {
   padding-block: clamp(20px, 3vw, 40px) clamp(48px, 7vw, 88px);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: clamp(18px, 2.6vw, 30px);
 }
+.monitor-v2__hero { max-width: 62ch; }
+.monitor-v2__hero .st-lede { margin-top: 14px; }
+.monitor-v2__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border-color: var(--st-danger-soft);
+  background: var(--st-danger-soft);
+  color: var(--st-danger);
+}
+.monitor-v2__error-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.monitor-v2__error-title { margin: 0; font-size: 0.92rem; line-height: 1.6; color: var(--st-ink); }
+
 .monitor-v2__toolbar {
   position: sticky;
-  top: 80px;
+  top: 76px;
   z-index: 20;
   padding: 0;
   overflow: hidden;
-  background: color-mix(in srgb, var(--st-bg-elev) 92%, transparent);
+  background: color-mix(in srgb, var(--st-bg) 92%, transparent);
   backdrop-filter: blur(16px) saturate(140%);
 }
 .monitor-v2__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px clamp(16px, 2vw, 22px);
+  padding: 12px clamp(14px, 2vw, 20px);
   border-bottom: 1px solid var(--st-line);
 }
+.monitor-v2__head > button { flex-shrink: 0; min-width: 40px; min-height: 40px; }
 .monitor-v2__title { font-size: clamp(1.4rem, 2.2vw, 1.9rem); }
 .monitor-v2__status {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
   font-size: 0.78rem;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
+}
+@media (max-width: 720px) {
+  .monitor-v2 { padding-block: 16px clamp(40px, 7vw, 64px); }
+  .monitor-v2__head > button { min-width: 44px; min-height: 44px; }
+  .monitor-v2__status { font-size: 0.82rem; }
+  .monitor-v2 :deep(.badge) { font-size: 12px; }
+  .monitor-v2 :deep(.tab) { font-size: 12px; }
+  .monitor-v2 :deep(.empty-state-description) { font-size: 0.85rem; }
+  .monitor-v2__error .st-btn { min-height: 44px; }
 }
 </style>
-

@@ -17,6 +17,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
+            <p class="st-eyebrow result__eyebrow">{{ c('result.eyebrow') }}</p>
             <h1 class="st-display-2 result__title">{{ statusTitle }}</h1>
             <p class="st-lede result__lede">{{ statusBody }}</p>
           </header>
@@ -28,6 +29,10 @@
 
           <section v-if="order" class="st-card st-card--pad result__receipt">
             <h2 class="st-display-4">{{ c('result.receipt') }}</h2>
+            <div v-if="hasAmountFields(order)" class="result__amount">
+              <span class="st-stat__label">{{ c('result.payAmount') }}</span>
+              <span class="st-stat__value st-num">{{ formatGatewayAmount(order.pay_amount) }}<span class="result__unit">{{ order.currency || currency }}</span></span>
+            </div>
             <div class="result__rows">
               <div v-if="hasOrderId(order)" class="st-row result__row">
                 <span class="st-row__meta">{{ c('result.orderId') }}</span>
@@ -44,10 +49,6 @@
               <div v-if="hasAmountFields(order) && order.fee_rate > 0" class="st-row result__row">
                 <span class="st-row__meta">{{ c('result.fee') }} ({{ order.fee_rate }}%)</span>
                 <span class="result__value">{{ formatGatewayAmount(feeAmount) }}</span>
-              </div>
-              <div v-if="hasAmountFields(order)" class="st-row result__row">
-                <span class="st-row__meta">{{ c('result.payAmount') }}</span>
-                <span class="result__value">{{ formatGatewayAmount(order.pay_amount) }}</span>
               </div>
               <div v-if="hasAmountFields(order) && orderBonusAmount(order) > 0" class="st-row result__row">
                 <span class="st-row__meta">{{ c('result.bonus') }}</span>
@@ -70,14 +71,14 @@
 
           <section v-else-if="returnInfo" class="st-card st-card--pad result__receipt">
             <h2 class="st-display-4">{{ c('result.receipt') }}</h2>
+            <div class="result__amount">
+              <span class="st-stat__label">{{ c('result.payAmount') }}</span>
+              <span class="st-stat__value st-num">{{ formatGatewayAmount(Number(returnInfo.money) || 0) }}<span class="result__unit">{{ currency }}</span></span>
+            </div>
             <div class="result__rows">
               <div v-if="returnInfo.outTradeNo" class="st-row result__row">
                 <span class="st-row__meta">{{ c('result.orderId') }}</span>
                 <span class="result__value result__value--mono">{{ returnInfo.outTradeNo }}</span>
-              </div>
-              <div v-if="returnInfo.money" class="st-row result__row">
-                <span class="st-row__meta">{{ c('result.payAmount') }}</span>
-                <span class="result__value">{{ formatGatewayAmount(Number(returnInfo.money) || 0) }}</span>
               </div>
               <div v-if="returnInfo.type" class="st-row result__row">
                 <span class="st-row__meta">{{ c('result.method') }}</span>
@@ -186,9 +187,9 @@ const statusTitle = computed(() => {
 })
 
 const statusBody = computed(() => {
-  if (isSuccess.value) return c('result.successBody')
-  if (isPending.value) return c('result.pendingBody')
-  return c('result.failedBody')
+  if (isSuccess.value) return c('result.line.ok')
+  if (isPending.value) return c('result.line.pending')
+  return c('result.line.failed')
 })
 
 const markTone = computed(() => (isSuccess.value ? 'ok' : isPending.value ? 'warn' : 'bad'))
@@ -473,6 +474,29 @@ onBeforeUnmount(() => {
   clearStatusRefreshTimer()
 })
 </script>
+<style scoped>
+.result__hero { margin-bottom: clamp(26px, 4vw, 42px); }
+.result__mark { width: 64px; height: 64px; }
+.result__title { margin-top: 4px; }
+.result .st-card { box-shadow: var(--st-shadow-2); }
+.result :deep(.st-pill) { font-size: 0.75rem; }
+.result .st-btn { min-height: 44px; }
+.result__receipt { gap: 14px; }
+.result__amount { display: flex; flex-direction: column; gap: 2px; padding-bottom: 4px; }
+.result__amount .st-stat__value { font-size: clamp(1.8rem, 4vw, 2.2rem); }
+.result__unit {
+  margin-left: 6px;
+  font-family: var(--st-font-body);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--st-ink-faint);
+}
+.result__actions .st-btn { min-height: 50px; }
+@media (max-width: 480px) {
+  .result__receipt { padding: clamp(16px, 4.6vw, 22px); }
+}
+</style>
+
 <style scoped>
 .result { padding-bottom: clamp(56px, 8vw, 96px); }
 .result__wrap { max-width: 640px; }

@@ -1,6 +1,8 @@
 <template>
   <section class="shelf st-reveal">
     <header class="shelf__head">
+      <span v-if="index != null" class="shelf__idx st-num" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
+
       <div class="shelf__headline">
         <div class="shelf__badges">
           <GroupBadge
@@ -35,7 +37,10 @@
         </p>
       </div>
 
-      <span class="shelf__count st-num">{{ group.models.length }}</span>
+      <span class="shelf__count">
+        <b class="shelf__count-v st-num">{{ group.models.length }}</b>
+        <span class="shelf__count-k">{{ c('plaza.modelCount') }}</span>
+      </span>
     </header>
 
     <div class="shelf__body">
@@ -67,12 +72,16 @@ import type { ModelPlazaGroup } from '@/api/modelPlaza'
 import type { GroupPlatform, SubscriptionType } from '@/types'
 import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
 import { useAppStore } from '@/stores/app'
+import { useMiscCopy } from '@/composables/copy/misc'
 
 const props = defineProps<{
   group: ModelPlazaGroup
+  /** 第几个分组（0 基），用于「01 / 02」编辑感编号。 */
+  index?: number
 }>()
 
 const { t } = useI18n()
+const { c } = useMiscCopy()
 const appStore = useAppStore()
 
 /** 高峰窗口描述（含倍率与服务器时区标注）；分组未启用高峰为空串。 */
@@ -106,22 +115,30 @@ const longContextNote = computed(() => {
 </script>
 
 <style scoped>
-.shelf { display: flex; flex-direction: column; gap: 14px; }
+.shelf { display: flex; flex-direction: column; gap: clamp(14px, 2vw, 20px); }
 
 .shelf__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: clamp(14px, 2.2vw, 26px);
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--st-line);
+}
+.shelf__idx {
+  padding-top: 4px;
+  font-family: var(--st-font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  color: var(--st-brand-text);
 }
 .shelf__headline { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
 .shelf__badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .shelf__desc {
+  margin: 0;
   font-size: 0.88rem;
   line-height: 1.7;
-  color: var(--st-ink-soft);
+  color: var(--st-ink-2);
   max-width: 68ch;
   text-wrap: pretty;
 }
@@ -129,36 +146,43 @@ const longContextNote = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  margin: 0;
   font-size: 0.76rem;
   line-height: 1.6;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
 }
 .shelf__note svg { flex-shrink: 0; }
-.shelf__note--peak { color: var(--st-accent); }
+.shelf__note--peak { color: var(--st-brand-text); }
 
-.shelf__count {
-  flex-shrink: 0;
+.shelf__count { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.shelf__count-v {
   font-family: var(--st-font-display);
-  font-size: 1.5rem;
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
   font-weight: 600;
-  letter-spacing: -0.03em;
-  color: var(--st-ink-faint);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--st-ink);
+  font-variant-numeric: tabular-nums;
 }
+.shelf__count-k { font-size: 0.72rem; color: var(--st-ink-3); white-space: nowrap; }
 
-.shelf__body {
-  border-radius: var(--st-radius-lg);
-  border: 1px solid var(--st-line);
-  background: color-mix(in srgb, var(--st-bg-elev) 55%, transparent);
-  overflow: hidden;
-}
+.shelf__body { min-width: 0; }
 .shelf__empty {
   padding: 32px 20px;
   text-align: center;
   font-size: 0.86rem;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
 }
 
-@media (max-width: 640px) {
-  .shelf__body { border-radius: var(--st-radius-md); }
+@media (max-width: 560px) {
+  .shelf__head { grid-template-columns: minmax(0, 1fr) auto; }
+  .shelf__idx { display: none; }
+  .shelf__count-v { font-size: 1.5rem; }
+}
+
+@media (max-width: 560px) {
+  .shelf__count-k,
+  .shelf__note,
+  .shelf__desc { font-size: 0.8rem; }
 }
 </style>

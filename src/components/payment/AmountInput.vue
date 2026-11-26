@@ -200,7 +200,7 @@ watch(() => props.modelValue, (v) => {
 .amount__btn--on { border-color: var(--st-brand); background: var(--st-brand-soft); }
 .amount__btn:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
 .amount__value { line-height: 1.2; font-variant-numeric: tabular-nums; }
-.amount__second { font-size: 0.7rem; line-height: 1.35; color: var(--st-ink-faint); }
+.amount__second { font-size: 0.75rem; line-height: 1.35; color: var(--st-ink-faint); }
 .amount__second--promo { color: var(--st-brand-text); }
 
 .amount__tag { position: absolute; right: -6px; top: -10px; transform: rotate(10deg); pointer-events: none; }
@@ -213,7 +213,7 @@ watch(() => props.modelValue, (v) => {
   border: 1px solid var(--st-brand-line);
   background: var(--st-brand);
   color: var(--st-brand-ink);
-  font-size: 0.66rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.5;

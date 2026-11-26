@@ -12,13 +12,28 @@
               <span class="st-pill st-pill--dot" :class="overallStatus === 'operational' ? 'st-pill--accent' : 'board__pill--warn'">
                 {{ overallStatus === 'operational' ? c('status.overallOk') : c('status.overallDegraded') }}
               </span>
-              <span v-if="items.length" class="st-pill st-num">
-                {{ items.length }} {{ c('status.channel') }}
-              </span>
               <span v-if="countdown > 0" class="st-pill st-num board__countdown">
                 {{ t('monitorCommon.nextUpdateIn', { n: countdown }) }}
               </span>
             </div>
+
+            <dl class="board__stats st-reveal" style="--i: 3">
+              <div class="board__stat st-stat">
+                <dt class="st-stat__label">{{ c('status.statChannels') }}</dt>
+                <dd class="st-stat__value st-num">{{ items.length }}</dd>
+              </div>
+              <div class="board__stat st-stat">
+                <dt class="st-stat__label">{{ c('status.statOk') }}</dt>
+                <dd class="st-stat__value st-num">{{ operationalCount }}</dd>
+              </div>
+              <div class="board__stat st-stat">
+                <dt class="st-stat__label">{{ c('status.statLatency') }}</dt>
+                <dd class="board__stat-inline">
+                  <span class="st-stat__value st-num">{{ avgLatencyMs ?? '-' }}</span>
+                  <span class="st-stat__unit">ms</span>
+                </dd>
+              </div>
+            </dl>
           </div>
 
           <div class="board__controls st-reveal" style="--i: 3">
@@ -60,8 +75,27 @@
         </header>
 
         <!-- 加载骨架 -->
-        <div v-if="loading && items.length === 0" class="board__list" aria-busy="true">
-          <div v-for="i in 4" :key="i" class="st-skeleton board__skeleton"></div>
+        <!-- 错误 -->
+        <div v-if="loadError && items.length === 0" class="board__state st-card st-card--pad" role="alert">
+          <span class="board__state-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M12 8v5M12 16.5v.5" stroke-linecap="round" />
+              <circle cx="12" cy="12" r="9" />
+            </svg>
+          </span>
+          <p class="board__state-title">{{ c('status.loadFailed') }}</p>
+          <button type="button" class="st-btn st-btn--primary st-btn--sm" :disabled="loading" @click="refresh()">
+            {{ c('action.retry') }}
+          </button>
+        </div>
+
+        <!-- 加载骨架 -->
+        <div v-else-if="loading && items.length === 0" class="board__list board__list--sk" aria-busy="true" aria-live="polite">
+          <div v-for="i in 4" :key="i" class="board__sk-row">
+            <span class="st-skeleton board__sk-dot"></span>
+            <span class="st-skeleton board__sk-line board__sk-line--title"></span>
+            <span class="st-skeleton board__sk-line board__sk-line--bar"></span>
+          </div>
         </div>
 
         <!-- 渠道行 -->
@@ -114,16 +148,18 @@
         </div>
 
         <!-- 空状态 -->
-        <div v-else class="st-card board__empty">
-          <span class="board__empty-mark" aria-hidden="true">
+        <div v-else class="board__state st-card st-card--pad">
+          <span class="board__state-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
               <path d="M4 14l4-4 3 3 5-6 4 4" stroke-linecap="round" stroke-linejoin="round" />
               <path d="M4 19h16" stroke-linecap="round" />
             </svg>
           </span>
-          <p>{{ c('status.empty') }}</p>
+          <p class="board__state-title">{{ c('status.empty') }}</p>
+          <button type="button" class="st-btn st-btn--primary st-btn--sm" :disabled="loading" @click="refresh()">
+            {{ c('action.retry') }}
+          </button>
         </div>
-
         <p class="board__legend">
           <span><i class="board__legend-dot board__legend-dot--ok"></i>{{ c('status.legendOk') }}</span>
           <span><i class="board__legend-dot board__legend-dot--warn"></i>{{ c('status.legendWarn') }}</span>
@@ -170,6 +206,7 @@ const { providerLabel, formatMonitorModel } = useChannelMonitorFormat()
 // ── State ──
 const items = ref<UserMonitorView[]>([])
 const loading = ref(false)
+const loadError = ref(false)
 const currentWindow = ref<MonitorWindow>('7d')
 const detailCache = reactive<Record<number, UserMonitorDetail>>({})
 const showDetail = ref(false)
@@ -193,6 +230,18 @@ const windowOptions: { value: MonitorWindow; label: string }[] = [
   { value: '15d', label: c('status.win15d') },
   { value: '30d', label: c('status.win30d') },
 ]
+
+/** 页头三个大数字：渠道数 / 正常数 / 平均延迟。 */
+const operationalCount = computed(
+  () => items.value.filter((it) => it.primary_status === STATUS_OPERATIONAL).length
+)
+const avgLatencyMs = computed<number | null>(() => {
+  const vals = items.value
+    .map((it) => it.primary_latency_ms ?? it.primary_ping_latency_ms)
+    .filter((v): v is number => typeof v === 'number' && v > 0)
+  if (vals.length === 0) return null
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
+})
 
 const overallStatus = computed<'operational' | 'degraded'>(() => {
   if (items.value.length === 0) return 'operational'
@@ -264,9 +313,11 @@ async function reload(silent = false) {
     const res = await listChannelMonitorViews({ signal: ctrl.signal })
     if (ctrl.signal.aborted || abortController !== ctrl) return
     items.value = res.items || []
+    loadError.value = false
   } catch (err: unknown) {
     const e = err as { name?: string; code?: string }
     if (e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return
+    loadError.value = true
     appStore.showError(extractApiErrorMessage(err, t('channelStatus.loadError')))
   } finally {
     if (abortController === ctrl) {
@@ -357,11 +408,11 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
+  gap: clamp(20px, 3vw, 36px);
   margin-bottom: clamp(22px, 3vw, 34px);
 }
-.board__intro { max-width: 58ch; }
-.board__title { margin-top: 14px; }
+.board__intro { flex: 1 1 480px; max-width: 60ch; min-width: 0; }
+.board__title { margin-top: 12px; }
 .board__lede { margin-top: 14px; }
 .board__pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
 .board__pill--warn {
@@ -369,10 +420,23 @@ onBeforeUnmount(() => {
   border-color: color-mix(in srgb, var(--tone-warn) 30%, transparent);
   background: color-mix(in srgb, var(--tone-warn) 12%, transparent);
 }
-.board__countdown { color: var(--st-ink-faint); }
+.board__countdown { color: var(--st-ink-3); }
+
+.board__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(18px, 3.4vw, 44px);
+  margin: 24px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--st-line);
+}
+.board__stat { min-width: 72px; }
+.board__stat dt { margin: 0; }
+.board__stat dd { margin: 0; }
+.board__stat-inline { display: flex; align-items: baseline; gap: 2px; }
 
 .board__controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.board__seg { background: var(--st-bg-sunk); }
+.board__seg { background: var(--st-bg-soft); }
 .board__autodot {
   width: 6px;
   height: 6px;
@@ -380,13 +444,25 @@ onBeforeUnmount(() => {
   background: var(--tone-ok);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone-ok) 22%, transparent);
 }
-.board__autodot--off { background: var(--st-ink-faint); box-shadow: none; }
+.board__autodot--off { background: var(--st-ink-3); box-shadow: none; }
 .board__spin { animation: board-spin 900ms linear infinite; }
 @keyframes board-spin { to { transform: rotate(360deg); } }
 
-.board__list { display: flex; flex-direction: column; }
-.board__skeleton { height: 68px; border-radius: var(--st-radius-md); }
-.board__skeleton + .board__skeleton { margin-top: 8px; }
+.board__list {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: var(--st-r-lg);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg);
+  box-shadow: var(--st-shadow-2);
+}
+.board__list--sk { gap: 6px; padding: 12px; }
+.board__sk-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) minmax(0, 34%); align-items: center; gap: 14px; padding: 14px 10px; }
+.board__sk-dot { width: 10px; height: 10px; border-radius: 50%; }
+.board__sk-line { height: 12px; border-radius: 6px; }
+.board__sk-line--title { width: 62%; }
+.board__sk-line--bar { height: 8px; border-radius: 999px; }
 
 .board__row {
   --row-tone: var(--tone-ok);
@@ -395,18 +471,19 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: clamp(10px, 1.6vw, 22px);
   width: 100%;
-  padding: 15px 16px;
+  min-height: 56px;
+  padding: 15px 14px;
   border: 0;
-  border-radius: var(--st-radius-md);
+  border-radius: var(--st-r-md);
   background: transparent;
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--st-dur) var(--st-ease), transform var(--st-dur-fast) var(--st-ease);
+  transition: background-color var(--st-t) var(--st-ease), transform var(--st-t-fast) var(--st-ease);
 }
 .board__row + .board__row { box-shadow: inset 0 1px 0 var(--st-line); }
-.board__row:hover { background: color-mix(in srgb, var(--st-accent) 6%, transparent); }
+.board__row:hover { background: var(--st-bg-soft); }
 .board__row:active { transform: scale(0.996); }
-.board__row:focus-visible { outline: 2px solid var(--st-accent); outline-offset: -2px; }
+.board__row:focus-visible { outline: 2px solid var(--st-brand); outline-offset: -2px; }
 .board__row--warn { --row-tone: var(--tone-warn); }
 .board__row--bad { --row-tone: var(--tone-bad); }
 
@@ -430,7 +507,7 @@ onBeforeUnmount(() => {
 }
 .board__meta {
   font-size: 0.74rem;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -439,7 +516,7 @@ onBeforeUnmount(() => {
 .board__avail,
 .board__checked { display: flex; flex-direction: column; gap: 3px; }
 .board__avail-k,
-.board__checked-k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-faint); }
+.board__checked-k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-3); }
 .board__avail-v,
 .board__checked-v {
   font-size: 0.82rem;
@@ -451,13 +528,13 @@ onBeforeUnmount(() => {
 
 .board__latency { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .board__latency-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.board__latency-k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-faint); }
-.board__latency-v { font-size: 0.78rem; color: var(--st-ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.board__latency-k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-3); }
+.board__latency-v { font-size: 0.78rem; color: var(--st-ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .board__bar {
   display: block;
   height: 5px;
   border-radius: 999px;
-  background: var(--st-bg-sunk);
+  background: var(--st-bg-sink);
   overflow: hidden;
 }
 .board__bar i {
@@ -465,32 +542,40 @@ onBeforeUnmount(() => {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, color-mix(in srgb, var(--row-tone) 45%, transparent), var(--row-tone));
-  transition: width var(--st-dur-slow) var(--st-ease);
+  transition: width var(--st-t-slow) var(--st-ease);
 }
 
-.board__go { color: var(--st-ink-faint); display: grid; place-items: center; }
-.board__row:hover .board__go { color: var(--st-accent); }
+.board__go { color: var(--st-ink-3); display: grid; place-items: center; }
+.board__row:hover .board__go { color: var(--st-brand-text); }
 
-.board__empty {
+.board__state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding-block: clamp(40px, 7vw, 72px);
   text-align: center;
-  font-size: 0.9rem;
-  color: var(--st-ink-soft);
 }
-.board__empty-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--st-line); background: var(--st-bg-sunk); color: var(--st-ink-faint); }
+.board__state-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-3);
+}
+.board__state-title { margin: 0; font-size: 0.92rem; line-height: 1.6; color: var(--st-ink-2); max-width: 42ch; }
 
 .board__legend {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-top: 18px;
+  margin: 18px 0 0;
   padding-left: 4px;
   font-size: 0.74rem;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
 }
 .board__legend span { display: inline-flex; align-items: center; gap: 6px; }
 .board__legend-dot { width: 7px; height: 7px; border-radius: 50%; }
@@ -514,5 +599,21 @@ onBeforeUnmount(() => {
   .board__avail { grid-area: meta; flex-direction: row; align-items: baseline; gap: 6px; }
   .board__checked { display: none; }
   .board__go { grid-area: go; align-self: start; }
+}
+
+@media (max-width: 720px) {
+  .board__intro { flex: 1 1 100%; }
+  .board__stat { flex: 1 1 0; }
+  .board__avail-k,
+  .board__checked-k,
+  .board__latency-k { font-size: 12px; }
+  .board__meta { font-size: 0.78rem; }
+  .board__controls .st-btn { min-height: 44px; }
+  .board__legend { font-size: 0.8rem; gap: 12px; }
+}
+@media (max-width: 560px) {
+  .board__name { font-size: 0.88rem; }
+  .board__avail-v,
+  .board__latency-v { font-size: 0.8rem; }
 }
 </style>

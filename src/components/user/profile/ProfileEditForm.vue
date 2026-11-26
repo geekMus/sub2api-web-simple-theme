@@ -124,4 +124,13 @@ const handleUpdateProfile = async () => {
 @media (min-width: 900px) {
   .profile-basics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---- 第二轮：字段行式排布，避免一屏输入框 ---- */
+.profile-form { gap: 12px; }
+@media (min-width: 560px) {
+  .profile-form > div { display: grid; grid-template-columns: 148px minmax(0, 1fr); align-items: center; gap: 6px 14px; }
+  .profile-form > div > .st-label { margin-bottom: 0; }
+  .profile-form > div > .profile-hint { grid-column: 2; margin-top: 0; }
+  .profile-form__actions { grid-column: 1 / -1; margin-top: 4px; }
+}
 </style>

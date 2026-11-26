@@ -185,7 +185,7 @@
               </div>
               <div v-if="isColumnVisible('created_at')" class="keys__fact">
                 <dt>{{ t('keys.created') }}</dt>
-                <dd class="keys__fact-muted">{{ formatDateTime(row.created_at) }}</dd>
+                <dd class="keys__fact-muted">{{ formatShortDate(row.created_at) }}</dd>
               </div>
               <div v-if="isColumnVisible('last_used_ip')" class="keys__fact">
                 <dt>{{ t('keys.lastUsedIP') }}</dt>
@@ -242,18 +242,10 @@
 
             <footer class="keys__card-foot">
               <button type="button" class="keys__group-btn" :ref="(el) => setGroupButtonRef(row.id, el)" :title="t('keys.clickToChangeGroup')" @click="openGroupSelector(row)">
-                <GroupBadge
-                  v-if="row.group"
-                  :name="row.group.name"
-                  :platform="row.group.platform"
-                  :subscription-type="row.group.subscription_type"
-                  :rate-multiplier="row.group.rate_multiplier"
-                  :user-rate-multiplier="userGroupRates[row.group.id]"
-                  :peak-rate-enabled="row.group.peak_rate_enabled"
-                  :peak-start="row.group.peak_start"
-                  :peak-end="row.group.peak_end"
-                  :peak-rate-multiplier="row.group.peak_rate_multiplier"
-                />
+                <span v-if="row.group" class="keys__group-chip">
+                  <span class="keys__group-dot" aria-hidden="true"></span>
+                  <span class="keys__group-name" :title="row.group.name">{{ row.group.name }}</span>
+                </span>
                 <span v-else class="keys__group-empty">{{ t('keys.noGroup') }}</span>
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" class="keys__group-caret" aria-hidden="true">
                   <path d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" stroke-linecap="round" stroke-linejoin="round" />
@@ -262,24 +254,24 @@
               <div class="keys__actions">
                 <button type="button" class="keys__action" :title="t('keys.useKey')" @click="openUseKeyModal(row)">
                   <Icon name="terminal" size="sm" />
-                  <span class="sr-only">{{ t('keys.useKey') }}</span>
+                  <span class="keys__action-text">{{ c('usercore.keys.actUse') }}</span>
                 </button>
                 <button v-if="!publicSettings?.hide_ccs_import_button" type="button" class="keys__action" :title="t('keys.importToCcSwitch')" @click="importToCcswitch(row)">
                   <Icon name="upload" size="sm" />
-                  <span class="sr-only">{{ t('keys.importToCcSwitch') }}</span>
+                  <span class="keys__action-text">{{ c('usercore.keys.actImport') }}</span>
                 </button>
                 <button type="button" class="keys__action" :title="row.status === 'active' ? t('keys.disable') : t('keys.enable')" @click="toggleKeyStatus(row)">
                   <Icon v-if="row.status === 'active'" name="ban" size="sm" />
                   <Icon v-else name="checkCircle" size="sm" />
-                  <span class="sr-only">{{ row.status === 'active' ? t('keys.disable') : t('keys.enable') }}</span>
+                  <span class="keys__action-text">{{ row.status === 'active' ? t('keys.disable') : t('keys.enable') }}</span>
                 </button>
                 <button type="button" class="keys__action" :title="t('common.edit')" @click="editKey(row)">
                   <Icon name="edit" size="sm" />
-                  <span class="sr-only">{{ t('common.edit') }}</span>
+                  <span class="keys__action-text">{{ t('common.edit') }}</span>
                 </button>
                 <button type="button" class="keys__action keys__action--danger" :title="t('common.delete')" @click="confirmDelete(row)">
                   <Icon name="trash" size="sm" />
-                  <span class="sr-only">{{ t('common.delete') }}</span>
+                  <span class="keys__action-text">{{ t('common.delete') }}</span>
                 </button>
               </div>
             </footer>
@@ -1844,6 +1836,18 @@ function formatResetTime(resetAt: string | null): string {
 
 const { c } = useUserCoreCopy()
 
+// 卡片上的创建时间只保留“月+日”（跨年才带年份），避免长串时间戳挤爆卡片
+function formatShortDate(iso: string | null): string {
+  if (!iso) return '-'
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  const sameYear = date.getFullYear() === new Date().getFullYear()
+  return new Intl.DateTimeFormat(undefined, sameYear
+    ? { month: 'short', day: 'numeric' }
+    : { year: 'numeric', month: 'short', day: 'numeric' }
+  ).format(date)
+}
+
 onMounted(() => {
   loadSavedColumns()
   loadApiKeys()
@@ -2095,5 +2099,61 @@ onUnmounted(() => {
 @media (min-width: 1100px) {
   .keys__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   .keys__card { min-height: 280px; }
+}
+
+/* ---- 第二轮：卡片层级 / 触控目标 ---- */
+.keys__grid { gap: 16px; }
+.keys__card { gap: 16px; border-color: var(--st-line-2); box-shadow: var(--st-shadow-2); }
+.keys__name { font-size: 1.06rem; letter-spacing: -0.02em; }
+.keys__status {
+  height: 24px; padding-inline: 9px; border-radius: 999px;
+  border: 1px solid var(--st-line); background: var(--st-bg-soft);
+  font-size: 0.72rem; font-weight: 550;
+}
+.keys__status--active { color: var(--st-brand-text); border-color: var(--st-brand-line); background: var(--st-brand-soft); }
+.keys__status--active .keys__status-dot { box-shadow: none; }
+.keys__status--quota_exhausted { color: var(--st-warn); border-color: transparent; background: var(--st-warn-soft); }
+.keys__status--expired, .keys__status--inactive { color: var(--st-danger); border-color: transparent; background: var(--st-danger-soft); }
+.keys__key { padding: 10px 12px; border-color: var(--st-line-2); }
+.keys__key-code { font-size: 0.8rem; }
+.keys__facts { gap: 9px; }
+.keys__fact { min-height: 24px; }
+.keys__card-foot { padding-top: 14px; gap: 12px; }
+.keys__quota, .keys__ratelimit { gap: 8px; padding-top: 14px; }
+.keys__action { width: 34px; height: 34px; border-radius: 11px; }
+.keys__action:hover { background: var(--st-brand-soft); color: var(--st-ink); }
+
+@media (max-width: 719px) {
+  .keys__action { width: 44px; height: 44px; }
+  .keys__actions { gap: 4px; }
+  .keys__head-actions .st-btn,
+  .keys__group-btn,
+  .keys__bulk .st-btn,
+  .keys__pager .st-btn { min-height: 44px; }
+  .keys__card-head { flex-wrap: wrap; }
+  .keys__toolbar .st-icon-btn { width: 44px; height: 44px; }
+  .keys__cols-item { min-height: 44px; }
+  .keys-form-actions .st-btn, .keys-chips .keys-chip { min-height: 44px; }
+  .keys__key { min-height: 44px; }
+}
+
+/* ---- 巡检修复：搜索图标留位 / 分组中性点 / 带文字动作 ---- */
+.keys__search :deep(input) { padding-left: 38px; }
+.keys__group-chip { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.keys__group-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--st-brand); flex: none; }
+.keys__group-name {
+  max-width: 18ch; min-width: 0; font-size: 0.78rem; color: var(--st-ink-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.keys__actions { flex-wrap: wrap; justify-content: flex-end; }
+.keys__action {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  width: auto; min-width: 36px; min-height: 34px; padding-inline: 10px;
+  border-radius: 10px; cursor: pointer;
+}
+.keys__action-text { font-size: 0.74rem; color: inherit; white-space: nowrap; }
+@media (max-width: 899px) {
+  .keys__action { min-width: 44px; min-height: 44px; padding-inline: 0; }
+  .keys__action-text { display: none; }
 }
 </style>

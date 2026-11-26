@@ -11,14 +11,29 @@
         </div>
 
         <!-- 加载失败 -->
-        <div v-else-if="loadError" class="st-card doc__state">
+        <div v-else-if="loadError" class="st-card doc__state" role="alert">
+          <span class="doc__state-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M12 8v5M12 16.5v.5" stroke-linecap="round" />
+              <circle cx="12" cy="12" r="9" />
+            </svg>
+          </span>
           <p class="st-eyebrow">{{ c('legal.eyebrow') }}</p>
           <h1 class="st-display-2 doc__state-title">{{ c('legal.loadFailed') }}</h1>
           <p class="st-body">{{ c('legal.retryLater') }}</p>
+          <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="loadSettings">
+            {{ c('action.retry') }}
+          </button>
         </div>
 
         <!-- 文档不存在 -->
         <div v-else-if="!currentDocument" class="st-card doc__state">
+          <span class="doc__state-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M6 4h9l4 4v12H6z" stroke-linejoin="round" />
+              <path d="M9 11h6M9 15h4" stroke-linecap="round" />
+            </svg>
+          </span>
           <p class="st-eyebrow">{{ c('legal.eyebrow') }}</p>
           <h1 class="st-display-2 doc__state-title">{{ c('legal.notFound') }}</h1>
           <p class="st-body">{{ c('legal.notFoundDescription') }}</p>
@@ -165,14 +180,22 @@ function observeHeadings() {
   nodes.forEach((n) => observer?.observe(n))
 }
 
-onMounted(async () => {
+async function loadSettings() {
   loadError.value = false
-  const loadedSettings = await appStore.fetchPublicSettings()
-  if (!loadedSettings) {
-    loadError.value = true
+  loading.value = true
+  try {
+    const loadedSettings = await appStore.fetchPublicSettings()
+    if (!loadedSettings) {
+      loadError.value = true
+    }
+  } finally {
+    loading.value = false
   }
-  loading.value = false
   requestAnimationFrame(observeHeadings)
+}
+
+onMounted(() => {
+  void loadSettings()
 })
 
 onBeforeUnmount(() => observer?.disconnect())
@@ -207,10 +230,10 @@ onBeforeUnmount(() => observer?.disconnect())
   line-height: 1.5;
   color: var(--st-ink-faint);
   text-decoration: none;
-  transition: color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease);
+  transition: color var(--st-t) var(--st-ease), border-color var(--st-t) var(--st-ease);
 }
 .doc__toc-link:hover { color: var(--st-ink); }
-.doc__toc-link--active { color: var(--st-accent); border-left-color: var(--st-accent); }
+.doc__toc-link--active { color: var(--st-brand-text); border-left-color: var(--st-brand); }
 .doc__toc-link--l2 { padding-left: 22px; }
 .doc__toc-link--l3 { padding-left: 32px; font-size: 0.78rem; }
 
@@ -245,7 +268,7 @@ onBeforeUnmount(() => observer?.disconnect())
 .doc__body :deep(h3) { font-size: 1.08rem; }
 .doc__body :deep(h4) { font-size: 1rem; }
 .doc__body :deep(p) { margin: 0 0 1.1em; }
-.doc__body :deep(a) { color: var(--st-accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.doc__body :deep(a) { color: var(--st-brand-text); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .doc__body :deep(ul),
 .doc__body :deep(ol) { margin: 0 0 1.1em; padding-left: 1.4em; }
 .doc__body :deep(li) { margin-bottom: 0.4em; }
@@ -253,7 +276,7 @@ onBeforeUnmount(() => observer?.disconnect())
 .doc__body :deep(blockquote) {
   margin: 1.4em 0;
   padding: 2px 0 2px 16px;
-  border-left: 2px solid var(--st-accent-line);
+  border-left: 2px solid var(--st-brand-line);
   color: var(--st-ink-soft);
 }
 .doc__body :deep(code) {
@@ -298,8 +321,32 @@ onBeforeUnmount(() => observer?.disconnect())
 .doc__sk-line--short { width: 42%; }
 .doc__sk-body { height: 260px; margin-top: 12px; }
 
-.doc__state { max-width: 62ch; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; padding: clamp(24px, 4vw, 40px); }
-.doc__state-title { margin: 4px 0 0; }
+.doc__state { max-width: 62ch; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; padding: clamp(24px, 4vw, 40px); }
+.doc__state-title { margin: 2px 0 0; }
+.doc__state-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-3);
+}
+.doc__foot .st-btn { min-height: 40px; }
+
+@media (max-width: 720px) {
+  .doc__toc-link { font-size: 0.85rem; }
+  .doc__state .st-btn { min-height: 44px; }
+  .doc__foot .st-btn { min-height: 44px; }
+}
+
+@media (max-width: 720px) {
+  .doc__meta,
+  .doc__state .st-eyebrow,
+  .doc__toc-label { font-size: 12px; }
+  .doc__body { font-size: 1rem; }
+}
 
 @media (min-width: 1000px) {
   .doc__layout { grid-template-columns: 208px minmax(0, 1fr); }

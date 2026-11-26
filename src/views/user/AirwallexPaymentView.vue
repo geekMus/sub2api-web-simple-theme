@@ -3,9 +3,10 @@
     <section class="st-section--tight awx">
       <div class="st-shell awx__wrap">
         <div v-if="loading" class="st-card st-card--pad awx__card" aria-busy="true">
-          <span class="awx__spin"></span>
+          <div class="st-skeleton awx__sk awx__sk--mark"></div>
+          <div class="st-skeleton awx__sk awx__sk--wide"></div>
+          <div class="st-skeleton awx__sk"></div>
           <p class="st-body">{{ c('stripe.loading') }}</p>
-          <p class="st-row__meta">{{ t('payment.qr.payInNewWindowHint') }}</p>
         </div>
 
         <div v-else-if="errorMessage" class="st-card st-card--pad awx__card">
@@ -143,6 +144,17 @@ onMounted(async () => {
   }
 })
 </script>
+<style scoped>
+.awx .st-card { box-shadow: var(--st-shadow-2); }
+.awx .st-btn { min-height: 44px; }
+.awx__card { gap: 14px; padding-block: clamp(28px, 6vw, 44px); }
+.awx__sk { height: 14px; border-radius: var(--st-r-xs); }
+.awx__sk--mark { width: 48px; height: 48px; border-radius: 50%; }
+.awx__sk--wide { width: 70%; }
+.awx__mark { width: 56px; height: 56px; }
+.awx__btn { min-height: 48px; }
+</style>
+
 <style scoped>
 .awx { padding-bottom: clamp(56px, 8vw, 96px); }
 .awx__wrap { max-width: 460px; }

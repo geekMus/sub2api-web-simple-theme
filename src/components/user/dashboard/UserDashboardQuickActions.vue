@@ -87,17 +87,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.dash-quick { display: flex; flex-direction: column; gap: 16px; }
+.dash-quick { display: flex; flex-direction: column; gap: 16px; box-shadow: var(--st-shadow-2); }
 .dash-quick__head { display: flex; flex-direction: column; gap: 8px; }
 .dash-quick__head .st-display-3 { margin-top: 2px; }
 .dash-quick__lede { font-size: 0.86rem; }
 
-.dash-quick__list { display: flex; flex-direction: column; gap: 2px; }
+.dash-quick__list { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
+.dash-quick__list > li + li { border-top: 1px solid var(--st-line); }
 .dash-quick__item {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
+  min-height: 44px;
   padding: 12px 10px;
   border: 0;
   border-radius: var(--st-r-md);

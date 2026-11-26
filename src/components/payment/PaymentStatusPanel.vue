@@ -464,6 +464,7 @@ onUnmounted(() => cleanup())
 <style scoped>
 .psp { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 620px; margin-inline: auto; }
 .psp__card { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.psp .st-btn { min-height: 44px; }
 .psp__state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; min-width: 0; }
 .psp__title { margin-top: 2px; }
 .psp__fallback-head { display: flex; flex-direction: column; gap: 6px; text-align: center; }
@@ -487,7 +488,7 @@ onUnmounted(() => cleanup())
 .psp__row { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 9px 0; }
 .psp__value { font-size: 0.88rem; color: var(--st-ink); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .psp__value--mono { font-family: var(--st-font-mono); font-size: 0.78rem; }
-.psp__bonus { display: block; font-size: 0.74rem; color: var(--st-warn); }
+.psp__bonus { display: block; font-size: 0.78rem; color: var(--st-warn); }
 
 .psp__paper {
   position: relative;

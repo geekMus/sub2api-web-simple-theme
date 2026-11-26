@@ -1,5 +1,17 @@
 <template>
   <div class="filters">
+    <div class="filters__head">
+      <span class="filters__hint">{{ c('plaza.filterTitle') }}</span>
+      <button
+        v-if="hasActive"
+        type="button"
+        class="st-btn st-btn--ghost st-btn--sm filters__reset"
+        @click="$emit('reset')"
+      >
+        {{ c('action.clearFilters') }}
+      </button>
+    </div>
+
     <div class="filters__row">
       <span class="filters__label">{{ c('plaza.filter.platform') }}</span>
       <div class="filters__rail" role="group" aria-label="platform">
@@ -89,7 +101,7 @@
           :placeholder="c('plaza.searchPlaceholder')"
           @input="$emit('update:search', ($event.target as HTMLInputElement).value)"
         />
-        <button v-if="search" type="button" class="filters__clear" @click="$emit('update:search', '')">
+        <button v-if="search" type="button" class="filters__clear" :aria-label="c('action.clearSearch')" @click="$emit('update:search', '')">
           <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path d="M5 5l10 10M15 5L5 15" stroke-linecap="round" />
           </svg>
@@ -100,6 +112,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import { platformAccentColor } from '@/utils/platformColors'
@@ -125,10 +138,16 @@ defineEmits<{
   'update:groupId': [value: number | 'all']
   'update:rate': [value: number | 'all']
   'update:search': [value: string]
+  reset: []
 }>()
 
 const { t } = useI18n()
 const { c } = useMiscCopy()
+
+/** 任一维度偏离「全部」即可一键重置。 */
+const hasActive = computed(
+  () => props.platform !== 'all' || props.groupId !== 'all' || props.rate !== 'all' || props.search !== ''
+)
 
 /**
  * 三个维度互为约束（faceted）：某选项可点 ⟺ 在「其他两维」当前选择下仍有分组命中。
@@ -164,48 +183,64 @@ function rateEnabled(r: number): boolean {
 .filters {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 18px;
-  border-radius: var(--st-radius-lg);
+  gap: 12px;
+  padding: clamp(14px, 1.8vw, 20px);
+  border-radius: var(--st-r-lg);
   border: 1px solid var(--st-line);
-  background: color-mix(in srgb, var(--st-bg-elev) 62%, transparent);
+  background: color-mix(in srgb, var(--st-bg) 86%, transparent);
   backdrop-filter: blur(14px);
+  box-shadow: var(--st-shadow-1);
 }
+
+.filters__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 22px; }
+.filters__hint {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--st-ink-3);
+}
+.filters__reset { height: 28px; padding-inline: 10px; }
 
 .filters__row {
   display: grid;
-  grid-template-columns: 62px 1fr;
+  grid-template-columns: 62px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 .filters__label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
 }
-.filters__rail { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+
+.filters__rail {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  padding-block: 2px;
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 14px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 14px), transparent 100%);
+}
 .filters__rail::-webkit-scrollbar { display: none; }
 
-.filters__seg {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  max-width: 100%;
-  background: var(--st-bg-sunk);
-}
+.filters__seg { display: inline-flex; flex-wrap: nowrap; max-width: 100%; background: var(--st-bg-soft); }
 .filters__item {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
   flex-shrink: 0;
+  scroll-snap-align: start;
   border: 0;
   background: transparent;
 }
 .filters__item:disabled { opacity: 0.34; cursor: not-allowed; }
-.filters__item:disabled:hover { color: var(--st-ink-soft); }
+.filters__item:disabled:hover { color: var(--st-ink-2); }
 .filters__item--num { font-variant-numeric: tabular-nums; }
 
 .filters__row--search { margin-top: 2px; }
@@ -213,18 +248,15 @@ function rateEnabled(r: number): boolean {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 38px;
-  padding-inline: 12px;
+  height: 42px;
+  padding-inline: 14px;
   border-radius: 999px;
-  border: 1px solid var(--st-line-strong);
-  background: var(--st-bg-elev);
-  color: var(--st-ink-faint);
-  transition: border-color var(--st-dur) var(--st-ease), box-shadow var(--st-dur) var(--st-ease);
+  border: 1px solid var(--st-line-2);
+  background: var(--st-bg);
+  color: var(--st-ink-3);
+  transition: border-color var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease);
 }
-.filters__search:focus-within {
-  border-color: var(--st-accent);
-  box-shadow: 0 0 0 4px var(--st-accent-soft);
-}
+.filters__search:focus-within { border-color: var(--st-brand); box-shadow: 0 0 0 4px var(--st-brand-soft); }
 .filters__input {
   flex: 1;
   min-width: 0;
@@ -232,26 +264,35 @@ function rateEnabled(r: number): boolean {
   outline: none;
   background: transparent;
   color: var(--st-ink);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
 }
-.filters__input::placeholder { color: var(--st-ink-faint); }
+.filters__input::placeholder { color: var(--st-ink-3); }
 .filters__clear {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border: 0;
   border-radius: 50%;
-  background: var(--st-bg-sunk);
-  color: var(--st-ink-soft);
+  background: var(--st-bg-sink);
+  color: var(--st-ink-2);
   cursor: pointer;
-  transition: background-color var(--st-dur-fast) var(--st-ease);
+  transition: background-color var(--st-t-fast) var(--st-ease), color var(--st-t-fast) var(--st-ease);
 }
-.filters__clear:hover { background: var(--st-accent-soft); color: var(--st-ink); }
+.filters__clear:hover { background: var(--st-brand-soft); color: var(--st-ink); }
+
+@media (min-width: 900px) {
+  .filters { position: sticky; top: 72px; z-index: 6; }
+}
 
 @media (max-width: 720px) {
-  .filters { padding: 14px; border-radius: var(--st-radius-md); }
-  .filters__row { grid-template-columns: 1fr; gap: 6px; }
-  .filters__label { letter-spacing: 0.1em; }
+  .filters { padding: 14px; border-radius: var(--st-r-md); }
+  .filters__row { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  .filters__label { font-size: 12px; }
+  .filters__hint { font-size: 12px; }
+  .filters__item { min-height: 44px; padding-inline: 14px; font-size: 0.86rem; }
+  .filters__search { height: 46px; }
+  .filters__clear { width: 44px; height: 44px; }
+  .filters__reset { min-height: 44px; }
 }
 </style>

@@ -40,4 +40,5 @@ const statusClass = computed(() => {
   const entry = statusMap[props.status]
   return entry?.tone ?? ''
 })
+</script>
 

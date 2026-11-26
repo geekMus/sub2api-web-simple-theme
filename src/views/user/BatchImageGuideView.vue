@@ -2758,4 +2758,10 @@ onBeforeUnmount(() => {
 @media (max-width: 720px) {
   .guide__steps { grid-template-columns: 1fr; }
 }
+@media (max-width: 720px) {
+  .guide .st-btn { min-height: 44px; }
+  .guide__step { padding: 14px; }
+  .guide__num { font-size: 12px; }
+  .guide__code { font-size: 0.78rem; }
+}
 </style>

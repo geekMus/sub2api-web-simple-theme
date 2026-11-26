@@ -8,7 +8,12 @@
           <h2 class="st-display-2 nf__title st-reveal" style="--i: 2">{{ c('nf.title') }}</h2>
           <p class="st-lede nf__lede st-reveal" style="--i: 3">{{ c('nf.lede') }}</p>
 
-          <div class="nf__actions st-reveal" style="--i: 4">
+          <p class="nf__path st-reveal" style="--i: 4">
+            <span class="nf__path-k">{{ c('nf.path') }}</span>
+            <code class="st-code">{{ route.fullPath }}</code>
+          </p>
+
+          <div class="nf__actions st-reveal" style="--i: 5">
             <router-link to="/dashboard" class="st-btn st-btn--primary st-btn--lg">
               {{ c('nf.toDashboard') }}
               <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
@@ -24,7 +29,7 @@
             </button>
           </div>
 
-          <p class="nf__help st-reveal" style="--i: 5">{{ c('nf.help') }}</p>
+          <p class="nf__help st-reveal" style="--i: 6">{{ c('nf.help') }}</p>
         </div>
 
         <!-- 插画：一条断掉的路线 -->
@@ -32,8 +37,8 @@
           <svg viewBox="0 0 420 420" class="nf__svg">
             <defs>
               <linearGradient id="nf-glow" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="var(--st-accent)" stop-opacity="0.35" />
-                <stop offset="100%" stop-color="var(--st-accent)" stop-opacity="0" />
+                <stop offset="0%" stop-color="var(--st-brand)" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="var(--st-brand)" stop-opacity="0" />
               </linearGradient>
             </defs>
 
@@ -69,11 +74,12 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import UserShell from '@/components/shell/UserShell.vue'
 import { useMiscCopy } from '@/composables/copy/misc'
 
 const router = useRouter()
+const route = useRoute()
 const { c } = useMiscCopy()
 
 function goBack(): void {
@@ -82,11 +88,12 @@ function goBack(): void {
 </script>
 
 <style scoped>
-.nf { padding-top: clamp(56px, 9vw, 128px); padding-bottom: clamp(72px, 10vw, 160px); }
+.nf { padding-top: clamp(56px, 8vw, 120px); padding-bottom: clamp(72px, 10vw, 150px); }
 .nf__grid { display: grid; grid-template-columns: 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+.nf__copy { max-width: 58ch; }
 .nf__code {
   margin-top: 10px;
-  background: linear-gradient(100deg, var(--st-accent), color-mix(in srgb, var(--st-accent) 34%, var(--st-ink-strong)));
+  background: linear-gradient(100deg, var(--st-brand), color-mix(in srgb, var(--st-brand) 34%, var(--st-ink)));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -95,24 +102,36 @@ function goBack(): void {
 }
 .nf__title { margin-top: 18px; }
 .nf__lede { margin-top: 16px; }
-.nf__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+
+.nf__path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 22px 0 0;
+  min-width: 0;
+}
+.nf__path-k { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-ink-3); }
+.nf__path .st-code { max-width: 100%; overflow-wrap: anywhere; }
+
+.nf__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .nf__help {
-  margin-top: 26px;
+  margin: 26px 0 0;
   font-size: 0.86rem;
   line-height: 1.7;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
   max-width: 46ch;
 }
 
 .nf__art { justify-self: center; width: min(420px, 100%); }
 .nf__svg { width: 100%; height: auto; overflow: visible; }
 
-.nf-ring { fill: none; stroke: var(--st-line-strong); stroke-width: 1; stroke-dasharray: 2 7; }
+.nf-ring { fill: none; stroke: var(--st-line-2); stroke-width: 1; stroke-dasharray: 2 7; }
 .nf-ring--faint { stroke: var(--st-line); }
 
 .nf-route {
   fill: none;
-  stroke: var(--st-accent);
+  stroke: var(--st-brand);
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-dasharray: 340;
@@ -120,7 +139,7 @@ function goBack(): void {
   animation: nf-draw 1.8s var(--st-ease) 0.2s forwards;
 }
 .nf-route--dash {
-  stroke: var(--st-ink-faint);
+  stroke: var(--st-ink-3);
   stroke-dasharray: 3 9;
   stroke-width: 1.6;
   animation: nf-fade 1.2s var(--st-ease) 1.4s forwards;
@@ -129,24 +148,34 @@ function goBack(): void {
 @keyframes nf-draw { to { stroke-dashoffset: 0; } }
 @keyframes nf-fade { to { opacity: 1; } }
 
-.nf-node { fill: var(--st-bg-elev); stroke: var(--st-accent); stroke-width: 2; }
+.nf-node { fill: var(--st-bg); stroke: var(--st-brand); stroke-width: 2; }
 
-.nf-pin__halo { fill: color-mix(in srgb, var(--st-accent) 14%, transparent); }
-.nf-pin__body { fill: var(--st-accent); }
-.nf-pin__hole { fill: var(--st-bg-elev); }
-.nf-pin { animation: nf-float 5.5s var(--st-ease-out) infinite alternate; }
+.nf-pin__halo { fill: color-mix(in srgb, var(--st-brand) 14%, transparent); }
+.nf-pin__body { fill: var(--st-brand); }
+.nf-pin__hole { fill: var(--st-bg); }
+.nf-pin { animation: nf-float 5.5s var(--st-ease) infinite alternate; }
 @keyframes nf-float {
   from { transform: translateY(-3px); }
   to { transform: translateY(5px); }
 }
 
-.nf-block { fill: none; stroke: var(--st-line-strong); stroke-width: 1.4; }
+.nf-block { fill: none; stroke: var(--st-line-2); stroke-width: 1.4; }
 .nf-block--faint { stroke: var(--st-line); }
 
 @media (prefers-reduced-motion: reduce) {
   .nf-route, .nf-route--dash, .nf-pin { animation: none; }
   .nf-route { stroke-dashoffset: 0; }
   .nf-route--dash { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .nf__actions { gap: 8px; }
+  .nf__actions .st-btn { width: 100%; }
+}
+
+@media (max-width: 640px) {
+  .nf__path-k { font-size: 12px; }
+  .nf__help { font-size: 0.9rem; }
 }
 
 @media (min-width: 900px) {

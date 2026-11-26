@@ -5,9 +5,10 @@
         <header class="mcp__hero">
           <p class="st-eyebrow st-reveal">{{ c('mcp.eyebrow') }}</p>
           <h1 class="st-display-2 mcp__title st-reveal" style="--i: 1">{{ c('mcp.title') }}</h1>
-          <p class="st-lede mcp__lede st-reveal" style="--i: 2">{{ c('mcp.lede') }}</p>
+          <p class="st-lede mcp__lede st-reveal" style="--i: 2">{{ c('mcp.ledeShort') }}</p>
         </header>
 
+        <div class="mcp__grid">
         <!-- 连接信息 -->
         <section class="st-card st-card--pad mcp__connect st-reveal" style="--i: 2" aria-labelledby="mcp-connection-title" :aria-busy="connectionLoading">
           <div class="mcp__connect-head">
@@ -26,7 +27,7 @@
             />
             <button
               data-testid="copy-endpoint"
-              class="st-btn st-btn--quiet"
+              class="st-btn st-btn--primary mcp__copy"
               type="button"
               :disabled="!endpoint || connectionLoading"
               @click="copyToClipboard(endpoint)"
@@ -34,6 +35,7 @@
           </div>
 
           <div v-if="connectionError" class="mcp__error" role="alert">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 8v5m0 3.5h.01" /></svg>
             <span>{{ connectionError }}</span>
             <button data-testid="retry-connection" class="st-btn st-btn--quiet st-btn--sm" type="button" :disabled="connectionLoading" @click="loadConnection">
               {{ t('common.refresh') }}
@@ -70,7 +72,12 @@
             </button>
           </div>
 
-          <p v-if="loadError" role="alert" class="mcp__error-text">{{ loadError }}</p>
+          <div v-if="loadError" class="mcp__grant-error">
+            <span role="alert" class="mcp__error-text">{{ loadError }}</span>
+            <button data-testid="retry-grants" type="button" class="st-btn st-btn--quiet st-btn--sm" :disabled="loading" @click="loadGrants">
+              {{ t('common.refresh') }}
+            </button>
+          </div>
           <div v-else-if="loading" class="mcp__skeleton" aria-hidden="true">
             <div v-for="i in 2" :key="i" class="st-skeleton mcp__skeleton-row"></div>
           </div>
@@ -82,6 +89,9 @@
               </svg>
             </span>
             <p>{{ t('mcp.empty') }}</p>
+            <button type="button" class="st-btn st-btn--primary st-btn--sm mcp__empty-btn" :disabled="loading" @click="loadGrants">
+              {{ t('common.refresh') }}
+            </button>
           </div>
           <ul v-else class="st-list mcp__list">
             <li v-for="grant in grants" :key="grant.id" class="st-row mcp__row" :data-grant-id="grant.id">
@@ -109,6 +119,7 @@
             </li>
           </ul>
         </section>
+        </div>
       </div>
     </section>
 
@@ -227,6 +238,70 @@ onMounted(() => {
 })
 onBeforeUnmount(() => { unmounted = true })
 </script>
+<style scoped>
+.mcp__hero { margin-bottom: clamp(26px, 4vw, 44px); }
+.mcp .st-card { box-shadow: var(--st-shadow-2); }
+.mcp .st-pill { font-size: 0.75rem; }
+.mcp .st-btn { min-height: 44px; }
+.mcp__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(14px, 2vw, 22px); align-items: start; }
+.mcp__connect { margin-bottom: 0; }
+.mcp__endpoint-input { min-height: 44px; }
+.mcp__copy { min-height: 44px; }
+.mcp__error-text { font-size: 0.84rem; line-height: 1.6; color: var(--st-danger); }
+.mcp__error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--st-r-sm);
+  background: var(--st-danger-soft);
+  font-size: 0.84rem;
+  color: var(--st-danger);
+}
+.mcp__error .st-btn { min-height: 44px; }
+.mcp__grant-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--st-r-md);
+  background: var(--st-danger-soft);
+  color: var(--st-danger);
+}
+.mcp__grant-error .st-btn { min-height: 44px; }
+.mcp__empty { gap: 12px; }
+.mcp__empty-btn { min-height: 44px; min-width: 160px; }
+.mcp__list { display: flex; flex-direction: column; gap: 8px; }
+.mcp__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-r-md);
+  background: var(--st-bg);
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
+.mcp__row:hover { border-color: var(--st-line-2); background: var(--st-bg-soft); }
+.mcp__row + .mcp__row { border-top: 1px solid var(--st-line); }
+.mcp__client-id { font-size: 0.75rem; }
+.mcp__dates { font-size: 0.78rem; }
+.mcp__state { font-size: 0.78rem; }
+.mcp__step-num { font-size: 0.78rem; }
+.mcp__revoke { min-height: 44px; }
+.mcp__dialog-actions .st-btn { min-height: 44px; }
+@media (min-width: 1024px) {
+  .mcp__grid { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+}
+@media (max-width: 640px) {
+  .mcp__row { padding: 12px; }
+  .mcp__copy { width: 100%; }
+}
+</style>
+
 
 <style scoped>
 .mcp { padding-bottom: clamp(56px, 8vw, 96px); display: block; }

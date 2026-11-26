@@ -1,14 +1,14 @@
 <template>
   <!-- 后台内嵌形态：?embedded=1 且已登录，套完整后台布局 -->
   <AppLayout v-if="isEmbedded">
-    <ModelPlazaContent :response="data" :loading="loading" :error="loadFailed" embedded />
+    <ModelPlazaContent :response="data" :loading="loading" :error="loadFailed" embedded @retry="loadPlaza" />
   </AppLayout>
 
   <!-- 独立形态：用户端外壳（顶部导航 + 页脚） -->
   <UserShell v-else>
     <section class="st-section plaza-page">
       <div class="st-shell">
-        <ModelPlazaContent :response="data" :loading="loading" :error="loadFailed" />
+        <ModelPlazaContent :response="data" :loading="loading" :error="loadFailed" @retry="loadPlaza" />
       </div>
     </section>
   </UserShell>
@@ -35,9 +35,10 @@ const data = ref<ModelPlazaResponse | null>(null)
 const loading = ref(true)
 const loadFailed = ref(false)
 
-onMounted(async () => {
-  // 独立形态导航条需要站点名/Logo；有 __APP_CONFIG__ 注入时同步命中缓存。
-  void appStore.fetchPublicSettings()
+/** 首屏与错误态重试共用同一份加载逻辑。 */
+async function loadPlaza() {
+  loading.value = true
+  loadFailed.value = false
   try {
     data.value = await getModelPlaza()
   } catch {
@@ -45,6 +46,12 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  // 独立形态导航条需要站点名/Logo；有 __APP_CONFIG__ 注入时同步命中缓存。
+  void appStore.fetchPublicSettings()
+  void loadPlaza()
 })
 </script>
 

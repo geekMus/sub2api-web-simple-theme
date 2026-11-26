@@ -2,10 +2,17 @@
   <component :is="isPopup ? 'div' : UserShell" :class="isPopup ? 'st-root stripe-pay stripe-pay--popup' : ''">
     <section class="st-section--tight stripe-pay__section">
       <div class="st-shell stripe-pay__wrap">
-        <div v-if="loading" class="stripe-pay__loading" aria-busy="true">
-          <span class="stripe-pay__spin"></span>
-          <p class="st-body">{{ c('stripe.loading') }}</p>
-          <p class="st-row__meta">{{ c('stripe.loadingHint') }}</p>
+        <div v-if="loading" class="stripe-pay__skeleton" aria-busy="true">
+          <div class="st-card st-card--pad stripe-pay__card">
+            <div class="st-skeleton stripe-pay__sk stripe-pay__sk--head"></div>
+            <div class="st-skeleton stripe-pay__sk stripe-pay__sk--money"></div>
+          </div>
+          <div class="st-card st-card--pad stripe-pay__card">
+            <div class="st-skeleton stripe-pay__sk"></div>
+            <div class="st-skeleton stripe-pay__sk stripe-pay__sk--wide"></div>
+            <div class="st-skeleton stripe-pay__sk stripe-pay__sk--btn"></div>
+          </div>
+          <p class="st-row__meta stripe-pay__skeleton-hint">{{ c('stripe.loading') }} · {{ c('stripe.loadingHint') }}</p>
         </div>
 
         <div v-else-if="initError" class="st-card st-card--pad stripe-pay__card stripe-pay__state">
@@ -307,6 +314,22 @@ onUnmounted(() => {
   if (pollTimer) clearInterval(pollTimer)
 })
 </script>
+<style scoped>
+.stripe-pay .st-card { box-shadow: var(--st-shadow-2); }
+.stripe-pay .st-btn { min-height: 44px; }
+.stripe-pay__skeleton { display: flex; flex-direction: column; gap: 12px; }
+.stripe-pay__skeleton-hint { text-align: center; padding-top: 4px; }
+.stripe-pay__sk { height: 14px; border-radius: var(--st-r-xs); }
+.stripe-pay__sk--head { height: 16px; width: 34%; }
+.stripe-pay__sk--money { height: 40px; width: 58%; }
+.stripe-pay__sk--wide { width: 82%; }
+.stripe-pay__sk--btn { height: 46px; border-radius: var(--st-r-sm); }
+.stripe-pay__mark { width: 56px; height: 56px; }
+.stripe-pay__state { gap: 14px; }
+.stripe-pay__btn { min-height: 46px; }
+@media (max-width: 480px) { .stripe-pay__btn { min-height: 50px; } }
+</style>
+
 <style scoped>
 .stripe-pay__section { padding-bottom: clamp(56px, 8vw, 96px); }
 .stripe-pay--popup .stripe-pay__section { min-height: 100vh; display: flex; align-items: center; }

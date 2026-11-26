@@ -45,10 +45,6 @@
     <div class="profile-columns">
       <div data-testid="profile-main-column" class="profile-columns__main">
     <section data-testid="profile-basics-panel" class="st-card st-card--pad">
-      <header class="profile-block__head">
-        <h3 class="st-display-3">{{ t('profile.basicsTitle') }}</h3>
-        <p class="st-body">{{ t('profile.basicsDescription') }}</p>
-      </header>
       <div class="profile-basics">
         <div class="profile-basics__cell">
           <ProfileAvatarCard :user="user" embedded />
@@ -352,4 +348,10 @@ const sourceHints = computed(() => {
 @media (min-width: 900px) {
   .profile-basics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---- 第二轮：身份卡更“杂志” ---- */
+.profile-hero__name .st-display-3 { font-size: clamp(1.45rem, 2.4vw, 1.9rem); }
+.profile-hero__metrics dd { font-size: clamp(1.2rem, 1.8vw, 1.45rem); }
+.profile-basics__cell { border-color: var(--st-line-2); transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease); }
+.profile-basics__cell:hover { border-color: var(--st-line-2); background: var(--st-bg); }
 </style>

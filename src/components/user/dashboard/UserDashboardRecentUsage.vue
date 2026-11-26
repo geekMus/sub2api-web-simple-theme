@@ -68,12 +68,12 @@ const formatCost = (c: number) => c.toFixed(4)
 </script>
 
 <style scoped>
-.dash-recent { display: flex; flex-direction: column; gap: 4px; padding: clamp(18px, 2.4vw, 28px); }
+.dash-recent { display: flex; flex-direction: column; gap: 4px; padding: clamp(18px, 2.2vw, 26px); box-shadow: var(--st-shadow-2); }
 .dash-recent__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .dash-recent__title { margin-top: 8px; }
 .dash-recent__lede { font-size: 0.86rem; margin-top: 6px; }
 
-.dash-recent__list { display: flex; flex-direction: column; margin-top: 8px; }
+.dash-recent__list { display: flex; flex-direction: column; margin: 8px 0 0; padding: 0; list-style: none; }
 .dash-recent__row {
   display: grid;
   grid-template-columns: 8px minmax(0, 1fr) auto auto;
@@ -82,9 +82,12 @@ const formatCost = (c: number) => c.toFixed(4)
     ". time tokens tokens";
   column-gap: 10px;
   row-gap: 3px;
-  padding: 13px 6px;
-  border-radius: 0;
+  min-height: 44px;
+  padding: 12px 8px;
+  border-radius: var(--st-r-sm);
+  transition: background-color var(--st-t) var(--st-ease);
 }
+.dash-recent__row:hover { background: var(--st-bg-soft); }
 .dash-recent__dot { grid-area: dot; align-self: center; width: 6px; height: 6px; border-radius: 50%; background: var(--st-brand-line); }
 .dash-recent__model {
   grid-area: model;

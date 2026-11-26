@@ -1,161 +1,209 @@
 <template>
   <UserShell>
-    <!-- 头部：一句话 + 区间 + 关键数字 -->
-    <section class="st-section head-sec">
-      <div class="st-shell">
-        <div class="head">
-          <div class="head__copy">
+    <section class="st-section usage">
+      <div class="st-shell usage__wrap">
+        <header class="usage-head">
+          <div class="usage-head__copy">
             <p class="st-eyebrow st-reveal">{{ c('usage.eyebrow') }}</p>
-            <h1 class="st-display-2 head__title st-reveal" style="--i: 1">{{ c('usage.title') }}</h1>
+            <h1 class="st-display-2 st-reveal" style="--i: 1">{{ c('usage.title') }}</h1>
             <p class="st-lede st-reveal" style="--i: 2">{{ c('usage.lede') }}</p>
           </div>
-          <div class="head__pills st-reveal" style="--i: 2">
+          <div class="usage-head__pills st-reveal" style="--i: 3">
             <span class="st-pill st-pill--accent st-pill--dot">{{ c('usage.range.' + usageRangePreset) }}</span>
             <span class="st-pill">{{ cf('usage.logs.count', { n: pagination.total }) }}</span>
           </div>
-        </div>
+        </header>
 
-        <!-- 时间范围分段控件 -->
-        <div class="toolbar st-reveal" style="--i: 3">
-          <div class="st-seg" role="tablist">
-            <button
-              v-for="preset in usageRangePresets"
-              :key="preset.key"
-              type="button"
-              class="st-seg__item"
-              :class="{ 'st-seg__item--active': usageRangePreset === preset.key }"
-              @click="applyUsageRangePreset(preset.key)"
-            >
-              {{ preset.label }}
-            </button>
-          </div>
-          <div class="toolbar__range">
-            <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" @change="onDateRangeChange" />
-          </div>
-          <div class="toolbar__granularity">
-            <div class="st-seg">
+        <!-- 区间 / 粒度 / 动作 -->
+        <div class="usage-controls st-reveal" style="--i: 4">
+          <div class="toolbar">
+            <div class="st-seg" role="tablist">
               <button
-                v-for="option in granularityOptions"
-                :key="String(option.value)"
+                v-for="preset in usageRangePresets"
+                :key="preset.key"
                 type="button"
                 class="st-seg__item"
-                :class="{ 'st-seg__item--active': granularity === option.value }"
-                @click="setGranularity(String(option.value))"
+                :class="{ 'st-seg__item--active': usageRangePreset === preset.key }"
+                @click="applyUsageRangePreset(preset.key)"
               >
-                {{ option.label }}
+                {{ preset.label }}
+              </button>
+            </div>
+            <div v-show="usageRangePreset === 'custom'" class="toolbar__range">
+              <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" @change="onDateRangeChange" />
+            </div>
+            <div class="toolbar__granularity">
+              <div class="st-seg">
+                <button
+                  v-for="option in granularityOptions"
+                  :key="String(option.value)"
+                  type="button"
+                  class="st-seg__item"
+                  :class="{ 'st-seg__item--active': granularity === option.value }"
+                  @click="setGranularity(String(option.value))"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+            <div class="toolbar__actions">
+              <button type="button" class="st-btn st-btn--ghost st-btn--sm" @click="refreshData" :disabled="activeTab === 'errors' ? errorLoading : loading">
+                {{ t('common.refresh') }}
+              </button>
+              <button type="button" class="st-btn st-btn--ghost st-btn--sm" @click="resetFilters">
+                {{ t('common.reset') }}
+              </button>
+              <button
+                v-if="activeTab !== 'errors'"
+                type="button"
+                class="st-btn st-btn--primary st-btn--sm"
+                @click="exportToCSV"
+                :disabled="exporting"
+              >
+                {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
               </button>
             </div>
           </div>
-          <div class="toolbar__actions">
-            <button type="button" class="st-btn st-btn--ghost st-btn--sm" @click="refreshData" :disabled="activeTab === 'errors' ? errorLoading : loading">
-              {{ t('common.refresh') }}
-            </button>
-            <button type="button" class="st-btn st-btn--ghost st-btn--sm" @click="resetFilters">
-              {{ t('common.reset') }}
-            </button>
-            <button
-              v-if="activeTab !== 'errors'"
-              type="button"
-              class="st-btn st-btn--primary st-btn--sm"
-              @click="exportToCSV"
-              :disabled="exporting"
-            >
-              {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
-            </button>
+        </div>
+
+        <!-- 三个关键数字 + 次级指标 -->
+        <div v-if="statsLoading && !usageStats" class="stats stats--skeleton">
+          <div class="st-card st-card--pad stat-skeleton stat-skeleton--lead">
+            <span class="st-skeleton sk-line sk-line--sm"></span>
+            <span class="st-skeleton sk-line sk-line--xl"></span>
+          </div>
+          <div v-for="i in 2" :key="i" class="st-card st-card--pad stat-skeleton">
+            <span class="st-skeleton sk-line sk-line--sm"></span>
+            <span class="st-skeleton sk-line sk-line--lg"></span>
           </div>
         </div>
 
-        <!-- 关键数字 -->
-        <div class="stats">
-          <article
-            v-for="(card, index) in summaryCards"
-            :key="card.label"
-            class="st-card st-card--pad st-card--lift stat st-reveal"
-            :style="{ '--i': index + 1 }"
-          >
-            <span class="st-stat__label">{{ card.label }}</span>
-            <span class="st-stat__value st-num">
-              {{ card.value }}<span v-if="card.unit" class="st-stat__unit">{{ card.unit }}</span>
-            </span>
-            <span v-if="card.hint" class="stat__hint">{{ card.hint }}</span>
-          </article>
-        </div>
+        <template v-else>
+          <div class="stats st-reveal" style="--i: 5">
+            <article
+              v-for="(card, index) in summaryCards.slice(0, 3)"
+              :key="card.label"
+              class="st-card st-card--pad st-card--lift stat"
+              :class="{ 'stat--lead': index === 0 }"
+            >
+              <span class="stat__top">
+                <span class="st-stat__label">{{ card.label }}</span>
+                <span v-if="index === 0" class="stat__tag">{{ c('usage.range.' + usageRangePreset) }}</span>
+              </span>
+              <span class="st-stat__value st-num">
+                {{ card.value }}<span v-if="card.unit" class="st-stat__unit">{{ card.unit }}</span>
+              </span>
+              <span v-if="card.hint" class="stat__hint">{{ card.hint }}</span>
+            </article>
+          </div>
+
+          <div class="stats-meta st-reveal" style="--i: 6">
+            <div v-for="card in summaryCards.slice(3)" :key="card.label" class="stats-meta__item">
+              <span class="st-stat__label">{{ card.label }}</span>
+              <span class="stats-meta__value st-num">
+                {{ card.value }}<span v-if="card.unit" class="st-stat__unit">{{ card.unit }}</span>
+              </span>
+              <span v-if="card.hint" class="stats-meta__hint">{{ card.hint }}</span>
+            </div>
+          </div>
+        </template>
       </div>
     </section>
 
-    <!-- 图表 -->
+    <!-- 趋势 / 分布 -->
     <section class="st-section--tight">
-      <div class="st-shell charts">
-        <article class="st-card st-card--pad chart">
-          <div class="chart__head">
-            <h2 class="st-display-4">{{ c('usage.trend.title') }}</h2>
-            <p class="st-body">{{ c('usage.trend.lede') }}</p>
-          </div>
-          <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
-        </article>
+      <div class="st-shell">
+        <div class="charts">
+          <article class="st-card st-card--pad chart chart--trend">
+            <header class="chart__head">
+              <span class="chart__idx">01</span>
+              <div class="chart__copy">
+                <h2 class="st-display-4">{{ c('usage.trend.title') }}</h2>
+                <p class="st-body">{{ c('usage.trend.lede') }}</p>
+              </div>
+            </header>
+            <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
+          </article>
 
-        <article class="st-card st-card--pad chart">
-          <div class="chart__head">
-            <h2 class="st-display-4">{{ c('usage.models.title') }}</h2>
-            <p class="st-body">{{ c('usage.models.lede') }}</p>
-          </div>
-          <ModelDistributionChart
-            v-model:metric="modelDistributionMetric"
-            :model-stats="requestedModelStats"
-            :loading="modelStatsLoading"
-            :show-source-toggle="false"
-            :show-metric-toggle="true"
-            :enable-breakdown="false"
-            :show-account-cost="false"
-            :start-date="startDate"
-            :end-date="endDate"
-          />
-        </article>
+          <article class="st-card st-card--pad chart chart--model">
+            <header class="chart__head">
+              <span class="chart__idx">02</span>
+              <div class="chart__copy">
+                <h2 class="st-display-4">{{ c('usage.models.title') }}</h2>
+                <p class="st-body">{{ c('usage.models.lede') }}</p>
+              </div>
+            </header>
+            <ModelDistributionChart
+              v-model:metric="modelDistributionMetric"
+              :model-stats="requestedModelStats"
+              :loading="modelStatsLoading"
+              :show-source-toggle="false"
+              :show-metric-toggle="true"
+              :enable-breakdown="false"
+              :show-account-cost="false"
+              :start-date="startDate"
+              :end-date="endDate"
+            />
+          </article>
 
-        <article class="st-card st-card--pad chart">
-          <div class="chart__head">
-            <h2 class="st-display-4">{{ c('usage.groups.title') }}</h2>
-            <p class="st-body">{{ c('usage.groups.lede') }}</p>
-          </div>
-          <GroupDistributionChart
-            v-model:metric="groupDistributionMetric"
-            :group-stats="groupStats"
-            :loading="chartsLoading"
-            :show-metric-toggle="true"
-            :enable-breakdown="false"
-            :show-account-cost="false"
-            :start-date="startDate"
-            :end-date="endDate"
-          />
-        </article>
+          <article class="st-card st-card--pad chart chart--group">
+            <header class="chart__head">
+              <span class="chart__idx">03</span>
+              <div class="chart__copy">
+                <h2 class="st-display-4">{{ c('usage.groups.title') }}</h2>
+                <p class="st-body">{{ c('usage.groups.lede') }}</p>
+              </div>
+            </header>
+            <GroupDistributionChart
+              v-model:metric="groupDistributionMetric"
+              :group-stats="groupStats"
+              :loading="chartsLoading"
+              :show-metric-toggle="true"
+              :enable-breakdown="false"
+              :show-account-cost="false"
+              :start-date="startDate"
+              :end-date="endDate"
+            />
+          </article>
 
-        <article class="st-card st-card--pad chart">
-          <div class="chart__head">
-            <h2 class="st-display-4">{{ c('usage.endpoints.title') }}</h2>
-            <p class="st-body">{{ c('usage.endpoints.lede') }}</p>
-          </div>
-          <EndpointDistributionChart
-            v-model:source="endpointDistributionSource"
-            v-model:metric="endpointDistributionMetric"
-            :endpoint-stats="inboundEndpointStats"
-            :upstream-endpoint-stats="upstreamEndpointStats"
-            :endpoint-path-stats="endpointPathStats"
-            :loading="endpointStatsLoading"
-            :show-source-toggle="false"
-            :show-metric-toggle="true"
-            :enable-breakdown="false"
-            :show-account-cost="false"
-            :title="t('usage.endpointDistribution')"
-            :start-date="startDate"
-            :end-date="endDate"
-          />
-        </article>
+          <article class="st-card st-card--pad chart chart--endpoint">
+            <header class="chart__head">
+              <span class="chart__idx">04</span>
+              <div class="chart__copy">
+                <h2 class="st-display-4">{{ c('usage.endpoints.title') }}</h2>
+                <p class="st-body">{{ c('usage.endpoints.lede') }}</p>
+              </div>
+            </header>
+            <EndpointDistributionChart
+              v-model:source="endpointDistributionSource"
+              v-model:metric="endpointDistributionMetric"
+              :endpoint-stats="inboundEndpointStats"
+              :upstream-endpoint-stats="upstreamEndpointStats"
+              :endpoint-path-stats="endpointPathStats"
+              :loading="endpointStatsLoading"
+              :show-source-toggle="false"
+              :show-metric-toggle="true"
+              :enable-breakdown="false"
+              :show-account-cost="false"
+              :title="t('usage.endpointDistribution')"
+              :start-date="startDate"
+              :end-date="endDate"
+            />
+          </article>
+        </div>
       </div>
     </section>
 
     <!-- 明细 -->
     <section class="st-section--tight logs-sec">
       <div class="st-shell">
+        <header class="logs__head">
+          <div>
+            <h2 class="st-display-3">{{ c('usage.logs.title') }}</h2>
+            <p class="st-body">{{ c('usage.logs.lede') }}</p>
+          </div>
+        </header>
+
         <div class="tabs">
           <div class="st-seg">
             <button type="button" class="st-seg__item" :class="{ 'st-seg__item--active': activeTab === 'usage' }" @click="activeTab = 'usage'">
@@ -202,7 +250,6 @@
           </div>
         </div>
 
-        <!-- 筛选（可折叠，保留原有全部筛选） -->
         <details v-if="activeTab === 'usage'" class="st-card st-card--pad filters" open>
           <summary class="filters__summary">
             <span class="st-eyebrow">{{ c('usage.filters.title') }}</span>
@@ -277,17 +324,25 @@
           </div>
         </details>
 
-        <!-- 账单式明细 -->
         <template v-if="activeTab === 'usage'">
-          <div v-if="loading && usageLogs.length === 0" class="logs">
-            <div class="day__head day__head--skeleton">
-              <span class="st-skeleton sk-chip"></span>
-              <span class="st-skeleton sk-chip"></span>
+          <div v-if="loading && usageLogs.length === 0" class="logs-skeleton" aria-busy="true">
+            <div v-for="i in 4" :key="i" class="st-card st-card--pad logs-skeleton__row">
+              <span class="st-skeleton sk-line sk-line--sm"></span>
+              <span class="st-skeleton sk-line sk-line--md"></span>
+              <span class="st-skeleton sk-line sk-line--xs"></span>
             </div>
-            <div v-for="i in 6" :key="i" class="st-skeleton sk-row" :style="{ animationDelay: i * 60 + 'ms' }"></div>
           </div>
 
-          <div v-else-if="usageLogs.length === 0" class="st-card st-card--pad empty">
+          <div v-else-if="loadError" class="st-card st-card--pad error-state">
+            <span class="error-state__mark"><Icon name="exclamationCircle" size="lg" /></span>
+            <div class="error-state__copy">
+              <h2 class="st-display-3">{{ c('usage.errorTitle') }}</h2>
+              <p class="st-body">{{ c('usage.errorBody') }}</p>
+            </div>
+            <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="refreshData">{{ c('usage.retry') }}</button>
+          </div>
+
+          <div v-else-if="usageLogs.length === 0" class="st-card st-card--pad st-card--halo empty">
             <div class="empty__mark" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6">
                 <path d="M4 7h16M4 12h10M4 17h7" stroke-linecap="round" />
@@ -333,14 +388,15 @@
             </article>
           </div>
 
-          <Pagination
-            v-if="pagination.total > 0"
-            :page="pagination.page"
-            :total="pagination.total"
-            :page-size="pagination.page_size"
-            @update:page="handlePageChange"
-            @update:pageSize="handlePageSizeChange"
-          />
+          <div v-if="pagination.total > 0" class="logs__pager">
+            <Pagination
+              :page="pagination.page"
+              :total="pagination.total"
+              :page-size="pagination.page_size"
+              @update:page="handlePageChange"
+              @update:pageSize="handlePageSizeChange"
+            />
+          </div>
         </template>
 
         <div v-else-if="errorViewEnabled" class="st-card errors-card">
@@ -404,19 +460,22 @@ const appStore = useAppStore()
 const { c, cf } = useBillingCopy()
 
 // ── 展示层：账单摘要 / 区间预设 / 行式明细（只影响渲染，不改变任何请求参数） ──
-type UsageRangePreset = 'today' | '7d' | '30d'
-const usageRangePreset = ref<UsageRangePreset>('today')
+type UsageRangePreset = 'today' | '24h' | '7d' | '30d' | 'custom'
+const usageRangePreset = ref<UsageRangePreset>('24h')
 
 const usageRangePresets = computed(() => [
   { key: 'today' as const, label: c('usage.range.today') },
+  { key: '24h' as const, label: c('usage.range.24h') },
   { key: '7d' as const, label: c('usage.range.7d') },
   { key: '30d' as const, label: c('usage.range.30d') },
+  { key: 'custom' as const, label: c('usage.range.custom') },
 ])
 
 function applyUsageRangePreset(key: UsageRangePreset) {
   usageRangePreset.value = key
+  if (key === 'custom') return
   const end = new Date()
-  const days = key === 'today' ? 0 : key === '7d' ? 7 : 30
+  const days = key === 'today' ? 0 : key === '24h' ? 1 : key === '7d' ? 7 : 30
   const start = new Date(end.getTime() - days * 86400000)
   onDateRangeChange({ startDate: formatLocalDate(start), endDate: formatLocalDate(end), preset: key })
 }
@@ -529,6 +588,8 @@ const upstreamEndpointStats = ref<EndpointStat[]>([])
 const endpointPathStats = ref<EndpointStat[]>([])
 
 const loading = ref(false)
+const statsLoading = ref(false)
+const loadError = ref(false)
 const chartsLoading = ref(false)
 const modelStatsLoading = ref(false)
 const endpointStatsLoading = ref(false)
@@ -706,6 +767,7 @@ const loadLogs = async () => {
   const controller = new AbortController()
   abortController = controller
   loading.value = true
+  loadError.value = false
   try {
     const res = await usageAPI.query(buildUsageListParams(pagination.page, pagination.page_size), {
       signal: controller.signal,
@@ -716,6 +778,7 @@ const loadLogs = async () => {
     }
   } catch (error: any) {
     if (error?.name !== 'AbortError' && error?.code !== 'ERR_CANCELED') {
+      loadError.value = true
       appStore.showError(t('usage.failedToLoad'))
     }
   } finally {
@@ -725,6 +788,7 @@ const loadLogs = async () => {
 
 const loadStats = async () => {
   const seq = ++statsReqSeq
+  statsLoading.value = true
   endpointStatsLoading.value = true
   try {
     const stats = await usageAPI.getStats(normalizedFilters.value)
@@ -740,7 +804,10 @@ const loadStats = async () => {
     upstreamEndpointStats.value = []
     endpointPathStats.value = []
   } finally {
-    if (seq === statsReqSeq) endpointStatsLoading.value = false
+    if (seq === statsReqSeq) {
+      statsLoading.value = false
+      endpointStatsLoading.value = false
+    }
   }
 }
 
@@ -836,6 +903,15 @@ const resetFilters = () => {
 }
 
 const onDateRangeChange = (range: { startDate: string; endDate: string; preset: string | null }) => {
+  usageRangePreset.value = range.preset === 'today'
+    ? 'today'
+    : range.preset === '24h' || range.preset === 'last24Hours'
+      ? '24h'
+      : range.preset === '7days'
+        ? '7d'
+        : range.preset === '30days'
+          ? '30d'
+          : 'custom'
   startDate.value = range.startDate
   endDate.value = range.endDate
   filters.value.start_date = range.startDate
@@ -1195,47 +1271,59 @@ watch(endpointDistributionSource, () => {
 </script>
 
 <style scoped>
-.head-sec { padding-bottom: clamp(20px, 3vw, 36px); }
-.head { display: flex; flex-direction: column; gap: 18px; }
-.head__title { margin-top: 14px; max-width: 22ch; }
-.head__copy .st-lede { margin-top: 16px; }
-.head__pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.usage { padding-top: clamp(32px, 5vw, 56px); }
+.usage__wrap { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 56px); }
+.usage-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
+.usage-head__copy { display: flex; flex-direction: column; gap: 10px; max-width: 62ch; }
+.usage-head__copy .st-display-2 { margin-top: 2px; }
+.usage-head__copy .st-lede { margin-top: 2px; }
+.usage-head__pills { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 5px; }
 
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-top: clamp(24px, 3vw, 36px);
-  padding-top: 20px;
-  border-top: 1px solid var(--st-line);
-}
+.usage-controls { display: flex; flex-direction: column; gap: 12px; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid var(--st-line); }
 .toolbar__granularity { margin-left: auto; }
 .toolbar__range { min-width: 0; }
-.toolbar__actions { display: flex; align-items: center; gap: 6px; }
+.toolbar__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 22px;
-}
-.stat { display: flex; flex-direction: column; gap: 8px; }
-.stat__hint { font-size: 0.76rem; color: var(--st-ink-faint); }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.stat { display: flex; flex-direction: column; gap: 8px; min-width: 0; overflow: hidden; }
+.stat--lead { grid-column: 1 / -1; border-color: var(--st-brand-line); background: linear-gradient(150deg, var(--st-brand-soft), transparent 62%), var(--st-bg); }
+.stat--lead .st-stat__value { color: var(--st-brand-text); font-size: clamp(2.8rem, 5vw, 4.4rem); letter-spacing: -0.055em; }
+.stat__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stat__tag { font-size: 0.75rem; color: var(--st-brand-text); white-space: nowrap; }
+.stat__hint { font-size: 0.78rem; color: var(--st-ink-3); }
+.stats-meta { display: flex; flex-wrap: wrap; gap: 10px 30px; padding-top: 14px; border-top: 1px solid var(--st-line); }
+.stats-meta__item { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.stats-meta__value { font-family: var(--st-font-display); font-size: 1.25rem; font-weight: 600; color: var(--st-ink); letter-spacing: -0.02em; }
+.stats-meta__hint { font-size: 0.76rem; color: var(--st-ink-3); }
 
-.charts { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.chart { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.chart__head { display: flex; flex-direction: column; gap: 6px; }
-.chart__head .st-body { font-size: 0.85rem; }
-/* 图表组件自身不再带卡片外壳，这里只保留其控件行 */
+.stats--skeleton { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stat-skeleton { display: flex; flex-direction: column; gap: 12px; min-height: 120px; }
+.stat-skeleton--lead { grid-column: 1 / -1; min-height: 168px; }
+.sk-line { display: block; height: 12px; border-radius: 999px; }
+.sk-line--sm { width: 38%; }
+.sk-line--md { width: 66%; }
+.sk-line--lg { width: 56%; height: 30px; }
+.sk-line--xl { width: 44%; height: 48px; }
+
+.charts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.chart { display: flex; flex-direction: column; gap: 16px; min-width: 0; overflow: hidden; }
+.chart--trend, .chart--model, .chart--group, .chart--endpoint { grid-column: span 6; }
+.chart__head { display: flex; align-items: flex-start; gap: 12px; }
+.chart__idx { padding-top: 3px; font-family: var(--st-font-display); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; color: var(--st-ink-3); }
+.chart__copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.chart__copy .st-body { font-size: 0.83rem; }
 .chart :deep(.chart-box) { padding: 0; border: 0; background: transparent; min-height: 0; }
-.chart :deep(.chart-box__title) { display: none; }
+.chart :deep(.chart-box__title) { display: none !important; }
 .chart :deep(.chart-box__head) { justify-content: flex-end; }
-.chart :deep(.chart-line) { height: 240px; }
-.chart :deep(.chart-doughnut) { width: 170px; height: 170px; max-width: 170px; }
+.chart :deep(.chart-line) { height: 244px; }
+.chart :deep(.chart-doughnut) { width: 168px; height: 168px; max-width: 168px; }
 
 .logs-sec { padding-bottom: clamp(64px, 8vw, 120px); }
-.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+.logs__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px; margin-bottom: 16px; }
+.logs__head h2 { margin: 0 0 4px; }
+.logs__head .st-body { max-width: 52ch; }
+.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
 .tabs__tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 
 .st-colset { position: relative; }
@@ -1247,10 +1335,10 @@ watch(endpointDistributionSource, () => {
   z-index: 30;
   min-width: 190px;
   padding: 6px;
-  border-radius: var(--st-radius-md);
+  border-radius: var(--st-r-md);
   border: 1px solid var(--st-line);
-  background: var(--st-bg-elev);
-  box-shadow: var(--st-shadow-md);
+  background: var(--st-bg);
+  box-shadow: var(--st-shadow-2);
 }
 .st-colset__item {
   display: flex;
@@ -1258,111 +1346,100 @@ watch(endpointDistributionSource, () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-height: 36px;
   padding: 8px 10px;
   border-radius: 8px;
-  font-size: 0.84rem;
-  color: var(--st-ink-soft);
-  text-align: left;
-  background: none;
   border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 0.84rem;
+  color: var(--st-ink-2);
+  text-align: left;
   cursor: pointer;
-  transition: background-color var(--st-dur) var(--st-ease), color var(--st-dur) var(--st-ease);
+  transition: background-color var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease);
 }
-.st-colset__item:hover { background: var(--st-accent-soft); color: var(--st-ink); }
+.st-colset__item:hover { background: var(--st-bg-soft); color: var(--st-ink); }
 
 .filters { margin-bottom: 16px; }
-.filters__summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  list-style: none;
-}
+.filters__summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 24px; cursor: pointer; list-style: none; }
 .filters__summary::-webkit-details-marker { display: none; }
-.filters__summary svg { color: var(--st-ink-faint); transition: transform var(--st-dur) var(--st-ease); }
+.filters__summary:hover { color: var(--st-ink); }
+.filters__summary svg { color: var(--st-ink-3); transition: transform var(--st-t) var(--st-ease); }
 .filters[open] .filters__summary svg { transform: rotate(180deg); }
-.filters__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-  margin-top: 18px;
-}
+.filters__grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 18px; }
 
 .logs { display: flex; flex-direction: column; gap: 26px; }
-.day { display: flex; flex-direction: column; gap: 6px; }
-.day__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding-inline: 16px;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  color: var(--st-ink-faint);
-}
-.day__date { font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+.day { display: flex; flex-direction: column; gap: 8px; }
+.day__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-inline: 4px; font-size: 0.78rem; color: var(--st-ink-3); }
+.day__date { font-family: var(--st-font-display); font-weight: 600; font-size: 0.9rem; letter-spacing: -0.01em; color: var(--st-ink); }
 .day__sum { display: inline-flex; align-items: baseline; gap: 6px; }
-.day__sum-unit { font-size: 0.72rem; }
-.day__sum-cost { margin-left: 8px; color: var(--st-ink-soft); }
-.day__list {
-  border: 1px solid var(--st-line);
-  border-radius: var(--st-radius-lg);
-  background: var(--st-bg-elev);
-  overflow: hidden;
-}
-.day__head--skeleton { padding-block: 10px; }
-
-.log { grid-template-columns: 62px minmax(0, 1fr) auto 92px; gap: 14px; }
-.log__time { font-size: 0.8rem; color: var(--st-ink-faint); }
+.day__sum-unit { font-size: 0.75rem; }
+.day__sum-cost { margin-left: 8px; color: var(--st-ink-2); }
+.day__list { border: 1px solid var(--st-line); border-radius: var(--st-r-lg); background: var(--st-bg); overflow: hidden; box-shadow: var(--st-shadow-1); }
+.log { grid-template-columns: 62px minmax(0, 1fr) auto 88px; gap: 14px; padding: 14px 16px; transition: background-color var(--st-t) var(--st-ease); }
+.log:hover { background: var(--st-bg-soft); }
+.log__time { font-size: 0.8rem; color: var(--st-ink-3); }
 .log__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .log__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .log__tokens { display: inline-flex; align-items: baseline; gap: 12px; justify-content: flex-end; }
-.log__tok { font-size: 0.82rem; color: var(--st-ink-soft); }
-.log__tok i { font-style: normal; font-size: 0.68rem; color: var(--st-ink-faint); margin-left: 3px; }
-.log__tok--cache { color: var(--st-ink-faint); }
-.log__cost { text-align: right; font-size: 0.9rem; font-weight: 600; color: var(--st-ink-strong); }
+.log__tok { font-size: 0.82rem; color: var(--st-ink-2); }
+.log__tok i { margin-left: 3px; font-style: normal; font-size: 0.75rem; color: var(--st-ink-3); }
+.log__tok--cache { color: var(--st-ink-3); }
+.log__cost { text-align: right; font-size: 0.92rem; font-weight: 600; color: var(--st-ink); }
 
-.sk-row { height: 52px; margin-block: 6px; border-radius: var(--st-radius-md); }
-.sk-chip { display: inline-block; width: 96px; height: 12px; }
+.logs-skeleton { display: flex; flex-direction: column; gap: 10px; }
+.logs-skeleton__row { display: flex; align-items: center; gap: 16px; }
+.logs-skeleton__row .sk-line--sm { width: 88px; }
+.logs-skeleton__row .sk-line--md { flex: 1; }
+.logs-skeleton__row .sk-line--xs { width: 64px; }
+.logs__pager { margin-top: 14px; }
+
+.error-state { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.error-state__mark { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--st-danger-soft); color: var(--st-danger); }
+.error-state__copy { display: flex; flex-direction: column; gap: 4px; }
+.error-state .st-btn { margin-top: 4px; }
 
 .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding-block: clamp(40px, 6vw, 72px); }
-.empty__mark {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 1px solid var(--st-line);
-  background: var(--st-accent-soft);
-  color: var(--st-accent);
-  margin-bottom: 4px;
-}
-.empty .st-lede, .empty .st-body { max-width: 42ch; }
+.empty__mark { display: grid; place-items: center; width: 58px; height: 58px; margin-bottom: 4px; border-radius: 50%; border: 1px solid var(--st-brand-line); background: var(--st-brand-soft); color: var(--st-brand-text); }
+.empty .st-body { max-width: 42ch; }
 .empty .st-btn { margin-top: 8px; }
-
 .errors-card { overflow: hidden; padding: 8px; }
 
+.st-pill { font-size: 0.75rem; }
+
 @media (min-width: 720px) {
-  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stats { grid-template-columns: 1.35fr 1fr 1fr; }
+  .stat--lead { grid-column: auto; }
   .filters__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .st-colset__label { display: inline; }
 }
 @media (min-width: 1024px) {
-  .head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
-  .stats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chart--trend { grid-column: span 6; }
+  .chart--model { grid-column: span 6; }
+  .chart--group, .chart--endpoint { grid-column: span 3; }
   .logs { gap: 30px; }
   .filters__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-@media (max-width: 640px) {
-  .log { grid-template-columns: 52px minmax(0, 1fr) auto; row-gap: 4px; }
+@media (max-width: 639px) {
+  .toolbar { align-items: stretch; }
+  .toolbar > .st-seg { display: flex; width: 100%; }
+  .toolbar > .st-seg .st-seg__item { flex: 1 1 0; padding-inline: 5px; font-size: 0.75rem; white-space: nowrap; }
+  .toolbar__granularity { margin-left: 0; }
+  .toolbar__granularity .st-seg { display: flex; }
+  .toolbar__actions { width: 100%; }
+  .toolbar__actions .st-btn { flex: 1 1 auto; }
+  .log { grid-template-columns: 52px minmax(0, 1fr) auto; row-gap: 4px; padding: 14px; }
   .log__tokens { grid-column: 2 / 3; justify-content: flex-start; gap: 10px; }
   .log__cost { grid-column: 3 / 4; grid-row: 1 / 2; }
   .log__time { grid-row: 1 / 2; }
   .log__main { grid-column: 2 / 3; }
-  .toolbar__granularity { margin-left: 0; }
-  .toolbar__actions { flex-wrap: wrap; }
-  .toolbar__actions .st-btn { flex: 1 1 auto; }
+  .logs-skeleton__row .sk-line--sm { width: 60px; }
+  .logs__head { align-items: flex-start; }
+  .tabs__tools { width: 100%; margin-left: 0; justify-content: space-between; }
+  .st-seg__item { min-height: 44px; }
+  .st-btn { min-height: 44px; }
+  .st-colset__item { min-height: 44px; }
+  .filters__summary { min-height: 44px; }
+  .usage-head__pills { padding-bottom: 0; }
 }
 </style>

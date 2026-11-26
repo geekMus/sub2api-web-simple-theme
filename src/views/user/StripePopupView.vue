@@ -24,7 +24,8 @@
         </div>
 
         <div v-else class="stripe-pop__state stripe-pop__state--loading">
-          <span class="stripe-pop__spin" :style="{ borderColor: methodColor }"></span>
+          <div class="st-skeleton stripe-pop__sk stripe-pop__sk--wide"></div>
+          <div class="st-skeleton stripe-pop__sk stripe-pop__sk--short"></div>
           <p class="st-body stripe-pop__hint">{{ hint }}</p>
         </div>
       </div>
@@ -176,6 +177,16 @@ function startPolling() {
   }, 3000)
 }
 </script>
+<style scoped>
+.stripe-pop__panel { box-shadow: var(--st-shadow-3); }
+.stripe-pop .st-btn { min-height: 44px; }
+.stripe-pop__sk { height: 14px; border-radius: var(--st-r-xs); }
+.stripe-pop__sk--wide { width: 100%; }
+.stripe-pop__sk--short { width: 64%; }
+.stripe-pop__mark { width: 56px; height: 56px; }
+.stripe-pop__btn { min-height: 44px; }
+</style>
+
 <style scoped>
 .stripe-pop { display: flex; align-items: center; justify-content: center; padding: 16px; }
 .stripe-pop__wrap { width: 100%; max-width: 420px; }

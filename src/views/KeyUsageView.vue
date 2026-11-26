@@ -2,77 +2,112 @@
   <UserShell>
     <section class="st-section ku">
       <div class="st-shell ku__wrap">
-        <header class="ku-head">
-          <h1 class="st-display-2 st-reveal">{{ t('keyUsage.title') }}</h1>
-          <p class="st-lede st-reveal" style="--i: 1">{{ t('keyUsage.subtitle') }}</p>
-        </header>
+        <div class="ku-hero" :class="{ 'ku-hero--results': showResults }">
+          <header class="ku-head">
+            <p class="st-eyebrow st-reveal">{{ c('keyUsage.eyebrow') }}</p>
+            <h1 class="st-display-2 st-reveal" style="--i: 1">{{ c('keyUsage.title') }}</h1>
+            <p class="st-lede st-reveal" style="--i: 2">{{ c('keyUsage.lede') }}</p>
 
-        <div class="st-card st-card--pad st-card--halo ku-query st-reveal" style="--i: 2">
-          <form class="ku-form" @submit.prevent="queryKey">
-            <div class="ku-field">
-              <span class="ku-field__icon"><Icon name="lock" size="md" /></span>
-              <input
-                v-model="apiKey"
-                :type="keyVisible ? 'text' : 'password'"
-                :placeholder="t('keyUsage.placeholder')"
-                class="st-input ku-input"
-                autocomplete="off"
-                spellcheck="false"
-                @keydown.enter="queryKey"
-              />
-              <button
-                type="button"
-                class="ku-eye"
-                :aria-label="keyVisible ? 'Hide key' : 'Show key'"
-                @click="keyVisible = !keyVisible"
-              >
-                <Icon :name="keyVisible ? 'eyeOff' : 'eye'" size="sm" />
-              </button>
+            <div v-if="!showResults" class="ku-pre st-reveal" style="--i: 3">
+              <div v-for="(item, i) in preItems" :key="item.title" class="ku-pre__item">
+                <span class="ku-pre__idx">{{ String(i + 1).padStart(2, '0') }}</span>
+                <div class="ku-pre__copy">
+                  <h2 class="st-display-4">{{ item.title }}</h2>
+                  <p class="st-body">{{ item.body }}</p>
+                </div>
+              </div>
             </div>
-            <button type="submit" :disabled="isQuerying" class="st-btn st-btn--primary st-btn--lg ku-submit">
-              <span v-if="isQuerying" class="ku-spin"></span>
-              <Icon v-else name="search" size="sm" />
-              {{ isQuerying ? t('keyUsage.querying') : t('keyUsage.query') }}
-            </button>
-          </form>
-          <p class="ku-hint">{{ t('keyUsage.privacyNote') }}</p>
+          </header>
 
-          <div v-if="showDatePicker" class="ku-range">
-            <div class="st-seg">
-              <button
-                v-for="range in dateRanges"
-                :key="range.key"
-                type="button"
-                class="st-seg__item"
-                :class="{ 'st-seg__item--active': currentRange === range.key }"
-                @click="setDateRange(range.key)"
-              >
-                {{ range.label }}
+          <div class="st-card st-card--pad st-card--halo ku-query st-reveal" style="--i: 2">
+            <form class="ku-form" @submit.prevent="queryKey">
+              <div class="ku-field">
+                <span class="ku-field__icon"><Icon name="lock" size="md" /></span>
+                <input
+                  v-model="apiKey"
+                  :type="keyVisible ? 'text' : 'password'"
+                  :placeholder="t('keyUsage.placeholder')"
+                  class="st-input ku-input"
+                  autocomplete="off"
+                  spellcheck="false"
+                  @keydown.enter="queryKey"
+                />
+                <button
+                  type="button"
+                  class="ku-eye"
+                  :aria-label="keyVisible ? 'Hide key' : 'Show key'"
+                  @click="keyVisible = !keyVisible"
+                >
+                  <Icon :name="keyVisible ? 'eyeOff' : 'eye'" size="sm" />
+                </button>
+              </div>
+              <button type="submit" :disabled="isQuerying" class="st-btn st-btn--primary st-btn--lg ku-submit">
+                <span v-if="isQuerying" class="ku-spin"></span>
+                <Icon v-else name="search" size="sm" />
+                {{ isQuerying ? t('keyUsage.querying') : t('keyUsage.query') }}
               </button>
-            </div>
-            <div v-if="currentRange === 'custom'" class="ku-range__custom">
-              <input v-model="customStartDate" type="date" class="st-input ku-date" />
-              <span class="ku-range__sep">—</span>
-              <input v-model="customEndDate" type="date" class="st-input ku-date" />
-              <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="queryKey">{{ t('keyUsage.apply') }}</button>
+            </form>
+            <p class="ku-hint">{{ t('keyUsage.privacyNote') }}</p>
+
+            <div v-if="showDatePicker" class="ku-range">
+              <div class="st-seg">
+                <button
+                  v-for="range in dateRanges"
+                  :key="range.key"
+                  type="button"
+                  class="st-seg__item"
+                  :class="{ 'st-seg__item--active': currentRange === range.key }"
+                  @click="setDateRange(range.key)"
+                >
+                  {{ range.label }}
+                </button>
+              </div>
+              <div v-if="currentRange === 'custom'" class="ku-range__custom">
+                <input v-model="customStartDate" type="date" class="st-input ku-date" />
+                <span class="ku-range__sep">—</span>
+                <input v-model="customEndDate" type="date" class="st-input ku-date" />
+                <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="queryKey">{{ t('keyUsage.apply') }}</button>
+              </div>
             </div>
           </div>
         </div>
 
+        <div v-if="queryError" class="st-card st-card--pad ku-error">
+          <span class="ku-error__mark"><Icon name="exclamationCircle" size="lg" /></span>
+          <div class="ku-error__copy">
+            <h2 class="st-display-3">{{ c('keyUsage.errorTitle') }}</h2>
+            <p class="st-body">{{ queryError }}</p>
+          </div>
+          <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="queryKey">{{ c('keyUsage.retry') }}</button>
+        </div>
+
         <div v-if="showResults" class="ku-results">
-          <div v-if="showLoading" class="ku-skeleton">
-            <div class="st-skeleton ku-sk-ring"></div>
-            <div class="st-skeleton ku-sk-ring"></div>
-            <div class="st-skeleton ku-sk-block"></div>
+          <div v-if="showLoading" class="ku-skeleton" aria-busy="true">
+            <div class="st-card st-card--pad ku-skeleton__ring">
+              <span class="st-skeleton sk-line sk-line--sm"></span>
+              <span class="st-skeleton ku-sk-circle"></span>
+            </div>
+            <div class="st-card st-card--pad ku-skeleton__ring">
+              <span class="st-skeleton sk-line sk-line--sm"></span>
+              <span class="st-skeleton ku-sk-circle"></span>
+            </div>
+            <div class="st-card st-card--pad ku-skeleton__block">
+              <span v-for="i in 4" :key="i" class="st-skeleton sk-line sk-line--full"></span>
+            </div>
           </div>
 
           <template v-else-if="resultData">
-            <div v-if="statusInfo" class="ku-status st-reveal">
-              <span class="st-pill st-pill--dot" :class="statusInfo.isActive ? 'st-pill--ok' : 'st-pill--danger'">
-                {{ statusInfo.label }}
-              </span>
-              <span class="st-pill">{{ statusInfo.statusText }}</span>
-            </div>
+            <header class="ku-results__head st-reveal">
+              <div>
+                <p class="st-eyebrow">{{ c('keyUsage.resultTitle') }}</p>
+                <h2 class="st-display-3">{{ statusInfo?.label || t('keyUsage.walletBalance') }}</h2>
+              </div>
+              <div class="ku-status">
+                <span class="st-pill st-pill--dot" :class="statusInfo?.isActive ? 'st-pill--ok' : 'st-pill--danger'">
+                  {{ statusInfo?.statusText }}
+                </span>
+              </div>
+            </header>
 
             <div v-if="ringItems.length > 0" :class="ringGridClass">
               <article
@@ -130,6 +165,13 @@
                   </div>
                 </div>
               </article>
+            </div>
+
+            <div v-else class="st-card st-card--pad st-card--halo ku-empty">
+              <Icon name="chartBar" size="xl" class="st-muted" />
+              <h2 class="st-display-3">{{ c('keyUsage.emptyTitle') }}</h2>
+              <p class="st-body">{{ c('keyUsage.emptyBody') }}</p>
+              <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="queryKey">{{ c('keyUsage.retry') }}</button>
             </div>
 
             <section v-if="detailRows.length > 0" class="st-card ku-card st-reveal">
@@ -192,7 +234,7 @@
                   </div>
                 </div>
               </div>
-              <p v-else class="ku-empty">{{ t('keyUsage.noDailyUsage') }}</p>
+              <p v-else class="ku-empty-line">{{ t('keyUsage.noDailyUsage') }}</p>
             </section>
 
             <section v-if="modelStats.length > 0" class="st-card ku-card st-reveal">
@@ -230,11 +272,21 @@ import { useAppStore } from '@/stores'
 import { FeatureFlags, resolveFeatureFlag } from '@/utils/featureFlags'
 import Icon from '@/components/icons/Icon.vue'
 import { buildGatewayUrl } from '@/api/client'
+import { useBillingCopy } from '@/composables/copy/billing'
 import { formatDateLocalInput } from '@/utils/format'
 
 const { t, locale } = useI18n()
+const { c } = useBillingCopy()
 const appStore = useAppStore()
 const subscriptionFeatureEnabled = computed(() => resolveFeatureFlag(appStore.cachedPublicSettings, FeatureFlags.subscription))
+
+const preItems = computed(() => [
+  { title: c('keyUsage.pre1Title'), body: c('keyUsage.pre1Body') },
+  { title: c('keyUsage.pre2Title'), body: c('keyUsage.pre2Body') },
+  { title: c('keyUsage.pre3Title'), body: c('keyUsage.pre3Body') },
+])
+
+const queryError = ref('')
 
 // ==================== Key Query State ====================
 
@@ -673,6 +725,7 @@ async function queryKey() {
   showResults.value = true
   showLoading.value = true
   resultData.value = null
+  queryError.value = ''
 
   try {
     const data = await fetchUsage(key)
@@ -689,7 +742,8 @@ async function queryKey() {
   } catch (err) {
     showResults.value = false
     showLoading.value = false
-    appStore.showError((err as Error).message || t('keyUsage.queryFailedRetry'))
+    queryError.value = (err as Error).message || t('keyUsage.queryFailedRetry')
+    appStore.showError(queryError.value)
   } finally {
     isQuerying.value = false
   }
@@ -722,81 +776,70 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.ku__wrap { display: flex; flex-direction: column; gap: clamp(20px, 3vw, 32px); }
-.ku-head { max-width: 60ch; }
-.ku-head .st-lede { margin-top: 14px; }
-
-.ku-query { display: flex; flex-direction: column; gap: 14px; max-width: 780px; }
-.ku-form { display: flex; align-items: stretch; gap: 10px; }
-.ku-field { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; }
+.ku { padding-top: clamp(32px, 5vw, 56px); }
+.ku__wrap { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 56px); }
+.ku-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.ku-hero--results { gap: 16px; }
+.ku-head { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ku-head .st-display-2 { margin-top: 2px; }
+.ku-head .st-lede { margin-top: 2px; }
+.ku-pre { display: flex; flex-direction: column; margin-top: 10px; }
+.ku-pre__item { display: flex; gap: 16px; padding: 15px 0; border-top: 1px solid var(--st-line); }
+.ku-pre__idx { flex-shrink: 0; padding-top: 3px; font-family: var(--st-font-display); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; color: var(--st-ink-3); }
+.ku-pre__copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ku-pre__copy .st-display-4 { margin: 0; }
+.ku-pre__copy .st-body { font-size: 0.84rem; }
+.ku-query { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 520px; }
+.ku-form { display: flex; flex-direction: column; gap: 10px; }
+.ku-field { position: relative; display: flex; align-items: center; min-width: 0; }
 .ku-field__icon { position: absolute; left: 15px; display: grid; place-items: center; color: var(--st-ink-3); pointer-events: none; }
-.ku-input {
-  height: 54px;
-  padding-left: 46px;
-  padding-right: 48px;
-  font-family: var(--st-font-mono);
-  font-size: 0.94rem;
-  letter-spacing: 0.02em;
-}
-.ku-eye {
-  position: absolute;
-  right: 8px;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--st-ink-3);
-  cursor: pointer;
-  transition: background-color var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease);
-}
+.ku-input { height: 54px; padding-left: 46px; padding-right: 48px; font-family: var(--st-font-mono); font-size: 0.94rem; letter-spacing: 0.02em; }
+.ku-eye { position: absolute; right: 6px; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--st-ink-3); cursor: pointer; transition: background-color var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease); }
 .ku-eye:hover { background: var(--st-bg-soft); color: var(--st-ink); }
-.ku-submit { height: 54px; flex-shrink: 0; }
+.ku-submit { width: 100%; height: 52px; }
 .ku-spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: ku-spin 0.8s linear infinite; }
 @keyframes ku-spin { to { transform: rotate(360deg); } }
-.ku-hint { font-size: 0.78rem; line-height: 1.6; color: var(--st-ink-3); }
+.ku-hint { font-size: 0.75rem; line-height: 1.6; color: var(--st-ink-3); }
 .ku-range { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--st-line); }
 .ku-range__custom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ku-range__sep { color: var(--st-ink-3); }
 .ku-date { width: auto; min-width: 138px; padding: 7px 10px; font-size: 0.82rem; }
 
+.ku-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ku-error__mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--st-danger-soft); color: var(--st-danger); flex-shrink: 0; }
+.ku-error__copy { display: flex; flex: 1 1 240px; flex-direction: column; gap: 2px; min-width: 0; }
 .ku-results { display: flex; flex-direction: column; gap: 16px; }
-.ku-skeleton { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.ku-sk-ring { height: 240px; border-radius: var(--st-r-md); }
-.ku-sk-block { height: 180px; border-radius: var(--st-r-md); }
+.ku-results__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 24px; }
+.ku-results__head h2 { margin: 4px 0 0; }
 .ku-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
+.ku-skeleton { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.ku-skeleton__ring { display: flex; flex-direction: column; align-items: center; gap: 16px; min-height: 230px; }
+.ku-sk-circle { width: 170px; height: 170px; border-radius: 50%; }
+.ku-skeleton__block { display: flex; flex-direction: column; gap: 12px; }
+.sk-line { display: block; height: 12px; border-radius: 999px; }
+.sk-line--sm { width: 34%; }
+.sk-line--full { width: 100%; }
+
 .ku-rings { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.ku-rings--one, .ku-rings--two { width: 100%; max-width: 620px; margin-inline: auto; }
+.ku-rings--one, .ku-rings--two { width: 100%; max-width: 100%; margin-inline: 0; }
 .ku-ring-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .ku-ring-card__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .ku-ring-wrap { position: relative; display: grid; place-items: center; }
-.ku-ring { width: min(190px, 72vw); height: auto; }
+.ku-ring { width: min(200px, 72vw); height: auto; }
 .progress-ring { transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%; }
-.ku-ring-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 34px;
-  text-align: center;
-}
-.ku-ring-pct { font-size: clamp(1.7rem, 3vw, 2.2rem); }
-.ku-ring-caption { font-size: 0.72rem; color: var(--st-ink-3); }
+.ku-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 36px; text-align: center; }
+.ku-ring-pct { font-size: clamp(1.8rem, 3vw, 2.3rem); }
+.ku-ring-caption { font-size: 0.75rem; color: var(--st-ink-3); }
 .ku-ring-amount-sm { font-size: 0.82rem; font-weight: 600; }
-.ku-ring-amount { font-size: 1.35rem; }
-.ku-ring-reset { font-size: 0.7rem; color: var(--st-ink-3); }
+.ku-ring-amount { font-size: 1.4rem; }
+.ku-ring-reset { font-size: 0.75rem; color: var(--st-ink-3); }
 
 .ku-card { overflow: hidden; }
 .ku-card__head { padding: 16px 20px; border-bottom: 1px solid var(--st-line); }
 .ku-card__head--row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .ku-card .st-list { padding-inline: 20px; }
-.ku-row { grid-template-columns: minmax(0, 1fr) auto; }
+.ku-row { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 0; }
 .ku-row__label { min-width: 0; font-size: 0.86rem; color: var(--st-ink-2); }
 .ku-row__val { font-size: 0.9rem; font-weight: 600; color: var(--st-ink); text-align: right; }
 .ku-tone-danger { color: var(--st-danger); }
@@ -808,40 +851,39 @@ onUnmounted(() => {
 .ku-stat__value { font-size: 1.15rem; }
 
 .ku-day { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
-.ku-day--head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding-block: 9px;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--st-ink-3);
-}
+.ku-day--head { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding-block: 9px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-3); }
 .ku-day__top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.ku-day__date { font-size: 0.88rem; font-weight: 600; color: var(--st-ink); }
+.ku-day__date { font-family: var(--st-font-display); font-size: 0.9rem; font-weight: 600; color: var(--st-ink); }
 .ku-day__cost { font-size: 0.9rem; font-weight: 600; color: var(--st-ink); text-align: right; }
 .ku-day__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; }
 .ku-cell { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; font-size: 0.78rem; }
 .ku-cell i { font-style: normal; color: var(--st-ink-3); }
 .ku-cell b { font-weight: 500; color: var(--st-ink); }
-.ku-empty { padding: 22px 20px; font-size: 0.86rem; color: var(--st-ink-3); }
+.ku-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-block: clamp(28px, 4vw, 48px); text-align: center; }
+.ku-empty-line { padding: 22px 20px; font-size: 0.86rem; color: var(--st-ink-3); }
 
-@media (min-width: 720px) {
-  .ku-skeleton { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 900px) {
+  .ku-hero { grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr); gap: clamp(28px, 5vw, 72px); }
+  .ku-hero--results { grid-template-columns: minmax(0, 1fr); }
+  .ku-query { justify-self: end; }
+  .ku-rings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ku-rings--one { max-width: 460px; margin-inline: auto; }
   .ku-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .ku-day__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ku-skeleton { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (min-width: 900px) {
-  .ku-rings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ku-rings--one { grid-template-columns: minmax(0, 430px); }
-}
-@media (max-width: 640px) {
-  .ku-form { flex-direction: column; }
-  .ku-submit { width: 100%; }
-  .ku-day--head { display: none; }
+@media (max-width: 639px) {
   .ku-query { padding: 18px; }
   .ku-card .st-list { padding-inline: 16px; }
   .ku-card__head { padding: 14px 16px; }
   .ku-date { flex: 1 1 120px; min-width: 0; }
+  .ku-day--head { display: none; }
+  .st-btn { min-height: 44px; }
+  .st-seg__item { min-height: 44px; }
+  .ku-eye { width: 44px; height: 44px; }
 }
+</style>
+
+<style scoped>
+.st-pill { font-size: 0.75rem; }
 </style>

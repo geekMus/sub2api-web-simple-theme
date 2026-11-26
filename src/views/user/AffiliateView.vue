@@ -5,12 +5,30 @@
         <header class="aff__hero">
           <p class="st-eyebrow st-reveal">{{ c('aff.eyebrow') }}</p>
           <h1 class="st-display-2 aff__title st-reveal" style="--i: 1">{{ c('aff.title') }}</h1>
-          <p class="st-lede aff__lede st-reveal" style="--i: 2">{{ c('aff.lede') }}</p>
+          <p class="st-lede aff__lede st-reveal" style="--i: 2">{{ c('aff.ledeShort') }}</p>
         </header>
 
         <!-- 加载 -->
-        <div v-if="loading" class="aff__stats" aria-busy="true">
-          <div v-for="i in 4" :key="i" class="st-card st-skeleton aff__sk-stat"></div>
+        <div v-if="loading" class="aff__loading" aria-busy="true">
+          <div class="aff__stats">
+            <div v-for="i in 4" :key="i" class="st-card st-skeleton aff__sk-stat"></div>
+          </div>
+          <div class="st-card st-card--pad aff__card">
+            <div class="st-skeleton aff__sk aff__sk--wide"></div>
+            <div class="st-skeleton aff__sk aff__sk--block"></div>
+          </div>
+        </div>
+
+        <div v-else-if="errorMessage" class="st-card st-card--pad aff__state" role="alert">
+          <div class="aff__state-mark">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9" />
+              <path stroke-linecap="round" d="M12 8v5m0 3.5h.01" />
+            </svg>
+          </div>
+          <p class="st-display-3 aff__state-title">{{ c('aff.errorTitle') }}</p>
+          <p class="st-body">{{ errorMessage }}</p>
+          <button class="st-btn st-btn--primary aff__state-btn" @click="loadAffiliateDetail()">{{ c('aff.retry') }}</button>
         </div>
 
         <template v-else-if="detail">
@@ -48,14 +66,14 @@
                 <p class="st-label">{{ t('affiliate.yourCode') }}</p>
                 <div class="aff__valuebox">
                   <code class="aff__code">{{ detail.aff_code }}</code>
-                  <button class="st-btn st-btn--quiet st-btn--sm" @click="copyCode">{{ t('affiliate.copyCode') }}</button>
+                  <button class="st-btn st-btn--quiet aff__copy" @click="copyCode">{{ t('affiliate.copyCode') }}</button>
                 </div>
               </div>
               <div class="aff__field">
                 <p class="st-label">{{ t('affiliate.inviteLink') }}</p>
                 <div class="aff__valuebox">
                   <code class="aff__link">{{ inviteLink }}</code>
-                  <button class="st-btn st-btn--quiet st-btn--sm" @click="copyInviteLink">{{ t('affiliate.copyLink') }}</button>
+                  <button class="st-btn st-btn--primary aff__copy" @click="copyInviteLink">{{ t('affiliate.copyLink') }}</button>
                 </div>
               </div>
             </div>
@@ -96,6 +114,7 @@
                 </svg>
               </span>
               <p>{{ c('aff.inviteesEmpty') }}</p>
+              <button class="st-btn st-btn--primary aff__empty-btn" @click="copyInviteLink">{{ c('aff.emptyCta') }}</button>
             </div>
 
             <ul v-else class="st-list aff__invitees">
@@ -135,6 +154,7 @@ const { copyToClipboard } = useClipboard()
 
 const loading = ref(true)
 const transferring = ref(false)
+const errorMessage = ref('')
 const detail = ref<UserAffiliateDetail | null>(null)
 
 const inviteLink = computed(() => {
@@ -159,10 +179,13 @@ async function loadAffiliateDetail(silent = false): Promise<void> {
   if (!silent) {
     loading.value = true
   }
+  errorMessage.value = ''
   try {
     detail.value = await userAPI.getAffiliateDetail()
   } catch (error) {
-    appStore.showError(extractApiErrorMessage(error, t('affiliate.loadFailed')))
+    const message = extractApiErrorMessage(error, t('affiliate.loadFailed'))
+    errorMessage.value = message
+    appStore.showError(message)
   } finally {
     if (!silent) {
       loading.value = false
@@ -201,6 +224,46 @@ onMounted(() => {
   void loadAffiliateDetail()
 })
 </script>
+<style scoped>
+.aff__hero { margin-bottom: clamp(26px, 4vw, 44px); }
+.aff .st-card { box-shadow: var(--st-shadow-2); }
+.aff .st-pill { font-size: 0.75rem; }
+.aff .st-btn { min-height: 44px; }
+.aff__stat { flex-direction: column; gap: 6px; }
+.aff__stat--accent { border: 1px solid var(--st-brand-line); }
+.aff__valuebox { transition: border-color var(--st-t) var(--st-ease); }
+.aff__valuebox:hover { border-color: var(--st-ink-3); }
+.aff__valuebox .st-btn { min-height: 44px; }
+.aff__empty { gap: 12px; }
+.aff__empty-btn { min-height: 44px; min-width: 180px; margin-top: 4px; }
+.aff__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-block: clamp(40px, 7vw, 72px);
+  text-align: center;
+}
+.aff__state-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--st-danger-soft);
+  color: var(--st-danger);
+}
+.aff__state-title { margin: 2px 0 0; }
+.aff__state-btn { min-width: 180px; min-height: 44px; }
+.aff__sk { height: 14px; border-radius: var(--st-r-xs); }
+.aff__sk--wide { width: 70%; }
+.aff__sk--block { height: 120px; border-radius: var(--st-r-md); }
+.aff__stats .st-card { min-height: 108px; }
+@media (max-width: 640px) {
+  .aff__empty-btn { width: 100%; }
+}
+</style>
+
 
 <style scoped>
 .aff { padding-bottom: clamp(56px, 8vw, 96px); }

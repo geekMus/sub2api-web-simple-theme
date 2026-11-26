@@ -55,6 +55,10 @@ import PaymentResultView from '../PaymentResultView.vue'
 import { PAYMENT_RECOVERY_STORAGE_KEY } from '@/components/payment/paymentFlow'
 import { formatPaymentAmount } from '@/components/payment/currency'
 
+vi.mock('@/components/shell/UserShell.vue', () => ({
+  default: { name: 'UserShell', template: '<div><slot /></div>' },
+}))
+
 const orderFactory = (status: string) => ({
   id: 42,
   user_id: 9,

@@ -56,7 +56,16 @@
           <div v-for="i in 6" :key="i" class="st-skeleton dash-charts__bar" :style="{ height: 22 + i * 8 + '%' }"></div>
         </div>
         <Line v-else-if="trend.length > 0 && chartData" :data="chartData" :options="lineOptions" />
-        <p v-else class="dash-charts__empty">{{ c('usercore.dash.trendEmpty') }}</p>
+        <div v-else class="dash-charts__empty-state">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <path d="M4 19V5M4 20h16" stroke-linecap="round" />
+            <path d="M7.5 15.5l3.5-4 3 2.5 4-6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 3" />
+          </svg>
+          <p class="dash-charts__empty-title">{{ c('usercore.dash.trendEmpty') }}</p>
+          <button type="button" class="st-btn st-btn--quiet st-btn--sm" @click="$emit('refresh')">
+            {{ c('usercore.dash.refresh') }}
+          </button>
+        </div>
       </div>
     </article>
 
@@ -73,7 +82,9 @@
       <div v-if="loading" class="dash-charts__model-skeleton">
         <div v-for="i in 4" :key="i" class="st-skeleton dash-charts__model-line"></div>
       </div>
-      <p v-else-if="!models.length" class="dash-charts__empty">{{ c('usercore.dash.modelEmpty') }}</p>
+      <div v-else-if="!models.length" class="dash-charts__empty-state dash-charts__empty-state--inline">
+        <p class="dash-charts__empty-title">{{ c('usercore.dash.modelEmpty') }}</p>
+      </div>
       <ul v-else class="dash-charts__model-list">
         <li v-for="model in models" :key="model.model" class="dash-charts__model">
           <div class="dash-charts__model-top">
@@ -298,7 +309,8 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
 </script>
 
 <style scoped>
-.dash-charts { display: flex; flex-direction: column; gap: 14px; }
+.dash-charts { display: flex; flex-direction: column; gap: clamp(24px, 3.6vw, 48px); }
+.dash-charts__trend, .dash-charts__models { box-shadow: var(--st-shadow-2); }
 
 .dash-charts__head { display: flex; flex-direction: column; gap: 14px; }
 .dash-charts__head-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
@@ -335,6 +347,15 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
 .dash-charts__skeleton { display: flex; align-items: flex-end; gap: 10px; height: 100%; }
 .dash-charts__bar { flex: 1; border-radius: 6px 6px 0 0; }
 
+.dash-charts__empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  height: 100%; min-height: 160px; padding: 20px; text-align: center;
+  border-radius: var(--st-r-md);
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--st-brand) 7%, transparent), transparent 70%);
+  color: var(--st-ink-2);
+}
+.dash-charts__empty-state--inline { min-height: 96px; }
+.dash-charts__empty-title { font-size: 0.9rem; color: var(--st-ink-2); }
 .dash-charts__empty {
   display: grid;
   place-items: center;
@@ -349,8 +370,14 @@ const modelPercent = (model: ModelStat) => Math.max(2, Math.round((model.total_t
 .dash-charts__models { display: flex; flex-direction: column; gap: 16px; }
 .dash-charts__model-skeleton { display: flex; flex-direction: column; gap: 12px; }
 .dash-charts__model-line { height: 18px; }
-.dash-charts__model-list { display: flex; flex-direction: column; gap: 14px; }
-.dash-charts__model { display: flex; flex-direction: column; gap: 6px; }
+.dash-charts__model-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.dash-charts__model {
+  display: flex; flex-direction: column; gap: 6px;
+  min-height: 44px; padding: 10px 12px;
+  border-radius: var(--st-r-sm);
+  transition: background-color var(--st-t) var(--st-ease);
+}
+.dash-charts__model:hover { background: var(--st-bg-soft); }
 .dash-charts__model-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .dash-charts__model-name {
   font-family: var(--st-font-mono);

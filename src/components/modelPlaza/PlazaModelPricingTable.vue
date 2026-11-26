@@ -89,6 +89,7 @@
               <span class="pz-price__v">{{ paidPerMillion(m.pricing?.output_price, null) }}</span>
             </div>
           </div>
+          <p class="pz-model__unit">{{ c('plaza.unit') }}</p>
           <p v-if="hasCachePricing(m)" class="pz-model__cache">
             <span class="pz-faint">{{ t('modelPlaza.table.cacheWrite') }}</span>
             {{ paidPerMillion(m.pricing?.cache_write_price, null)
@@ -168,6 +169,7 @@
         </div>
 
         <span class="pz-model__ratebox" :title="t('modelPlaza.table.rate')">
+          <span class="pz-model__rate-k">{{ c('plaza.price.rate') }}</span>
           <span v-if="usesIndependentMediaRate(m)" class="pz-model__rate" data-rate>{{ requestRate(m) }}x</span>
           <template v-else-if="hasCustomRate">
             <span class="pz-model__rate-old">{{ rateMultiplier }}x</span>
@@ -186,6 +188,7 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import ModelIcon from '@/components/common/ModelIcon.vue'
 import { useClipboard } from '@/composables/useClipboard'
+import { useMiscCopy } from '@/composables/copy/misc'
 import { formatScaled, resolveIntervalPrices } from '@/utils/pricing'
 import { platformAccentColor, platformBadgeLightClass, platformLabel } from '@/utils/platformColors'
 import {
@@ -222,6 +225,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const { c } = useMiscCopy()
 const { copyToClipboard } = useClipboard()
 
 const accentStyle = computed(() => ({ '--plaza-accent': platformAccentColor(props.platform ?? '') }))
@@ -388,9 +392,9 @@ function trimZero(n: number): string {
 <style scoped>
 .pz-store {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 272px), 1fr));
-  gap: 14px;
-  padding: clamp(16px, 2vw, 24px);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 268px), 1fr));
+  gap: 16px;
+  padding: clamp(14px, 1.8vw, 22px) 0 0;
   --pz-accent-soft: color-mix(in srgb, var(--plaza-accent) 10%, transparent);
   --pz-accent-line: color-mix(in srgb, var(--plaza-accent) 30%, transparent);
 }
@@ -398,19 +402,27 @@ function trimZero(n: number): string {
 .pz-model {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border-radius: var(--st-radius-md);
-  background: var(--st-bg-elev);
+  gap: 14px;
+  padding: clamp(16px, 1.8vw, 20px);
+  border-radius: var(--st-r-lg);
+  background: var(--st-bg);
   overflow: hidden;
+  box-shadow: var(--st-shadow-2);
+  transition: border-color var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease),
+    transform var(--st-t) var(--st-ease);
+}
+.pz-model:hover {
+  border-color: var(--st-brand-line);
+  box-shadow: var(--st-shadow-3);
+  transform: translateY(-2px);
 }
 
 .pz-model__head { display: flex; align-items: flex-start; gap: 10px; }
 .pz-model__glyph {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   border-radius: 10px;
   border: 1px solid var(--pz-accent-line);
@@ -419,19 +431,23 @@ function trimZero(n: number): string {
 }
 .pz-model__id { min-width: 0; flex: 1; }
 .pz-model__name {
-  font-size: 0.92rem;
+  margin: 0;
+  font-family: var(--st-font-display);
+  font-size: 0.96rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
   color: var(--st-ink);
   overflow-wrap: anywhere;
 }
 .pz-model__vendor {
-  margin-top: 2px;
-  font-size: 0.74rem;
-  color: var(--st-ink-faint);
-  letter-spacing: 0.02em;
+  margin: 3px 0 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--st-ink-3);
 }
-.pz-model__copy { width: 32px; height: 32px; flex-shrink: 0; }
+.pz-model__copy { width: 34px; height: 34px; flex-shrink: 0; }
 
 .pz-model__badges { display: flex; flex-wrap: wrap; gap: 5px; }
 .pz-badge {
@@ -441,40 +457,43 @@ function trimZero(n: number): string {
   padding-inline: 7px;
   border-radius: 6px;
   border: 1px solid var(--st-line);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 550;
   letter-spacing: 0.02em;
-  color: var(--st-ink-soft);
+  color: var(--st-ink-2);
   white-space: nowrap;
 }
 .pz-badge--effort {
-  border-color: color-mix(in srgb, var(--st-accent) 26%, transparent);
-  background: var(--st-accent-soft);
-  color: var(--st-accent);
+  border-color: var(--st-brand-line);
+  background: var(--st-brand-soft);
+  color: var(--st-brand-text);
 }
 
 .pz-model__prices { display: flex; flex-direction: column; gap: 6px; }
-.pz-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pz-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .pz-price { display: flex; flex-direction: column; gap: 1px; }
 .pz-price--solo { flex-direction: row; align-items: baseline; gap: 5px; }
-.pz-price__k { font-size: 0.7rem; color: var(--st-ink-faint); letter-spacing: 0.03em; }
+.pz-price__k { font-size: 0.68rem; letter-spacing: 0.04em; color: var(--st-ink-3); }
 .pz-price__v {
   font-family: var(--st-font-display);
-  font-size: 1.12rem;
+  font-size: clamp(1.3rem, 2vw, 1.5rem);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--st-ink-strong);
-  font-variant-numeric: tabular-nums;
-}
-.pz-model__cache {
-  font-size: 0.74rem;
-  line-height: 1.7;
-  color: var(--st-ink-soft);
+  letter-spacing: -0.03em;
+  color: var(--st-ink);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
-.pz-model__cache-sep { margin-inline: 5px; color: var(--st-line-strong); }
-.pz-faint { color: var(--st-ink-faint); }
+.pz-model__unit { margin: 0; font-size: 0.68rem; color: var(--st-ink-3); }
+.pz-model__cache {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: var(--st-ink-2);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.pz-model__cache-sep { margin-inline: 5px; color: var(--st-line-2); }
+.pz-faint { color: var(--st-ink-3); }
 
 .pz-tier {
   display: grid;
@@ -482,7 +501,7 @@ function trimZero(n: number): string {
   grid-template-areas: 'label pair cache';
   align-items: baseline;
   gap: 8px;
-  padding: 5px 0;
+  padding: 6px 0;
   border-top: 1px dashed var(--st-line);
   font-variant-numeric: tabular-nums;
 }
@@ -490,17 +509,17 @@ function trimZero(n: number): string {
 .pz-tier__label {
   grid-area: label;
   font-size: 0.68rem;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 .pz-tier__pair { grid-area: pair; display: inline-flex; align-items: baseline; gap: 4px; }
-.pz-tier__k { font-size: 0.68rem; color: var(--st-ink-faint); }
-.pz-tier__v { font-size: 0.86rem; font-weight: 600; color: var(--st-ink); }
+.pz-tier__k { font-size: 0.68rem; color: var(--st-ink-3); }
+.pz-tier__v { font-size: 0.9rem; font-weight: 600; color: var(--st-ink); }
 .pz-tier__cache {
   grid-area: cache;
   font-size: 0.68rem;
-  color: var(--st-ink-soft);
+  color: var(--st-ink-2);
   text-align: right;
   max-width: 14ch;
 }
@@ -513,7 +532,7 @@ function trimZero(n: number): string {
   padding: 4px 8px;
   border-radius: 8px;
   border: 1px solid var(--st-line);
-  background: var(--st-bg-sunk);
+  background: var(--st-bg-soft);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
 }
@@ -522,18 +541,18 @@ function trimZero(n: number): string {
 .pz-model__time {
   padding: 8px 10px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--st-accent) 6%, transparent);
-  border: 1px solid var(--st-accent-line);
+  background: var(--st-brand-soft);
+  border: 1px solid var(--st-brand-line);
 }
 .pz-model__time-title {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--st-accent);
-  margin-bottom: 4px;
+  color: var(--st-brand-text);
 }
 .pz-time {
   display: flex;
@@ -541,11 +560,11 @@ function trimZero(n: number): string {
   gap: 8px;
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
-  color: var(--st-ink-soft);
+  color: var(--st-ink-2);
 }
 .pz-time__win { color: var(--st-ink); font-weight: 550; white-space: nowrap; }
 .pz-time__prices { flex: 1; }
-.pz-time__rate { color: var(--st-accent); font-weight: 600; }
+.pz-time__rate { color: var(--st-brand-text); font-weight: 600; }
 
 .pz-model__foot {
   display: flex;
@@ -553,33 +572,76 @@ function trimZero(n: number): string {
   justify-content: space-between;
   gap: 10px;
   margin-top: auto;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--st-line);
 }
 .pz-official { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.pz-official__label { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-faint); }
-.pz-official__val { font-size: 0.72rem; color: var(--st-ink-soft); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pz-official__label {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--st-ink-3);
+}
+.pz-official__val {
+  font-size: 0.72rem;
+  color: var(--st-ink-2);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
 .pz-official__tier { display: block; }
-.pz-model__ratebox { flex-shrink: 0; display: inline-flex; align-items: baseline; gap: 5px; }
+.pz-model__ratebox {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--st-brand-line);
+  background: var(--st-brand-soft);
+}
+.pz-model__rate-k {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--st-brand-text);
+  opacity: 0.8;
+}
 .pz-model__rate {
   font-family: var(--st-font-display);
-  font-size: 1.05rem;
+  font-size: 1.12rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--st-accent);
+  color: var(--st-brand-text);
   font-variant-numeric: tabular-nums;
 }
 .pz-model__rate-old {
   font-size: 0.72rem;
-  color: var(--st-ink-faint);
+  color: var(--st-ink-3);
   text-decoration: line-through;
 }
 
 @media (max-width: 480px) {
-  .pz-store { padding: 12px; gap: 10px; }
+  .pz-store { padding-top: 10px; gap: 12px; }
   .pz-tier { grid-template-columns: auto 1fr; grid-template-areas: 'label pair' 'cache cache'; }
   .pz-tier__cache { text-align: left; max-width: none; }
   .pz-model__foot { flex-direction: column; align-items: flex-start; }
   .pz-model__ratebox { align-self: flex-end; }
+}
+
+@media (max-width: 560px) {
+  .pz-badge,
+  .pz-price__k,
+  .pz-tier__label,
+  .pz-tier__k,
+  .pz-tier__cache,
+  .pz-model__unit,
+  .pz-model__vendor,
+  .pz-official__label { font-size: 12px; }
+  .pz-model__cache,
+  .pz-official__val,
+  .pz-time,
+  .pz-model__rate-old { font-size: 0.78rem; }
+  .pz-model__time-title { font-size: 0.72rem; }
+  .pz-model__copy { width: 44px; height: 44px; }
 }
 </style>

@@ -22,12 +22,15 @@
 
         <!-- 首次加载：骨架 -->
         <div v-if="loading && !stats" class="dash__skeleton">
-          <div class="dash__skeleton-grid">
-            <div class="st-card st-card--pad dash__skeleton-hero st-skeleton"></div>
-            <div v-for="i in 3" :key="i" class="st-card st-card--pad dash__skeleton-tile">
+          <div class="st-card st-card--pad dash__skeleton-hero">
+            <span class="st-skeleton dash__sk-line dash__sk-line--sm"></span>
+            <span class="st-skeleton dash__sk-line dash__sk-line--hero"></span>
+            <span class="st-skeleton dash__sk-line dash__sk-line--xs"></span>
+          </div>
+          <div class="st-card st-card--pad dash__skeleton-strip">
+            <div v-for="i in 4" :key="i" class="dash__skeleton-cell">
               <span class="st-skeleton dash__sk-line dash__sk-line--sm"></span>
-              <span class="st-skeleton dash__sk-line dash__sk-line--lg"></span>
-              <span class="st-skeleton dash__sk-line dash__sk-line--xs"></span>
+              <span class="st-skeleton dash__sk-line dash__sk-line--mid"></span>
             </div>
           </div>
           <div class="st-card st-card--pad">
@@ -134,7 +137,7 @@ onMounted(() => { refreshAll() })
 
 <style scoped>
 .dash { padding-top: clamp(32px, 5vw, 56px); }
-.dash__inner { display: flex; flex-direction: column; gap: clamp(26px, 3.6vw, 42px); }
+.dash__inner { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 56px); }
 
 .dash__head { display: flex; flex-direction: column; gap: 10px; max-width: 70ch; }
 .dash__title { margin-top: 6px; }
@@ -144,10 +147,12 @@ onMounted(() => { refreshAll() })
 .dash__spin { animation: dash-spin 900ms linear infinite; }
 @keyframes dash-spin { to { transform: rotate(360deg); } }
 
-.dash__skeleton { display: flex; flex-direction: column; gap: 20px; }
-.dash__skeleton-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-.dash__skeleton-hero { min-height: 208px; border: 0; }
-.dash__skeleton-tile { display: flex; flex-direction: column; gap: 12px; }
+.dash__skeleton { display: flex; flex-direction: column; gap: clamp(20px, 2.6vw, 32px); }
+.dash__skeleton-hero { display: flex; flex-direction: column; gap: 16px; min-height: 220px; box-shadow: var(--st-shadow-2); }
+.dash__skeleton-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+.dash__skeleton-cell { display: flex; flex-direction: column; gap: 10px; }
+.dash__sk-line--hero { height: 54px; width: 62%; }
+.dash__sk-line--mid { height: 20px; width: 46%; }
 .dash__sk-line { display: block; height: 12px; }
 .dash__sk-line--sm { width: 40%; }
 .dash__sk-line--lg { width: 68%; height: 26px; }
@@ -155,17 +160,22 @@ onMounted(() => { refreshAll() })
 .dash__skeleton-chart { display: flex; align-items: flex-end; gap: 10px; height: 200px; }
 .dash__skeleton-chart span { flex: 1; border-radius: 6px 6px 0 0; }
 
-.dash__error { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.dash__error-icon { color: var(--st-brand-text); }
+.dash__error { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; box-shadow: var(--st-shadow-2); }
+.dash__error-icon { box-sizing: content-box; padding: 12px; border-radius: 14px; background: var(--st-bg-soft); border: 1px solid var(--st-line); color: var(--st-ink-2); }
 .dash__error .st-btn { margin-top: 6px; }
+@media (max-width: 719px) {
+  .dash__error .st-btn,
+  .dash__refresh,
+  .dash__head .st-btn { min-height: 44px; }
+}
 
-.dash__bottom { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+.dash__bottom { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
 
 @media (min-width: 720px) {
-  .dash__skeleton-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dash__skeleton-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (min-width: 1024px) {
-  .dash__skeleton-grid { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
-  .dash__bottom { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 20px; }
+  .dash__skeleton-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .dash__bottom { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; }
 }
 </style>

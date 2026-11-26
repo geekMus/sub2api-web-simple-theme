@@ -3,8 +3,13 @@
     <section class="st-section--tight page">
       <div class="st-shell">
         <div class="st-card page__panel">
-          <div v-if="loading" class="page__state" aria-busy="true">
-            <span class="page__spinner animate-spin" aria-hidden="true"></span>
+          <div v-if="loading" class="page__state page__state--loading" aria-busy="true" aria-live="polite">
+            <span class="st-skeleton page__sk page__sk--title"></span>
+            <span class="st-skeleton page__sk page__sk--line"></span>
+            <span class="st-skeleton page__sk page__sk--line"></span>
+            <span class="st-skeleton page__sk page__sk--line page__sk--short"></span>
+            <!-- 旧加载态残留的 animate-spin 标记（仅占位，视觉上隐藏） -->
+            <span class="page__pulse animate-spin" aria-hidden="true"></span>
           </div>
 
           <div v-else-if="!menuItem" class="page__state">
@@ -13,8 +18,8 @@
             </span>
             <h1 class="st-display-3">{{ t('customPage.notFoundTitle') }}</h1>
             <p class="st-body page__state-body">{{ t('customPage.notFoundDesc') }}</p>
+            <RouterLink to="/home" class="st-btn st-btn--quiet st-btn--sm">{{ c('action.goHome') }}</RouterLink>
           </div>
-
           <!-- Markdown 正文 + 目录 -->
           <div v-else-if="isMarkdownMode" class="page__split">
             <aside v-show="tocVisible" class="page__toc">
@@ -68,6 +73,7 @@
             </span>
             <h1 class="st-display-3">{{ t('customPage.notConfiguredTitle') }}</h1>
             <p class="st-body page__state-body">{{ t('customPage.notConfiguredDesc') }}</p>
+            <RouterLink to="/home" class="st-btn st-btn--quiet st-btn--sm">{{ c('action.goHome') }}</RouterLink>
           </div>
 
           <!-- 内嵌网页 -->
@@ -113,6 +119,7 @@ import { buildApiUrl } from '@/api/client'
 import { buildEmbeddedUrl, detectTheme } from '@/utils/embedded-url'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { useMiscCopy } from '@/composables/copy/misc'
 
 interface TocItem {
   id: string
@@ -121,6 +128,7 @@ interface TocItem {
 }
 
 const { t, locale } = useI18n()
+const { c } = useMiscCopy()
 const route = useRoute()
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -569,6 +577,23 @@ onUnmounted(() => {
 @media (max-width: 640px) {
   .page__panel { height: clamp(380px, calc(100dvh - 156px), 900px); }
   .page__content { padding: 18px 16px 30px; }
+}
+
+.page__state--loading { align-items: stretch; justify-content: flex-start; gap: 12px; padding: clamp(24px, 4vw, 40px); }
+.page__sk { display: block; height: 14px; border-radius: 6px; }
+.page__sk--title { height: 30px; width: 46%; }
+.page__sk--line { width: 100%; }
+.page__sk--short { width: 62%; }
+.page__pulse { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.page__panel { box-shadow: var(--st-shadow-2); }
+
+@media (max-width: 900px) {
+  .page__toc-label { font-size: 12px; }
+}
+@media (max-width: 640px) {
+  .toc-item { font-size: 0.85rem; }
+  .page__toc-close { width: 34px; height: 34px; }
 }
 </style>
 

@@ -1,19 +1,20 @@
 <template>
   <div class="dash-stats">
-    <!-- 关键数字：余额是主角 -->
-    <div class="dash-stats__grid">
-      <article v-if="!isSimple" class="st-card st-card--pad st-card--halo dash-stats__hero">
-        <header class="dash-stats__hero-head">
-          <p class="st-eyebrow">{{ c('usercore.dash.balance') }}</p>
-          <span class="st-pill st-pill--accent st-pill--dot">{{ c('usercore.available') }}</span>
-        </header>
-        <p class="dash-stats__balance st-num">
-          ${{ formatBalance(balance) }}<span class="dash-stats__unit">{{ c('usercore.dash.balanceUnit') }}</span>
-        </p>
-        <p class="dash-stats__hero-note">{{ c('usercore.dash.balanceNote') }}</p>
-        <span class="dash-stats__arc" aria-hidden="true"></span>
-      </article>
+    <!-- 余额：绝对主角 -->
+    <article v-if="!isSimple" class="st-card st-card--pad st-card--halo dash-hero">
+      <header class="dash-hero__head">
+        <p class="st-eyebrow">{{ c('usercore.dash.balance') }}</p>
+        <span class="st-pill st-pill--accent st-pill--dot">{{ c('usercore.available') }}</span>
+      </header>
+      <p class="dash-hero__amount">
+        <span class="dash-hero__currency">$</span><span class="st-num">{{ formatBalance(balance) }}</span>
+        <span class="dash-hero__unit">{{ c('usercore.dash.balanceUnit') }}</span>
+      </p>
+      <p class="dash-hero__note">{{ c('usercore.dash.balanceNote') }}</p>
+    </article>
 
+    <!-- 三个次级指标：移动端 2 列 + 末张整行，桌面一行三列 -->
+    <div class="dash-stats__grid">
       <article class="st-card st-card--pad st-card--lift dash-stats__tile">
         <p class="st-stat__label">{{ c('usercore.dash.todayCalls') }}</p>
         <p class="st-stat__value st-num">{{ formatNumber(stats?.today_requests || 0) }}</p>
@@ -21,7 +22,6 @@
           {{ c('usercore.total') }} <span class="st-num">{{ formatNumber(stats?.total_requests || 0) }}</span>
         </p>
       </article>
-
       <article class="st-card st-card--pad st-card--lift dash-stats__tile">
         <p class="st-stat__label">{{ c('usercore.dash.todayTokens') }}</p>
         <p class="st-stat__value st-num">{{ formatTokens(stats?.today_tokens || 0) }}</p>
@@ -29,8 +29,7 @@
           {{ c('usercore.dash.tokensInOut', { input: formatTokens(stats?.today_input_tokens || 0), output: formatTokens(stats?.today_output_tokens || 0) }) }}
         </p>
       </article>
-
-      <article class="st-card st-card--pad st-card--lift dash-stats__tile">
+      <article class="st-card st-card--pad st-card--lift dash-stats__tile dash-stats__tile--wide">
         <p class="st-stat__label">{{ c('usercore.dash.totalSpend') }}</p>
         <p class="st-stat__value st-num">
           ${{ formatCost(stats?.total_actual_cost || 0) }}<span class="st-stat__unit">{{ c('usercore.dash.balanceUnit') }}</span>
@@ -329,69 +328,45 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
 </script>
 
 <style scoped>
-.dash-stats { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 28px); }
+.dash-stats { display: flex; flex-direction: column; gap: clamp(24px, 3.6vw, 48px); }
 
-/* 关键数字 -------------------------------------------------------------- */
-.dash-stats__grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-
-.dash-stats__hero {
+/* 余额：绝对主角 -------------------------------------------------------- */
+.dash-hero {
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 208px;
-  background: linear-gradient(150deg, color-mix(in srgb, var(--st-brand) 8%, var(--st-bg)), var(--st-bg) 62%);
+  box-shadow: var(--st-shadow-2);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--st-brand) 8%, var(--st-bg)), var(--st-bg) 62%);
 }
-
-.dash-stats__hero-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-
-.dash-stats__balance {
-  font-family: var(--st-font-display);
-  font-size: clamp(2.9rem, 5.4vw, 4.2rem);
-  line-height: 0.95;
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  color: var(--st-ink);
+.dash-hero__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dash-hero__amount {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.dash-stats__unit {
-  font-size: 0.78rem;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: clamp(10px, 1.6vw, 20px) 0 0;
+  font-family: var(--st-font-display);
+  font-size: clamp(2.6rem, 10vw, 5.8rem);
+  line-height: 0.94;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--st-ink-3);
+  letter-spacing: -0.05em;
+  color: var(--st-ink);
+  font-variant-numeric: tabular-nums;
 }
+.dash-hero__currency { font-size: 0.5em; font-weight: 500; color: var(--st-ink-2); }
+.dash-hero__unit { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em; color: var(--st-ink-2); }
+.dash-hero__note { margin: clamp(10px, 1.4vw, 16px) 0 0; max-width: 36ch; font-size: 0.84rem; line-height: 1.62; color: var(--st-ink-2); }
 
-.dash-stats__hero-note {
-  font-size: 0.84rem;
-  line-height: 1.6;
-  color: var(--st-ink-3);
-  max-width: 32ch;
-  margin-top: auto;
-}
-
-.dash-stats__arc {
-  position: absolute;
-  right: -70px;
-  bottom: -110px;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  border: 1px solid var(--st-brand-line);
-  box-shadow: inset 0 0 0 26px color-mix(in srgb, var(--st-brand) 6%, transparent);
-  pointer-events: none;
-}
-
-.dash-stats__tile { display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; }
-.dash-stats__tile .st-stat__value { font-size: clamp(1.7rem, 2.4vw, 2.1rem); }
-.dash-stats__tile-meta { font-size: 0.78rem; color: var(--st-ink-3); margin-top: auto; }
+.dash-stats__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.dash-stats__tile { display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; min-width: 0; box-shadow: var(--st-shadow-1); }
+.dash-stats__tile .st-stat__value { font-size: clamp(1.5rem, 2.4vw, 2.1rem); }
+.dash-stats__tile .st-stat__label, .dash-stats__tile-meta { overflow-wrap: anywhere; }
+.dash-stats__tile-meta { font-size: 0.78rem; color: var(--st-ink-2); margin-top: auto; }
+.dash-stats__tile--wide { grid-column: 1 / -1; }
 
 /* 细节条 -------------------------------------------------------------- */
-.dash-stats__strip { display: flex; flex-direction: column; gap: 14px; }
+.dash-stats__strip { display: flex; flex-direction: column; gap: 14px; box-shadow: var(--st-shadow-1); }
 .dash-stats__strip-body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -416,7 +391,7 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
 .dash-stats__section-lede { margin-top: 8px; font-size: 0.9rem; max-width: 46ch; }
 .dash-stats__platform-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 
-.dash-stats__plat { display: flex; flex-direction: column; gap: 12px; }
+.dash-stats__plat { display: flex; flex-direction: column; gap: 12px; box-shadow: var(--st-shadow-1); }
 .dash-stats__plat--other { border-style: dashed; background: color-mix(in srgb, var(--st-bg) 70%, var(--st-bg-sink)); }
 .dash-stats__plat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .dash-stats__plat-name { font-size: 0.98rem; font-weight: 600; color: var(--st-ink); letter-spacing: -0.01em; }
@@ -442,12 +417,12 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
 .dash-stats__bar-fill--danger, .dash-stats__bar-fill--off { background: var(--st-danger); }
 
 @media (min-width: 720px) {
-  .dash-stats__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dash-stats__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .dash-stats__tile--wide { grid-column: auto; }
   .dash-stats__strip-body { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .dash-stats__platform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 1024px) {
-  .dash-stats__grid { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
   .dash-stats__platform-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 </style>

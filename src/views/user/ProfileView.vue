@@ -155,4 +155,25 @@ onMounted(async () => {
 @media (min-width: 900px) {
   .profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---- 第二轮：区块节奏与卡片浮起 ---- */
+.profile-sections { gap: clamp(28px, 4vw, 56px); }
+.profile-contact { box-shadow: var(--st-shadow-1); }
+.profile-section { gap: clamp(14px, 1.8vw, 20px); }
+.profile-grid { gap: clamp(16px, 2vw, 22px); }
+:deep(.st-card) { box-shadow: var(--st-shadow-2); }
+:deep(.profile-hero) { box-shadow: var(--st-shadow-2); }
+@media (max-width: 719px) {
+  :deep(.st-btn) { min-height: 44px; }
+  :deep(.profile-switch) { min-height: 44px; }
+}
+
+/* 禁用态主按钮：保持品牌色 + 半透明，与其他主按钮一致 */
+:deep(.st-btn--primary[disabled]),
+:deep(.st-btn--primary[aria-disabled="true"]) {
+  background: var(--st-brand);
+  border-color: var(--st-brand);
+  color: var(--st-brand-ink);
+  opacity: 0.4;
+}
 </style>

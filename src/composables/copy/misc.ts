@@ -44,6 +44,14 @@ const zh: Dict = {
   'plaza.subscription': '订阅',
   'plaza.groupCount': '个分组',
   'plaza.modelCount': '个模型',
+  'plaza.filterTitle': '筛选条件',
+  'plaza.statGroups': '分组',
+  'plaza.statModels': '模型',
+  'action.retry': '重新加载',
+  'action.clearFilters': '清除筛选',
+  'action.clearSearch': '清除搜索',
+  'action.goHome': '回到首页',
+  'nf.path': '当前地址',
 
   // ── 404 ─────────────────────────────────────────
   'nf.eyebrow': '404',
@@ -108,6 +116,9 @@ const zh: Dict = {
   'status.viewDetail': '看明细',
   'status.pause': '暂停',
   'status.resume': '继续',
+  'status.statChannels': '渠道',
+  'status.statOk': '正常',
+  'status.statLatency': '平均延迟',
 
   // ── 可用渠道 ─────────────────────────────────────
   'ch.eyebrow': '可用渠道',
@@ -116,6 +127,11 @@ const zh: Dict = {
   'ch.search': '搜渠道、平台或模型',
   'ch.empty': '没有匹配的渠道。',
   'ch.refresh': '刷新',
+  'ch.loadFailed': '渠道信息没加载出来',
+  'ch.statChannels': '渠道',
+  'ch.statPlatforms': '平台',
+  'ch.statModels': '模型',
+  'ch.clearSearch': '清除搜索',
 
   // ── 自定义页面 ───────────────────────────────────
   'custom.eyebrow': '自定义页面',
@@ -150,6 +166,13 @@ const zh: Dict = {
   'guide.step3Body': '任务进入队列，页面会自动刷新进度；失败的行可以单独重试。',
   'guide.step4Title': '整批下载',
   'guide.step4Body': '勾选已完成的任务，一次打包下载，不用逐张点。',
+
+  // ── MCP / 邀请返利（杂志式改版）──────────────
+  'mcp.ledeShort': '编辑器直连模型，一把钥匙。',
+  'aff.ledeShort': '朋友消费，你拿返利。',
+  'aff.errorTitle': '返利数据没加载出来',
+  'aff.retry': '重新加载',
+  'aff.emptyCta': '把链接发给朋友',
 }
 
 const en: Dict = {
@@ -186,6 +209,14 @@ const en: Dict = {
   'plaza.subscription': 'Subscription',
   'plaza.groupCount': 'groups',
   'plaza.modelCount': 'models',
+  'plaza.filterTitle': 'Filters',
+  'plaza.statGroups': 'Groups',
+  'plaza.statModels': 'Models',
+  'action.retry': 'Reload',
+  'action.clearFilters': 'Clear filters',
+  'action.clearSearch': 'Clear search',
+  'action.goHome': 'Go home',
+  'nf.path': 'Current URL',
 
   'nf.eyebrow': '404',
   'nf.title': 'This path went missing',
@@ -245,6 +276,9 @@ const en: Dict = {
   'status.viewDetail': 'Details',
   'status.pause': 'Pause',
   'status.resume': 'Resume',
+  'status.statChannels': 'Channels',
+  'status.statOk': 'Operational',
+  'status.statLatency': 'Avg latency',
 
   'ch.eyebrow': 'Available channels',
   'ch.title': 'Routes you can take',
@@ -252,6 +286,11 @@ const en: Dict = {
   'ch.search': 'Search channel, platform or model',
   'ch.empty': 'No matching channels.',
   'ch.refresh': 'Refresh',
+  'ch.loadFailed': 'Channels did not load',
+  'ch.statChannels': 'Channels',
+  'ch.statPlatforms': 'Platforms',
+  'ch.statModels': 'Models',
+  'ch.clearSearch': 'Clear search',
 
   'custom.eyebrow': 'Custom page',
   'custom.toc': 'Contents',
@@ -283,6 +322,12 @@ const en: Dict = {
   'guide.step3Body': 'The job joins a queue and the page refreshes itself. Retry only the rows that failed.',
   'guide.step4Title': 'Download the batch',
   'guide.step4Body': 'Select finished jobs and download them as one archive.',
+
+  'mcp.ledeShort': 'Point your editor at the models.',
+  'aff.ledeShort': 'Friends spend, you earn a cut.',
+  'aff.errorTitle': 'Referral data did not load',
+  'aff.retry': 'Try again',
+  'aff.emptyCta': 'Share the link',
 }
 
 export function useMiscCopy() {

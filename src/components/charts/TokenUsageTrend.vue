@@ -3,15 +3,15 @@
     <h3 class="chart-box__title chart-box__title--mb">
       {{ t('admin.dashboard.tokenUsageTrend') }}
     </h3>
-    <div v-if="loading" class="chart-state">
-      <LoadingSpinner />
+    <div v-if="loading" class="chart-skeleton">
+      <span v-for="i in 4" :key="i" class="st-skeleton chart-skeleton__row"></span>
     </div>
     <div v-else-if="trendData.length > 0 && chartData" class="chart-line">
       <Line :data="chartData" :options="lineOptions" />
     </div>
     <div
       v-else
-      class="flex h-48 items-center justify-center text-sm chart-muted"
+      class="chart-empty"
     >
       {{ t('admin.dashboard.noDataAvailable') }}
     </div>
@@ -33,7 +33,6 @@ import {
   Filler
 } from 'chart.js'
 import { Line } from 'vue-chartjs'
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import type { TrendDataPoint } from '@/types'
 
 ChartJS.register(
@@ -319,4 +318,22 @@ const formatCost = (value: number): string => {
   .chart-tab { height: 24px; padding-inline: 8px; font-size: 0.7rem; }
   .chart-table { font-size: 0.7rem; }
 }
+@media (max-width: 720px) {
+  .chart-table thead { display: none; }
+  .chart-table, .chart-table tbody, .chart-table tr, .chart-table td { display: block; }
+  .chart-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; padding: 11px 0; border-top: 1px solid var(--st-line); }
+  .chart-table td { padding: 0; text-align: left; white-space: normal; }
+  .chart-table td:first-child { grid-column: 1 / -1; margin-bottom: 2px; font-weight: 600; color: var(--st-ink); }
+  .chart-table td::before { content: attr(data-label); margin-right: 4px; font-size: 0.75rem; color: var(--st-ink-3); }
+  .chart-table td:first-child::before { content: none; }
+  .chart-tab { height: 40px; }
+}
+.chart-skeleton { display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 190px; padding: 8px 0; }
+.chart-skeleton__row { display: block; height: 14px; border-radius: 999px; }
+.chart-skeleton__row:nth-child(1) { width: 62%; }
+.chart-skeleton__row:nth-child(2) { width: 88%; }
+.chart-skeleton__row:nth-child(3) { width: 74%; }
+.chart-skeleton__row:nth-child(4) { width: 52%; }
+.chart-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 190px; font-size: 0.82rem; color: var(--st-ink-3); }
+.chart-empty::before { content: ""; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--st-line); background: var(--st-bg-soft); }
 </style>

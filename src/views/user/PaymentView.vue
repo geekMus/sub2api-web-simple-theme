@@ -5,12 +5,24 @@
         <header class="pay__hero">
           <p class="st-eyebrow st-reveal">{{ c('pay.eyebrow') }}</p>
           <h1 class="st-display-2 pay__title st-reveal" style="--i: 1">{{ pageTitle }}</h1>
-          <p class="st-lede pay__lede st-reveal" style="--i: 2">{{ c('pay.lede') }}</p>
+          <p class="st-lede pay__lede st-reveal" style="--i: 2">{{ c('pay.ledeShort') }}</p>
         </header>
 
         <div v-if="loading" class="pay__loading" aria-busy="true">
-          <div class="st-skeleton pay__sk pay__sk--sm"></div>
-          <div class="st-skeleton pay__sk pay__sk--lg"></div>
+          <div class="pay__grid">
+            <div class="pay__col">
+              <div class="st-card st-card--pad pay__card">
+                <div class="st-skeleton pay__sk pay__sk--sm"></div>
+                <div class="st-skeleton pay__sk pay__sk--lg"></div>
+              </div>
+            </div>
+            <div class="pay__col">
+              <div class="st-card st-card--pad pay__card">
+                <div class="st-skeleton pay__sk pay__sk--sm"></div>
+                <div class="st-skeleton pay__sk pay__sk--lg"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <template v-else>
@@ -41,7 +53,11 @@
 
           <template v-else>
             <div v-if="tabs.length === 0" class="st-card st-card--pad pay__empty">
+              <div class="pay__empty-icon">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 8v5m0 3.5h.01" /></svg>
+              </div>
               <p class="st-body">{{ t('payment.billingUnavailable') }}</p>
+              <button class="st-btn st-btn--quiet pay__empty-btn" @click="router.push('/orders')">{{ c('result.orders') }}</button>
             </div>
 
             <template v-else-if="activeTab === 'recharge'">
@@ -56,7 +72,11 @@
                   </div>
 
                   <div v-if="enabledMethods.length === 0" class="st-card st-card--pad pay__empty">
+                    <div class="pay__empty-icon">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2" /><path stroke-linecap="round" d="M3 10h18" /></svg>
+                    </div>
                     <p class="st-body">{{ t('payment.notAvailable') }}</p>
+                    <button class="st-btn st-btn--quiet pay__empty-btn" @click="reloadPage">{{ c('pay.reload') }}</button>
                   </div>
                   <template v-else>
                     <div class="st-card st-card--pad pay__card">
@@ -94,9 +114,9 @@
                           <span class="st-row__meta">{{ t('payment.fee') }} ({{ feeRate }}%)</span>
                           <span class="pay__row-value">{{ formatSelectedPaymentAmount(feeAmount) }}</span>
                         </div>
-                        <div v-if="showActualPay" class="st-row pay__row pay__row--total">
-                          <span class="pay__row-label">{{ t('payment.actualPay') }}</span>
-                          <span class="pay__row-value pay__row-value--strong">{{ formatSelectedPaymentAmount(totalAmount) }}</span>
+                        <div v-if="showActualPay" class="pay__total">
+                          <span class="st-stat__label">{{ t('payment.actualPay') }}</span>
+                          <span class="st-stat__value st-num">{{ formatSelectedPaymentAmount(totalAmount) }}<span class="pay__total-unit">{{ selectedCurrency }}</span></span>
                         </div>
                         <div v-if="showBonusRow" class="st-row pay__row" data-testid="recharge-bonus-row">
                           <span class="st-row__meta">{{ t('payment.rechargeBonus.amountLabelWithPercent', { percent: formatRechargeBonusNumber(bonusQuote.percent) }) }}</span>
@@ -128,6 +148,16 @@
                   </div>
 
                   <div class="pay__submit-area">
+                  <div v-if="errorMessage" class="pay__error" role="alert">
+                    <div class="pay__error-icon">
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 8v5m0 3.5h.01" /></svg>
+                    </div>
+                    <div class="pay__error-copy">
+                      <p class="pay__error-title">{{ errorMessage }}</p>
+                      <p v-if="errorHintMessage" class="pay__error-hint">{{ errorHintMessage }}</p>
+                    </div>
+                    <button class="st-btn st-btn--quiet st-btn--sm pay__error-retry" @click="retryPayment">{{ c('pay.retry') }}</button>
+                  </div>
                     <button class="st-btn st-btn--primary st-btn--lg pay__submit" :disabled="!canSubmit || submitting" @click="handleSubmitRecharge">
                       <span v-if="submitting" class="pay__spin-row">
                         <span class="pay__spin"></span>
@@ -196,9 +226,9 @@
                         <span class="st-row__meta">{{ t('payment.fee') }} ({{ feeRate }}%)</span>
                         <span class="pay__row-value">{{ formatSelectedPaymentAmount(subFeeAmount) }}</span>
                       </div>
-                      <div class="st-row pay__row pay__row--total">
-                        <span class="pay__row-label">{{ t('payment.actualPay') }}</span>
-                        <span class="pay__row-value pay__row-value--strong">{{ formatSelectedPaymentAmount(subTotalAmount) }}</span>
+                      <div class="pay__total">
+                        <span class="st-stat__label">{{ t('payment.actualPay') }}</span>
+                        <span class="st-stat__value st-num">{{ formatSelectedPaymentAmount(subTotalAmount) }}<span class="pay__total-unit">{{ selectedCurrency }}</span></span>
                       </div>
                     </div>
                   </div>
@@ -217,6 +247,16 @@
                     />
                   </div>
                   <div class="pay__submit-area">
+                  <div v-if="errorMessage" class="pay__error" role="alert">
+                    <div class="pay__error-icon">
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 8v5m0 3.5h.01" /></svg>
+                    </div>
+                    <div class="pay__error-copy">
+                      <p class="pay__error-title">{{ errorMessage }}</p>
+                      <p v-if="errorHintMessage" class="pay__error-hint">{{ errorHintMessage }}</p>
+                    </div>
+                    <button class="st-btn st-btn--quiet st-btn--sm pay__error-retry" @click="retryPayment">{{ c('pay.retry') }}</button>
+                  </div>
                     <button class="st-btn st-btn--primary st-btn--lg pay__submit" :disabled="!canSubmitSubscription || submitting" @click="confirmSubscribe">
                       <span v-if="submitting" class="pay__spin-row">
                         <span class="pay__spin"></span>
@@ -231,7 +271,11 @@
 
               <template v-else>
                 <div v-if="checkout.plans.length === 0" class="st-card st-card--pad pay__empty">
+                  <div class="pay__empty-icon">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M6 7v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7" stroke-linecap="round" /><path d="M9 11h6" stroke-linecap="round" /></svg>
+                  </div>
                   <p class="st-body">{{ t('payment.noPlans') }}</p>
+                  <button v-if="tabs.length > 1" class="st-btn st-btn--quiet pay__empty-btn" @click="activeTab = 'recharge'">{{ t('payment.tabTopUp') }}</button>
                 </div>
                 <div v-else :class="planGridClass" class="pay__plans">
                   <SubscriptionPlanCard v-for="plan in checkout.plans" :key="plan.id" :plan="plan" :active-subscriptions="activeSubscriptions" @select="selectPlan" />
@@ -847,6 +891,18 @@ async function confirmSubscribe() {
   await createOrder(selectedPlan.value.price, 'subscription', selectedPlan.value.id)
 }
 
+function reloadPage() {
+  if (typeof window !== 'undefined') window.location.reload()
+}
+
+function retryPayment() {
+  if (activeTab.value === 'recharge') {
+    void handleSubmitRecharge()
+    return
+  }
+  if (selectedPlan.value) void confirmSubscribe()
+}
+
 async function createOrder(orderAmount: number, orderType: OrderType, planId?: number, options: CreateOrderOptions = {}) {
   submitting.value = true
   errorMessage.value = ''
@@ -1240,6 +1296,75 @@ onMounted(async () => {
 })
 </script>
 <style scoped>
+.pay__hero { margin-bottom: clamp(28px, 4vw, 48px); }
+.pay__grid { gap: clamp(12px, 1.6vw, 18px); }
+.pay__col { gap: clamp(12px, 1.6vw, 18px); }
+.pay .st-card { box-shadow: var(--st-shadow-2); }
+.pay__badge { font-size: 0.75rem; }
+.pay .st-pill { font-size: 0.75rem; }
+.pay .st-btn { min-height: 44px; }
+.pay__modal-close { width: 44px; height: 44px; }
+
+.pay__total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--st-line);
+}
+.pay__total .st-stat__value { font-size: clamp(1.7rem, 3.4vw, 2.1rem); }
+.pay__total-unit {
+  margin-left: 6px;
+  font-family: var(--st-font-body);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--st-ink-faint);
+}
+
+.pay__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-block: clamp(32px, 6vw, 56px);
+  text-align: center;
+}
+.pay__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--st-bg-soft);
+  color: var(--st-ink-2);
+}
+.pay__empty-btn { min-width: 160px; min-height: 44px; margin-top: 4px; }
+
+.pay__error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--st-r-md);
+  border: 1px solid var(--st-danger-soft);
+  background: var(--st-danger-soft);
+}
+.pay__error-icon { flex-shrink: 0; padding-top: 2px; color: var(--st-danger); }
+.pay__error-copy { display: flex; flex: 1 1 200px; flex-direction: column; gap: 2px; min-width: 0; }
+.pay__error-title { font-size: 0.85rem; line-height: 1.6; color: var(--st-ink); overflow-wrap: anywhere; }
+.pay__error-hint { font-size: 0.78rem; line-height: 1.5; color: var(--st-ink-2); }
+.pay__error-retry { flex-shrink: 0; min-height: 44px; }
+
+@media (max-width: 520px) {
+  .pay__error { flex-direction: column; align-items: stretch; }
+  .pay__error-retry { width: 100%; }
+  .pay__tabs .st-seg__item { min-height: 44px; }
+  .pay__empty-btn { width: 100%; }
+}
+</style>
+
+<style scoped>
 .pay { padding-bottom: clamp(56px, 8vw, 96px); }
 .pay__wrap { max-width: 980px; }
 .pay__hero { max-width: 60ch; margin-bottom: clamp(22px, 3vw, 36px); }
@@ -1249,7 +1374,7 @@ onMounted(async () => {
 .pay__loading { display: flex; flex-direction: column; gap: 12px; }
 .pay__sk { border-radius: var(--st-r-md); }
 .pay__sk--sm { height: 44px; max-width: 320px; }
-.pay__sk--lg { height: 280px; }
+.pay__sk--lg { height: 280px; max-width: none; }
 
 .pay__tabs { display: flex; width: 100%; margin-bottom: 16px; }
 .pay__tab { flex: 1 1 0; min-width: 0; }
@@ -1304,7 +1429,7 @@ onMounted(async () => {
   padding: 1px 8px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   line-height: 1.7;
 }
 .pay__plan-name { min-width: 0; overflow-wrap: anywhere; }

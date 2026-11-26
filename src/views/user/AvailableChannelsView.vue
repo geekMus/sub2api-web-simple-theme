@@ -3,10 +3,25 @@
     <section class="st-section--tight ch">
       <div class="st-shell">
         <header class="ch__hero">
-          <div>
+          <div class="ch__intro">
             <p class="st-eyebrow st-reveal">{{ c('ch.eyebrow') }}</p>
             <h1 class="st-display-2 ch__title st-reveal" style="--i: 1">{{ c('ch.title') }}</h1>
             <p class="st-lede ch__lede st-reveal" style="--i: 2">{{ c('ch.lede') }}</p>
+
+            <dl class="ch__stats st-reveal" style="--i: 3">
+              <div class="ch__stat st-stat">
+                <dt class="st-stat__label">{{ c('ch.statChannels') }}</dt>
+                <dd class="st-stat__value st-num">{{ channels.length }}</dd>
+              </div>
+              <div class="ch__stat st-stat">
+                <dt class="st-stat__label">{{ c('ch.statPlatforms') }}</dt>
+                <dd class="st-stat__value st-num">{{ platformTotal }}</dd>
+              </div>
+              <div class="ch__stat st-stat">
+                <dt class="st-stat__label">{{ c('ch.statModels') }}</dt>
+                <dd class="st-stat__value st-num">{{ modelTotal }}</dd>
+              </div>
+            </dl>
           </div>
 
           <div class="ch__tools st-reveal" style="--i: 3">
@@ -19,7 +34,7 @@
             </label>
             <button
               type="button"
-              class="st-btn st-btn--quiet st-btn--sm"
+              class="st-btn st-btn--quiet st-btn--sm ch__refresh"
               :disabled="loading"
               :title="c('ch.refresh')"
               @click="loadChannels"
@@ -32,9 +47,29 @@
           </div>
         </header>
 
+        <!-- 错误 -->
+        <div v-if="loadError" class="ch__state st-card st-card--pad" role="alert">
+          <span class="ch__state-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M12 8v5M12 16.5v.5" stroke-linecap="round" />
+              <circle cx="12" cy="12" r="9" />
+            </svg>
+          </span>
+          <p class="ch__state-title">{{ c('ch.loadFailed') }}</p>
+          <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="loadChannels">
+            {{ c('action.retry') }}
+          </button>
+        </div>
+
         <!-- 加载骨架 -->
-        <div v-if="loading && channels.length === 0" class="ch__list" aria-busy="true">
-          <div v-for="i in 3" :key="i" class="st-card st-skeleton ch__skeleton"></div>
+        <div v-else-if="loading && channels.length === 0" class="ch__list" aria-busy="true" aria-live="polite">
+          <div v-for="i in 3" :key="i" class="st-card ch__skeleton">
+            <span class="st-skeleton ch__sk-line ch__sk-line--title"></span>
+            <span class="st-skeleton ch__sk-line ch__sk-line--wide"></span>
+            <div class="ch__sk-pills">
+              <span v-for="j in 4" :key="j" class="st-skeleton ch__sk-pill"></span>
+            </div>
+          </div>
         </div>
 
         <!-- 列表 -->
@@ -42,7 +77,7 @@
           <article
             v-for="(channel, idx) in filteredChannels"
             :key="channel.name"
-            class="st-card st-card--lift ch__item st-reveal"
+            class="st-card ch__item st-reveal"
             :style="{ '--i': Math.min(idx + 1, 6) }"
           >
             <header class="ch__item-head">
@@ -87,13 +122,24 @@
         </div>
 
         <!-- 空状态 -->
-        <div v-else class="st-card ch__empty">
-          <span class="ch__empty-mark" aria-hidden="true">
+        <div v-else class="ch__state st-card st-card--pad">
+          <span class="ch__state-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
               <path d="M4 7h16M4 12h10M4 17h6" stroke-linecap="round" />
             </svg>
           </span>
-          <p>{{ searchQuery.trim() ? c('ch.empty') : t('availableChannels.empty') }}</p>
+          <p class="ch__state-title">{{ searchQuery.trim() ? c('ch.empty') : t('availableChannels.empty') }}</p>
+          <button
+            v-if="searchQuery.trim()"
+            type="button"
+            class="st-btn st-btn--quiet st-btn--sm"
+            @click="searchQuery = ''"
+          >
+            {{ c('ch.clearSearch') }}
+          </button>
+          <button v-else type="button" class="st-btn st-btn--primary st-btn--sm" @click="loadChannels">
+            {{ c('ch.refresh') }}
+          </button>
         </div>
       </div>
     </section>
@@ -120,6 +166,7 @@ const appStore = useAppStore()
 const channels = ref<UserAvailableChannel[]>([])
 const userGroupRates = ref<Record<number, number>>({})
 const loading = ref(false)
+const loadError = ref(false)
 const searchQuery = ref('')
 
 /**
@@ -128,6 +175,18 @@ const searchQuery = ref('')
  * - 否则按 platform/group/model 维度在 sections 里过滤，保留有匹配的 section
  * - 所有 sections 都不匹配时，渠道本身被过滤掉
  */
+/** 平台总数与模型总数：页头三个大数字的来源。 */
+const platformTotal = computed(() => {
+  const set = new Set<string>()
+  for (const ch of channels.value) for (const p of ch.platforms) set.add(p.platform)
+  return set.size
+})
+const modelTotal = computed(() => {
+  const set = new Set<string>()
+  for (const ch of channels.value) for (const p of ch.platforms) for (const m of p.supported_models) set.add(m.name)
+  return set.size
+})
+
 const filteredChannels = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return channels.value
@@ -160,6 +219,7 @@ function formatRate(rate: number): string {
 
 async function loadChannels() {
   loading.value = true
+  loadError.value = false
   try {
     // 渠道列表和用户专属倍率并发拉取。专属倍率失败不阻塞渠道展示——
     // 失败时只是无法渲染专属倍率角标，降级为仅显示默认倍率。
@@ -173,6 +233,7 @@ async function loadChannels() {
     channels.value = list
     userGroupRates.value = rates
   } catch (err: unknown) {
+    loadError.value = true
     appStore.showError(extractApiErrorMessage(err, t('common.error')))
   } finally {
     loading.value = false
@@ -190,39 +251,72 @@ onMounted(loadChannels)
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
+  gap: clamp(20px, 3vw, 36px);
   margin-bottom: clamp(24px, 3vw, 36px);
 }
-.ch__title { margin-top: 14px; }
+.ch__intro { flex: 1 1 480px; min-width: 0; max-width: 62ch; }
+.ch__title { margin-top: 12px; }
 .ch__lede { margin-top: 14px; max-width: 54ch; }
-.ch__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
+.ch__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(18px, 3.4vw, 44px);
+  margin: 24px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--st-line);
+}
+.ch__stat { min-width: 72px; }
+.ch__stat dt { margin: 0; }
+.ch__stat dd { margin: 0; }
+
+.ch__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .ch__search {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 38px;
-  width: min(300px, 60vw);
-  padding-inline: 12px;
+  height: 42px;
+  width: min(320px, 58vw);
+  padding-inline: 14px;
   border-radius: 999px;
-  border: 1px solid var(--st-line-strong);
-  background: var(--st-bg-elev);
-  color: var(--st-ink-faint);
-  transition: border-color var(--st-dur) var(--st-ease), box-shadow var(--st-dur) var(--st-ease);
+  border: 1px solid var(--st-line-2);
+  background: var(--st-bg);
+  color: var(--st-ink-3);
+  transition: border-color var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease);
 }
-.ch__search:focus-within { border-color: var(--st-accent); box-shadow: 0 0 0 4px var(--st-accent-soft); }
-.ch__search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--st-ink); font-size: 0.86rem; }
-.ch__search input::placeholder { color: var(--st-ink-faint); }
+.ch__search:focus-within { border-color: var(--st-brand); box-shadow: 0 0 0 4px var(--st-brand-soft); }
+.ch__search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--st-ink); font-size: 0.88rem; }
+.ch__search input::placeholder { color: var(--st-ink-3); }
 .ch__spin { animation: ch-spin 900ms linear infinite; }
 @keyframes ch-spin { to { transform: rotate(360deg); } }
 
-.ch__list { display: flex; flex-direction: column; gap: 12px; }
-.ch__skeleton { height: 168px; }
+.ch__list { display: flex; flex-direction: column; gap: 14px; }
 
-.ch__item { padding: clamp(18px, 2.2vw, 26px); display: flex; flex-direction: column; gap: 16px; }
+.ch__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(18px, 2.2vw, 26px);
+}
+.ch__sk-line { height: 12px; border-radius: 6px; display: block; }
+.ch__sk-line--title { width: 34%; height: 18px; }
+.ch__sk-line--wide { width: 72%; }
+.ch__sk-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.ch__sk-pill { height: 24px; width: 88px; border-radius: 999px; }
+
+.ch__item {
+  padding: clamp(18px, 2.2vw, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--st-shadow-2);
+  transition: border-color var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease);
+}
+.ch__item:hover { border-color: var(--st-line-2); box-shadow: var(--st-shadow-3); }
 .ch__item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .ch__item-title { min-width: 0; }
 .ch__name {
+  margin: 0;
   font-family: var(--st-font-display);
   font-size: 1.12rem;
   font-weight: 600;
@@ -230,19 +324,19 @@ onMounted(loadChannels)
   color: var(--st-ink);
   overflow-wrap: anywhere;
 }
-.ch__desc { margin-top: 5px; font-size: 0.84rem; line-height: 1.65; color: var(--st-ink-soft); max-width: 72ch; }
+.ch__desc { margin: 5px 0 0; font-size: 0.84rem; line-height: 1.65; color: var(--st-ink-2); max-width: 72ch; }
 .ch__badge { flex-shrink: 0; }
 
 .ch__sections { display: flex; flex-direction: column; gap: 14px; }
 .ch__section { display: flex; flex-direction: column; gap: 9px; padding-top: 14px; border-top: 1px solid var(--st-line); }
 .ch__section:first-child { padding-top: 0; border-top: 0; }
-.ch__section-head { display: flex; align-items: center; gap: 8px; color: var(--st-ink-soft); }
+.ch__section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--st-ink-2); }
 .ch__platform { font-size: 0.82rem; font-weight: 600; color: var(--st-ink); letter-spacing: -0.01em; }
-.ch__dot { width: 3px; height: 3px; border-radius: 50%; background: var(--st-line-strong); }
-.ch__meta { font-size: 0.74rem; color: var(--st-ink-faint); font-variant-numeric: tabular-nums; }
+.ch__dot { width: 3px; height: 3px; border-radius: 50%; background: var(--st-line-2); }
+.ch__meta { font-size: 0.74rem; color: var(--st-ink-3); font-variant-numeric: tabular-nums; }
 
 .ch__pills { display: flex; flex-wrap: wrap; gap: 6px; }
-.ch__rate { font-size: 11px; font-weight: 600; color: var(--st-accent); margin-left: 2px; }
+.ch__rate { font-size: 11px; font-weight: 600; color: var(--st-brand-text); margin-left: 2px; }
 .ch__pill--sub { border-style: dashed; }
 
 .ch__models { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -252,26 +346,48 @@ onMounted(loadChannels)
   padding: 3px 8px;
   border-radius: 7px;
   border: 1px solid var(--st-line);
-  background: var(--st-bg-sunk);
-  color: var(--st-ink-soft);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-2);
   overflow-wrap: anywhere;
 }
-.ch__empty-line { font-size: 0.76rem; color: var(--st-ink-faint); }
+.ch__empty-line { margin: 0; font-size: 0.76rem; color: var(--st-ink-3); }
 
-.ch__empty {
+.ch__state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding-block: clamp(40px, 7vw, 72px);
   text-align: center;
-  font-size: 0.9rem;
-  color: var(--st-ink-soft);
 }
-.ch__empty-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--st-line); background: var(--st-bg-sunk); color: var(--st-ink-faint); }
+.ch__state-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-3);
+}
+.ch__state-title { margin: 0; font-size: 0.92rem; line-height: 1.6; color: var(--st-ink-2); max-width: 42ch; }
 
 @media (max-width: 720px) {
+  .ch__intro { flex: 1 1 100%; }
   .ch__tools { width: 100%; }
-  .ch__search { flex: 1; width: auto; }
+  .ch__search { flex: 1; width: auto; height: 46px; }
+  .ch__refresh { min-height: 46px; }
+  .ch__stats { gap: 20px; }
+  .ch__stat { flex: 1 1 0; }
+  .ch__name { font-size: 1.04rem; }
+}
+
+@media (max-width: 560px) {
+  .ch__meta,
+  .ch__model,
+  .ch__empty-line,
+  .ch__desc { font-size: 0.8rem; }
+  .ch__rate { font-size: 12px; }
+  .ch__search input { font-size: 0.92rem; }
 }
 </style>
