@@ -35,6 +35,6 @@ jobs:
       - name: Unit tests
         run: pnpm test:run
 
-      # 只做「能不能构建出来」的校验；dist 产物由本地/发布流程生成，不走 CI
+      # 只做「能不能构建出来」的校验；dist 由本地/发布流程产出，不走 CI
       - name: Build check
         run: pnpm build

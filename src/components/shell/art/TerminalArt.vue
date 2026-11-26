@@ -64,11 +64,33 @@
 
 .term-tilt {
   perspective: 1700px;
-  perspective-origin: 62% 50%;
+  perspective-origin: 50% 50%;
 }
 
 .term {
-  /* 终端固定深色：在亮色页面里反而更聚焦，也是真实终端的样子 */
+  /* 跟随主题：亮色浅终端 / 暗色深终端 */
+  --t-bg: #fbfbfc;
+  --t-bar: #f1f1f3;
+  --t-line: #e3e3e6;
+  --t-fg: #24292f;
+  --t-dim: #8b8d93;
+  --t-green: #1a7f37;
+  --t-lime: #5c7a00;
+  --t-key: #4f3bff;
+  --t-num: #b45309;
+  border-radius: 12px;
+  border: 1px solid var(--t-line);
+  background: var(--t-bg);
+  box-shadow: var(--st-shadow-3);
+  overflow: hidden;
+  /* 朝左倾斜：左边大、右边小，正面朝向左侧文案 */
+  transform: rotateY(-18deg) rotateX(5deg);
+  transform-origin: 82% 50%;
+  transition: transform var(--st-t-slow) var(--st-ease);
+}
+.term-stage:hover .term { transform: rotateY(-12deg) rotateX(3deg); }
+
+.dark .term {
   --t-bg: #0c0e10;
   --t-bar: #17191c;
   --t-line: #24262a;
@@ -76,19 +98,9 @@
   --t-dim: #6b7178;
   --t-green: #7ee787;
   --t-lime: #c9f24a;
-  border-radius: 12px;
-  border: 1px solid #24262a;
-  background: var(--t-bg);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.06) inset,
-    0 40px 90px -40px rgba(0, 0, 0, 0.9),
-    0 8px 24px -12px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
-  transform: rotateY(15deg) rotateX(6deg) rotateZ(-1.2deg);
-  transform-origin: 18% 50%;
-  transition: transform var(--st-t-slow) var(--st-ease);
+  --t-key: #c9f24a;
+  --t-num: #f0b866;
 }
-.term-stage:hover .term { transform: rotateY(10deg) rotateX(4deg) rotateZ(-0.6deg); }
 
 .term__bar {
   display: flex;
@@ -123,10 +135,10 @@
 .term__line--ind { padding-left: 18px; }
 .term__prompt { color: var(--t-green); font-weight: 600; }
 .term__caret { color: var(--t-lime); font-weight: 700; }
-.term__cmd { color: #ffffff; font-weight: 600; }
+.term__cmd { color: var(--t-fg); font-weight: 600; }
 .term__str { color: var(--t-fg); }
-.term__key { color: var(--t-lime); }
-.term__num { color: #f0b866; }
+.term__key { color: var(--t-key); }
+.term__num { color: var(--t-num); }
 .term__flag { color: var(--t-dim); }
 .term__cont { color: var(--t-dim); margin-left: auto; }
 .term__gap { height: 8px; }
@@ -135,7 +147,7 @@
 .term__dim { color: var(--t-dim); }
 .term__json { white-space: pre; }
 .term__json--i { padding-left: 16px; }
-.term__prop { color: #9aa4ff; }
+.term__prop { color: var(--t-key); }
 .term__cursor {
   display: inline-block;
   width: 7px; height: 13px;
