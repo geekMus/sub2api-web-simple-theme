@@ -24,19 +24,19 @@
 </template>
 
 <style scoped>
-.mc { border: 1px solid var(--st-line); border-radius: 12px; background: var(--st-bg); overflow: hidden; box-shadow: var(--st-shadow-2); }
-.mc__tabs { display: flex; gap: 2px; padding: 6px 8px; border-bottom: 1px solid var(--st-line); background: var(--st-bg-soft); }
-.mc__tab { font-size: 10px; padding: 3px 9px; border-radius: 5px; color: var(--st-ink-3); }
-.mc__tab--on { background: var(--st-bg); color: var(--st-ink); font-weight: 500; box-shadow: var(--st-shadow-1); }
+.mc { border: 1px solid #24262a; border-radius: 12px; background: #0c0e10; overflow: hidden; box-shadow: var(--st-shadow-3); }
+.mc__tabs { display: flex; gap: 2px; padding: 6px 8px; border-bottom: 1px solid #24262a; background: #17191c; }
+.mc__tab { font-size: 10px; padding: 3px 9px; border-radius: 5px; color: #6b7178; }
+.mc__tab--on { background: #24262a; color: #ffffff; font-weight: 500; }
 .mc__pane { padding: 12px 14px; overflow-x: auto; }
 .mc__pane pre { margin: 0; }
-.mc__pane code { font-family: var(--st-font-mono); font-size: 10.5px; line-height: 1.85; color: var(--st-ink-2); white-space: pre; }
-.k { color: var(--st-brand); font-weight: 600; }
-.s { color: var(--st-ok); }
-.p { color: var(--st-ink); }
-.n { color: var(--st-warn); }
-.c { color: var(--st-ink-3); }
-.mc__out { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--st-line); background: var(--st-bg-soft); }
-.mc__ok { font-family: var(--st-font-mono); font-size: 10px; font-weight: 600; color: var(--st-ok); }
-.mc__meta { font-size: 10px; color: var(--st-ink-3); font-variant-numeric: tabular-nums; }
+.mc__pane code { font-family: var(--st-font-mono); font-size: 10.5px; line-height: 1.85; color: #c9ced4; white-space: pre; }
+.k { color: #c9f24a; font-weight: 600; }
+.s { color: #7ee787; }
+.p { color: #ffffff; }
+.n { color: #f0b866; }
+.c { color: #6b7178; }
+.mc__out { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 14px; border-top: 1px solid #24262a; background: #17191c; }
+.mc__ok { font-family: var(--st-font-mono); font-size: 10px; font-weight: 600; color: #7ee787; }
+.mc__meta { font-size: 10px; color: #6b7178; font-variant-numeric: tabular-nums; }
 </style>
