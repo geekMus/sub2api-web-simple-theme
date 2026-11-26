@@ -46,9 +46,27 @@ export default {
           800: '#1e293b',
           900: '#0f172a',
           950: '#020617'
+        },
+        // simple-theme 调色板（用户端）
+        ink: {
+          50: '#f7f7f6', 100: '#ebebe9', 200: '#d6d6d2', 300: '#b4b4ae',
+          400: '#8d8d86', 500: '#6f6f68', 600: '#57574f', 700: '#45453f',
+          800: '#2a2a26', 900: '#14151a', 950: '#08090b'
+        },
+        jade: {
+          50: '#eafff8', 100: '#cbffef', 200: '#93ffe0', 300: '#57f3cb',
+          400: '#2fe0b4', 500: '#0fb894', 600: '#069778', 700: '#077a63',
+          800: '#0a6150', 900: '#0b4f43', 950: '#04302a'
+        },
+        paper: {
+          DEFAULT: '#f6f4ef', soft: '#efece4', deep: '#e6e1d6'
         }
       },
       fontFamily: {
+        display: [
+          'Segoe UI Variable Display', 'Inter', 'SF Pro Display', 'system-ui',
+          'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', 'sans-serif'
+        ],
         sans: [
           'system-ui',
           '-apple-system',
