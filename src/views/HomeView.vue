@@ -31,10 +31,10 @@
       <div class="st-shell hero__inner">
         <div class="hero__grid">
           <div class="hero__copy">
-            <p class="hero__kicker st-reveal">{{ siteSubtitle }}</p>
-            <h1 class="hero__brand st-reveal" style="--i: 1">{{ siteName }}</h1>
-            <p class="hero__value st-reveal" style="--i: 2">{{ c('home.valueLine') }}</p>
-            <p class="hero__line st-reveal" style="--i: 3">{{ c('home.heroLine') }}</p>
+            <h1 class="hero__title st-reveal" style="--i: 1">
+              {{ c('home.heroTitle1') }}<br /><em>{{ c('home.heroTitle2') }}</em>
+            </h1>
+            <p class="hero__line st-reveal" style="--i: 2">{{ c('home.heroLine') }}</p>
             <div class="hero__cta st-reveal" style="--i: 4">
               <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">
                 {{ isAuthenticated ? c('home.ctaConsole') : c('home.ctaStart') }}
@@ -48,7 +48,7 @@
             </dl>
           </div>
 
-          <div class="hero__art st-reveal" style="--i: 1">
+          <div class="hero__art">
             <TerminalArt />
           </div>
         </div>
@@ -196,7 +196,6 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 const isAdmin = computed(() => authStore.isAdmin)
 const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'Sub2API')
 const siteLogo = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
-const siteSubtitle = computed(() => appStore.cachedPublicSettings?.site_subtitle || '')
 const compactHomeEnabled = computed(
   () => !hasHomeContent.value && appStore.cachedPublicSettings?.compact_home_enabled === true,
 )
@@ -287,7 +286,18 @@ function scrollDown() {
 
 /* 背景：冷光 + 网格 */
 .hero__bg { position: absolute; inset: -60px 0 0 0; pointer-events: none; z-index: 0; }
-.hero__glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.75; }
+.hero__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.75;
+  animation: hero-drift 22s var(--st-ease) infinite alternate;
+}
+@keyframes hero-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-3%, 4%, 0) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) { .hero__glow { animation: none; } }
 /* 顶部再多铺一点，避免导航栏背后出现断层 */
 .hero__bg::after {
   content: '';
@@ -310,20 +320,29 @@ function scrollDown() {
 }
 
 .hero__grid { position: relative; z-index: 1; flex: 1; display: grid; grid-template-columns: 1fr; gap: clamp(32px, 4vw, 52px); align-items: center; padding-block: clamp(20px, 3vw, 40px); }
-/* 品牌为主：站点名即视觉主体 */
-.hero__kicker { margin: 0 0 10px; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--st-ink-3); }
-.hero__brand {
+/* 主标题 */
+.hero__title {
   margin: 0;
   font-family: var(--st-font-display);
-  font-size: clamp(3.1rem, 8.4vw, 6.6rem);
+  font-size: clamp(2.9rem, 5.4vw, 4.6rem);
   font-weight: 600;
-  line-height: 0.92;
-  letter-spacing: -0.055em;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
   color: var(--st-ink);
-  word-break: break-word;
 }
-.hero__value { margin: 20px 0 0; font-family: var(--st-font-display); font-size: clamp(1.15rem, 1.9vw, 1.6rem); font-weight: 500; letter-spacing: -0.025em; color: var(--st-ink); }
-.hero__line { margin: 10px 0 0; font-size: clamp(0.95rem, 1.1vw, 1.04rem); color: var(--st-ink-2); }
+.hero__title em {
+  font-style: normal;
+  display: inline-block;
+  white-space: nowrap;
+  color: var(--st-brand-text);
+}
+.hero__line {
+  margin: 20px 0 0;
+  font-size: clamp(1rem, 1.15vw, 1.1rem);
+  line-height: 1.6;
+  color: var(--st-ink-2);
+  letter-spacing: -0.01em;
+}
 .hero__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 
 /* 首屏数据条：补足信息密度 */
@@ -332,7 +351,22 @@ function scrollDown() {
 .hero__stats dt { font-family: var(--st-font-display); font-size: 1.5rem; font-weight: 600; letter-spacing: -0.04em; color: var(--st-ink); line-height: 1; }
 .hero__stats dd { margin: 0; font-size: 0.8rem; color: var(--st-ink-3); }
 
-.hero__art { position: relative; min-width: 0; }
+.hero__art {
+  position: relative;
+  min-width: 0;
+  width: 106%;
+  margin-right: -6%;
+  animation: hero-float 9s var(--st-ease) infinite;
+  will-change: transform;
+}
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@media (max-width: 899px) {
+  .hero__art { width: 100%; margin-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .hero__art { animation: none; } }
 
 .hero__scroll {
   position: absolute; left: 50%; bottom: clamp(14px, 2vw, 24px);
@@ -483,7 +517,7 @@ function scrollDown() {
 }
 
 @media (min-width: 900px) {
-  .hero__grid { grid-template-columns: 0.82fr 1.18fr; }
+  .hero__grid { grid-template-columns: 0.72fr 1.28fr; gap: clamp(8px, 1.5vw, 24px); }
   .strip__grid { grid-template-columns: repeat(3, 1fr); gap: 0; }
   .strip__cell + .strip__cell { border-left: 1px solid var(--st-line); padding-left: clamp(20px, 2.4vw, 36px); }
   .strip__cell:not(:last-child) { padding-right: clamp(20px, 2.4vw, 36px); }

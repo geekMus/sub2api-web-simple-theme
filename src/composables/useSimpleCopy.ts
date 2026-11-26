@@ -103,7 +103,7 @@ const zh: Dict = {
   // 首页 v4
   'home.heroTitle1': '一个接口',
   'home.heroTitle2': '调用所有模型',
-  'home.heroLine': '换模型只改一行。',
+  'home.heroLine': '换模型只改一行',
   'home.scrollHint': '向下滚动',
   'home.valueLine': '一个接口，调用所有模型。',
   'home.statProtocols': '套官方协议',
@@ -262,7 +262,7 @@ const en: Dict = {
   // Home
   'home.heroTitle1': 'One endpoint',
   'home.heroTitle2': 'for every model',
-  'home.heroLine': 'Switch models by changing one line.',
+  'home.heroLine': 'Switch models by changing one line',
   'home.scrollHint': 'Scroll',
   'home.valueLine': 'One endpoint for every model.',
   'home.statProtocols': 'official protocols',

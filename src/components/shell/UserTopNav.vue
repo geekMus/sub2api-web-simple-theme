@@ -38,15 +38,14 @@
 
     <transition name="sheet">
       <div v-if="sheetOpen" class="nv__sheet">
-        <div class="nv__sheet-lang"><LocaleSwitcher /></div>
-        <div class="nv__sheet-foot">
-          <template v-if="!user">
-            <router-link to="/login" class="st-btn st-btn--quiet st-btn--sm" @click="sheetOpen = false">{{ c('nav.login') }}</router-link>
-            <router-link to="/register" class="st-btn st-btn--primary st-btn--sm" @click="sheetOpen = false">{{ c('nav.signup') }}</router-link>
-          </template>
-          <template v-else>
-            <router-link v-for="m in accountMenu" :key="m.to" :to="m.to" class="nv__sheet-link nv__sheet-link--sub" @click="sheetOpen = false">{{ m.label }}</router-link>
-          </template>
+        <!-- 只放导航栏放不下的：语言切换；登录/注册与主题按钮本来就在导航栏上 -->
+        <div class="nv__sheet-section">
+          <span class="nv__sheet-label">{{ c('nav.language') }}</span>
+          <LocaleSwitcher />
+        </div>
+        <div v-if="user" class="nv__sheet-section nv__sheet-section--links">
+          <router-link v-for="m in accountMenu" :key="m.to" :to="m.to" class="nv__sheet-item" @click="sheetOpen = false">{{ m.label }}</router-link>
+          <button class="nv__sheet-item nv__sheet-item--danger" type="button" @click="signOut">{{ c('account.logout') }}</button>
         </div>
       </div>
     </transition>
@@ -141,11 +140,32 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 .nv__menu-item--danger:hover { background: var(--st-danger-soft); color: var(--st-danger); }
 
 .nv__burger { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--st-line-2); background: var(--st-bg-soft); color: var(--st-ink-2); cursor: pointer; }
-.nv__sheet { position: absolute; inset: 60px 0 auto; padding: 8px var(--st-gutter) 18px; background: var(--st-bg); border-bottom: 1px solid var(--st-line); display: flex; flex-direction: column; }
-.nv__sheet-link { padding: 11px 4px; font-size: 0.95rem; color: var(--st-ink); text-decoration: none; border-bottom: 1px solid var(--st-line); }
-.nv__sheet-link--sub { font-size: 0.86rem; color: var(--st-ink-2); border-bottom: 0; }
-.nv__sheet-lang { display: flex; justify-content: flex-start; padding-top: 12px; }
-.nv__sheet-foot { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; }
+.nv__sheet {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: var(--st-gutter);
+  width: 220px;
+  padding: 10px;
+  border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg);
+  box-shadow: var(--st-shadow-3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 60;
+}
+.nv__sheet-section { display: flex; flex-direction: column; gap: 8px; }
+.nv__sheet-section--links { border-top: 1px solid var(--st-line); padding-top: 10px; }
+.nv__sheet-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; }
+.nv__sheet-item {
+  display: block; width: 100%; text-align: left;
+  padding: 8px 6px; border: 0; border-radius: 8px; background: none;
+  font-family: inherit; font-size: 0.88rem; color: var(--st-ink-2);
+  text-decoration: none; cursor: pointer;
+}
+.nv__sheet-item:hover { background: var(--st-bg-soft); color: var(--st-ink); }
+.nv__sheet-item--danger:hover { background: var(--st-danger-soft); color: var(--st-danger); }
 
 .pop-enter-active, .pop-leave-active { transition: opacity var(--st-t-fast) var(--st-ease), transform var(--st-t-fast) var(--st-ease); }
 .pop-enter-from, .pop-leave-to { opacity: 0; transform: translateY(-4px); }
