@@ -6,8 +6,7 @@
 后端 API 契约未做任何改动，页面仍然走相对路径 `/api/v1/...`，因此：
 
 * 开发时由 Vite 代理到本地后端；
-* 独立部署时由 Nginx（或任意静态服务器）把 `/api`、`/v1`、`/setup` 反代到后端；
-* 嵌入后端部署时由后端同源提供静态资源，不需要反代。
+* 部署时把构建出的 `dist/` 交给任意静态服务器，并把 `/api`、`/v1`、`/setup` 反代到后端。
 
 ## 项目定位
 
@@ -21,7 +20,6 @@
 | [AGENTS.md](./AGENTS.md) | 给 AI/协作者的硬性约定：冻结目录、允许范围、验收标准、任务落点 |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | 环境、分支、提交信息、提交前闸门、PR 清单 |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 启动链路、目录职责、数据流、i18n、样式系统、构建形态 |
-| [docs/UPSTREAM-SYNC.md](./docs/UPSTREAM-SYNC.md) | 从 `sub2api-beichen/frontend` 同步上游代码的流程与必守差异 |
 | [docs/UI-REQUESTS.md](./docs/UI-REQUESTS.md) | 「界面需要后端新字段」的登记处 |
 | [CHANGELOG.md](./CHANGELOG.md) | 版本变更记录 |
 
@@ -47,26 +45,9 @@ pnpm preview          # 用 vite preview 打开 dist/，并把 /api 代理到后
 
 需要改产物目录时设置 `VITE_OUT_DIR`（默认 `dist`）。
 
-## 嵌入后端二进制部署（推荐与 sub2api 同仓部署时使用）
+## 部署
 
-后端 `internal/web/embed_on.go` 通过 `//go:embed all:dist` 把前端打进二进制，
-所以只要把 `dist/` 放到 `<后端仓库>/backend/internal/web/dist/`，再带 `embed` 构建标签编译即可：
-
-```bash
-# 一条命令：构建 + 同步产物到后端 embed 目录
-pnpm build:embed -- --backend ../sub2api-beichen
-
-# 然后编译并启动带前端的后端
-cd ../sub2api-beichen/backend
-go build -tags embed -o bin/server-embed ./cmd/server
-./bin/server-embed            # 前端与 API 同源，默认 http://127.0.0.1:8080
-```
-
-只同步产物（不重新构建）：`pnpm sync:backend -- --backend ../sub2api-beichen`
-加 `--dry-run` 只做校验。后端仓库里 `backend/internal/web/dist/` 已被 `.gitignore` 忽略，
-所以**同步产物不会污染后端仓库的工作区**。
-
-## 独立部署（前后端分开）
+产物就是一个静态目录 `dist/`，不需要任何流水线：
 
 ```bash
 pnpm build
@@ -87,7 +68,7 @@ pnpm build
    * `build.outDir` 由写死 `../backend/internal/web/dist` 改为可配置（默认 `dist`）；
    * 新增 `preview.proxy`，让 `pnpm preview` 也能连真实后端；
    * 新增 `VITE_PREVIEW_PORT`。
-2. `package.json`：包名改为 `sub2api-web-simple-theme`，新增 `build:embed` / `sync:backend` 两个脚本。
+2. `package.json`：包名改为 `sub2api-web-simple-theme`，锁定 pnpm 10。
 3. 法务文档 `docs/legal/admin-compliance.{zh,en}.md` 从仓库根目录搬到本项目的 `docs/legal/`，
    两个引用它的组件（`AdminComplianceDialog.vue`、`LegalDocumentView.vue`）的相对路径由
    `../../../../docs/legal/` 改成 `../../../docs/legal/`。

@@ -31,7 +31,7 @@
 - `package.json` 的依赖版本；新增 UI 依赖必须先说明理由并得到确认。
 - `vite.config.ts` 的 `server.proxy` / `build.outDir` / `injectPublicSettings` 行为。
 - `dist/` 与 `*.tsbuildinfo`、`vite.config.js`：构建产物，已忽略。
-- 后端仓库 `../sub2api-beichen/`：只用于嵌入构建，**不改任何后端代码**。
+- 后端仓库 `../sub2api-beichen/`：只作为本地联调的后端，**不改任何后端代码**。
 
 ## 2. 提交前必须跑
 
@@ -65,8 +65,7 @@ pnpm test:run       # vitest（391 个文件 / 3200+ 用例，约 45s）
 ## 5. 构建与部署（只需了解，不需要在 UI 任务里执行）
 
 ```bash
-pnpm build                                   # 产物 dist/
-pnpm build:embed -- --backend ../sub2api-beichen   # 构建并同步进后端 embed 目录
+pnpm build    # 产物就是 dist/，交给静态服务器即可
 ```
 
-后端用 `go build -tags embed` 把 `backend/internal/web/dist` 打进二进制。详见 `README.md`。
+详见 `README.md`。

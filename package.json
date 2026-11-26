@@ -12,8 +12,6 @@
     "check:i18n": "vitest run src/i18n/__tests__/localeKeyCompleteness.spec.ts",
     "build": "pnpm run check:i18n && vue-tsc -b && vite build",
     "preview": "vite preview",
-    "sync:backend": "node scripts/sync-to-backend.mjs",
-    "build:embed": "pnpm run build && node scripts/sync-to-backend.mjs",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "lint:check": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
     "typecheck": "vue-tsc --noEmit",
