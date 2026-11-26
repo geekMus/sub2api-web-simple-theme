@@ -1,40 +1,35 @@
 <template>
-  <div class="relative" ref="dropdownRef">
+  <div class="ls" ref="dropdownRef">
     <button
+      class="ls__btn"
+      type="button"
       @click="toggleDropdown"
       :disabled="switching"
-      class="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
-      :title="currentLocale?.name"
+      :title="currentName"
+      :aria-label="currentName"
     >
-      <span class="text-base">{{ currentLocale?.flag }}</span>
-      <span class="hidden sm:inline">{{ currentLocale?.code.toUpperCase() }}</span>
-      <Icon
-        name="chevronDown"
-        size="xs"
-        class="text-gray-400 transition-transform duration-200"
-        :class="{ 'rotate-180': isOpen }"
-      />
+      <span>{{ currentName }}</span>
+      <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"
+        :class="['ls__caret', { 'ls__caret--open': isOpen }]">
+        <path d="M3 4.5L6 7.5l3-3" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </button>
 
-    <transition name="dropdown">
-      <div
-        v-if="isOpen"
-        class="absolute right-0 z-50 mt-1 w-32 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-dark-700 dark:bg-dark-800"
-      >
+    <transition name="ls-pop">
+      <div v-if="isOpen" class="ls__menu">
         <button
-          v-for="locale in availableLocales"
-          :key="locale.code"
+          v-for="item in availableLocales"
+          :key="item.code"
+          class="ls__item"
+          :class="{ 'ls__item--on': item.code === currentLocaleCode }"
+          type="button"
           :disabled="switching"
-          @click="selectLocale(locale.code)"
-          class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-dark-700"
-          :class="{
-            'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400':
-              locale.code === currentLocaleCode
-          }"
+          @click="selectLocale(item.code)"
         >
-          <span class="text-base">{{ locale.flag }}</span>
-          <span>{{ locale.name }}</span>
-          <Icon v-if="locale.code === currentLocaleCode" name="check" size="sm" class="ml-auto text-primary-500" />
+          <span>{{ item.name }}</span>
+          <svg v-if="item.code === currentLocaleCode" viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M2.5 6.5l2.5 2.5 4.5-5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </button>
       </div>
     </transition>
@@ -44,7 +39,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Icon from '@/components/icons/Icon.vue'
 import { setLocale, availableLocales } from '@/i18n'
 
 const i18n = (() => {
@@ -60,8 +54,10 @@ const isOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 const switching = ref(false)
 
-const currentLocaleCode = computed(() => locale.value)
-const currentLocale = computed(() => availableLocales.find((l) => l.code === locale.value))
+const currentLocaleCode = computed(() => String(locale.value || 'zh'))
+const currentName = computed(
+  () => availableLocales.find((l) => l.code === currentLocaleCode.value)?.name ?? '中文'
+)
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value
@@ -76,7 +72,6 @@ async function selectLocale(code: string) {
   try {
     await setLocale(code)
     isOpen.value = false
-    // 分组名称等内容由后端按请求语言返回，整页刷新让已加载的数据换成新语言
     window.location.reload()
   } finally {
     switching.value = false
@@ -89,24 +84,65 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <style scoped>
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: all 0.15s ease;
+.ls { position: relative; }
+
+.ls__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding-inline: 9px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--st-ink-2);
+  font-family: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background-color var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease);
+}
+.ls__btn:hover { background: var(--st-bg-soft); color: var(--st-ink); }
+.ls__caret { transition: transform var(--st-t) var(--st-ease); }
+.ls__caret--open { transform: rotate(180deg); }
+
+.ls__menu {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  min-width: 128px;
+  padding: 5px;
+  border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg);
+  box-shadow: var(--st-shadow-3);
+  z-index: 60;
 }
 
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: scale(0.95) translateY(-4px);
+.ls__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--st-ink-2);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--st-t-fast) var(--st-ease), color var(--st-t-fast) var(--st-ease);
 }
+.ls__item:hover { background: var(--st-bg-soft); color: var(--st-ink); }
+.ls__item--on { color: var(--st-ink); font-weight: 500; }
+
+.ls-pop-enter-active, .ls-pop-leave-active { transition: opacity var(--st-t-fast) var(--st-ease), transform var(--st-t-fast) var(--st-ease); }
+.ls-pop-enter-from, .ls-pop-leave-to { opacity: 0; transform: translateY(-4px) scale(0.98); }
 </style>
