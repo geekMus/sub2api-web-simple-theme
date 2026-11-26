@@ -6,7 +6,17 @@ import CustomPageView from '../CustomPageView.vue'
 const route = reactive({ params: { id: 'old' } })
 const fetchPage = vi.fn()
 vi.mock('vue-router', () => ({ useRoute: () => route }))
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key, locale: { value: 'en' } }) }))
+vi.mock('vue-i18n', () => ({
+  // 新外壳 UserTopNav → LocaleSwitcher → @/i18n 在模块初始化时调用 createI18n
+  createI18n: () => ({
+    global: {
+      locale: { value: 'en' },
+      setLocaleMessage: () => {},
+      getLocaleMessage: () => ({}),
+    },
+  }),
+  useI18n: () => ({ t: (key: string) => key, locale: { value: 'en' } }),
+}))
 vi.mock('@/stores', () => ({ useAppStore: () => ({
   publicSettingsLoaded: true,
   cachedPublicSettings: { custom_menu_items: [

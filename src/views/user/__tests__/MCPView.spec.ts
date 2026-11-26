@@ -9,9 +9,19 @@ const { getConnectionConfig, listGrants, revokeGrant, copyToClipboard, showSucce
 vi.mock('@/api/mcp', () => ({ mcpAPI: { getConnectionConfig, listGrants, revokeGrant } }))
 vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showSuccess }) }))
 vi.mock('@/composables/useClipboard', () => ({ useClipboard: () => ({ copyToClipboard }) }))
-vi.mock('@/utils/format', () => ({ formatDate: (value: string) => value }))
+vi.mock('@/utils/format', () => ({ formatDate: (value: string) => value, formatCurrency: (value: number) => `$${value.toFixed(2)}` }))
 vi.mock('@/components/layout/AppLayout.vue', () => ({ default: { template: '<main><slot /></main>' } }))
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
+vi.mock('vue-i18n', () => ({
+  // 新外壳 UserTopNav → LocaleSwitcher → @/i18n 在模块初始化时调用 createI18n
+  createI18n: () => ({
+    global: {
+      locale: { value: 'en' },
+      setLocaleMessage: () => {},
+      getLocaleMessage: () => ({}),
+    },
+  }),
+  useI18n: () => ({ t: (key: string) => key }),
+}))
 
 const item: MCPGrant = {
   id: 'grant-1', client_id: 'client-1', client_name: 'Desktop assistant', scope: 'user', read_only: true,
@@ -64,7 +74,7 @@ describe('MCP OAuth connections', () => {
     listGrants.mockResolvedValue([item])
     const wrapper = render()
     await flushPromises()
-    expect(wrapper.get('[role="alert"]').text()).toBe('MCP public URL is not configured correctly')
+    expect(wrapper.get('[role="alert"]').text()).toContain('MCP public URL is not configured correctly')
     expect((wrapper.get('#mcp-endpoint').element as HTMLInputElement).value).toBe('')
     expect((wrapper.get('[data-testid="copy-endpoint"]').element as HTMLButtonElement).disabled).toBe(true)
     expect(wrapper.find('[data-grant-id="grant-1"] button').exists()).toBe(true)

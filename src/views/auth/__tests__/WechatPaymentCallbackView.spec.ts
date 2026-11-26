@@ -27,6 +27,14 @@ vi.mock('vue-router', () => ({
 }))
 
 vi.mock('vue-i18n', () => ({
+  // 新外壳 UserTopNav → LocaleSwitcher → @/i18n 在模块初始化时调用 createI18n
+  createI18n: () => ({
+    global: {
+      locale: { value: 'en' },
+      setLocaleMessage: () => {},
+      getLocaleMessage: () => ({}),
+    },
+  }),
   useI18n: () => ({
     t: (key: string) => {
       if (key === 'auth.wechatPayment.callbackTitle') return '正在恢复微信支付'

@@ -38,7 +38,7 @@
             <strong>{{ siteName }}</strong>
           </router-link>
 
-          <div class="auth-panel__card st-card st-card--pad st-card--halo st-reveal">
+          <div class="auth-panel__card st-card st-card--pad st-reveal">
             <slot />
           </div>
 

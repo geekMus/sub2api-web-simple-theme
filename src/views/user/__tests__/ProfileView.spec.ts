@@ -26,7 +26,8 @@ vi.mock('@/stores/app', () => ({
 }))
 
 vi.mock('@/utils/format', () => ({
-  formatDate: () => 'April 2026'
+  formatDate: () => 'April 2026',
+  formatCurrency: (value: number) => `$${value.toFixed(2)}`
 }))
 
 vi.mock('vue-i18n', async (importOriginal) => {

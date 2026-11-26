@@ -12,7 +12,17 @@ const { appStore } = vi.hoisted(() => ({
 
 vi.mock('@/components/layout/AppLayout.vue', () => ({ default: { template: '<div><slot /></div>' } }))
 vi.mock('vue-router', () => ({ useRoute: () => ({ params: { id: 'docs' } }) }))
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key, locale: { value: 'en' } }) }))
+vi.mock('vue-i18n', () => ({
+  // 新外壳 UserTopNav → LocaleSwitcher → @/i18n 在模块初始化时调用 createI18n
+  createI18n: () => ({
+    global: {
+      locale: { value: 'en' },
+      setLocaleMessage: () => {},
+      getLocaleMessage: () => ({}),
+    },
+  }),
+  useI18n: () => ({ t: (key: string) => key, locale: { value: 'en' } }),
+}))
 vi.mock('@/stores', () => ({ useAppStore: () => appStore }))
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ isAdmin: false, user: { id: 7 }, token: 'test-token' }) }))
 vi.mock('@/stores/adminSettings', () => ({ useAdminSettingsStore: () => ({ customMenuItems: [] }) }))
