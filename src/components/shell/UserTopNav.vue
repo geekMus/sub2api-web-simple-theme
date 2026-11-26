@@ -1,43 +1,16 @@
 <template>
   <header v-if="ready" class="nv" :class="{ 'nv--stuck': scrolled }">
     <div class="st-shell nv__in">
-      <router-link to="/home" class="nv__brand">
-        <span class="nv__mark">
-          <img v-if="siteLogo" :src="siteLogo" alt="" />
-          <svg v-else viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M4 14.2c2.9 0 3.9-1.2 5.4-3.5C10.9 8 12.1 5.8 15 5.8" />
-            <path d="M4 16.6c1.9 0 2.8-.8 3.8-2.2" opacity=".45" />
-            <circle cx="15.4" cy="5.8" r="1.35" />
-          </svg>
-        </span>
-        <span class="nv__name">{{ siteName }}</span>
-      </router-link>
+      <BrandMark />
 
-      <nav v-if="!isLanding" class="nv__links" aria-label="primary">
+      <nav class="nv__links" aria-label="primary">
         <router-link v-for="item in links" :key="item.to" :to="item.to" class="nv__link">{{ item.label }}</router-link>
       </nav>
 
       <div class="nv__right">
         <router-link v-if="user" to="/dashboard" class="nv__balance" :title="c('nav.balance')">{{ money }}</router-link>
         <LocaleSwitcher />
-        <button
-          class="thm"
-          :class="{ 'thm--pulse': pulsing }"
-          type="button"
-          :aria-label="c('nav.theme')"
-          :title="isDark ? 'Light' : 'Dark'"
-          @click="toggleTheme"
-        >
-          <span class="thm__ico">
-          <svg v-if="isDark" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="10" cy="10" r="3.4" />
-            <path d="M10 1.6v1.6M10 16.8v1.6M1.6 10h1.6M16.8 10h1.6M4.1 4.1l1.1 1.1M14.8 14.8l1.1 1.1M15.9 4.1l-1.1 1.1M5.2 14.8l-1.1 1.1" stroke-linecap="round" />
-          </svg>
-          <svg v-else viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M17 11.9A7.4 7.4 0 1 1 8.1 3a5.9 5.9 0 0 0 8.9 8.9Z" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          </span>
-        </button>
+        <ThemeToggle />
 
         <template v-if="user">
           <div class="nv__acct">
@@ -59,7 +32,7 @@
           <router-link to="/register" class="st-btn st-btn--primary st-btn--sm">{{ c('nav.signup') }}</router-link>
         </template>
 
-        <button v-if="!isLanding" class="st-icon-btn nv__burger" type="button" :aria-label="c('nav.menu')" @click="sheetOpen = !sheetOpen">
+        <button class="nv__burger" type="button" :aria-label="c('nav.menu')" @click="sheetOpen = !sheetOpen">
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5">
             <path v-if="!sheetOpen" d="M3 6h14M3 10h14M3 14h14" stroke-linecap="round" />
             <path v-else d="M5 5l10 10M15 5L5 15" stroke-linecap="round" />
@@ -87,43 +60,33 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAppStore, useAuthStore } from '@/stores'
+import BrandMark from './BrandMark.vue'
+import ThemeToggle from './ThemeToggle.vue'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import { useSimpleCopy } from '@/composables/useSimpleCopy'
 import { formatCurrency } from '@/utils/format'
-import { toggleThemeFrom, toggleThemeFromElement } from '@/utils/theme-transition'
 
 let router: ReturnType<typeof useRouter> | null = null
-let route: ReturnType<typeof useRoute> | null = null
 let authStore: ReturnType<typeof useAuthStore> | null = null
 let appStore: ReturnType<typeof useAppStore> | null = null
 try {
   router = useRouter()
-  route = useRoute()
   authStore = useAuthStore()
   appStore = useAppStore()
 } catch {
   router = null
 }
-/** 落地页保持干净：只留品牌与右侧操作，不显示主导航 */
-const isLanding = computed(() => {
-  const path = route?.path ?? ''
-  return path === '/home' || path === '/'
-})
 const ready = !!authStore && !!appStore
 const { c } = useSimpleCopy()
 
 const user = computed(() => authStore?.user ?? null)
-const siteName = computed(() => appStore?.siteName || 'Sub2API')
-const siteLogo = computed(() => appStore?.siteLogo || '')
 const initial = computed(() => String(user.value?.username || user.value?.email || '?').trim().charAt(0).toUpperCase())
 const money = computed(() => formatCurrency(user.value?.balance ?? 0))
-const isDark = ref(typeof document !== 'undefined' && document.documentElement.classList.contains('dark'))
-const scrolled = ref(false)
-const pulsing = ref(false)
 const menuOpen = ref(false)
 const sheetOpen = ref(false)
+const scrolled = ref(false)
 
 const links = computed(() => {
   const settings = appStore?.cachedPublicSettings
@@ -146,17 +109,7 @@ const accountMenu = computed(() => {
   return items
 })
 
-function toggleTheme(event?: MouseEvent) {
-  const el = (event?.currentTarget as HTMLElement | null) ?? null
-  pulsing.value = true
-  window.setTimeout(() => { pulsing.value = false }, 720)
-  isDark.value =
-    event && typeof event.clientX === 'number'
-      ? toggleThemeFrom(event.clientX, event.clientY) === 'dark'
-      : toggleThemeFromElement(el) === 'dark'
-}
-
-function onScroll() { scrolled.value = window.scrollY > 4 }
+function onScroll() { scrolled.value = window.scrollY > 8 }
 
 async function signOut() {
   menuOpen.value = false
@@ -176,19 +129,20 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
   position: sticky;
   top: 0;
   z-index: 40;
-  background: color-mix(in srgb, var(--st-bg) 86%, transparent);
-  backdrop-filter: blur(12px) saturate(160%);
+  /* 顶部透明：让首屏渐变直接透上来 */
+  background: transparent;
   border-bottom: 1px solid transparent;
-  transition: border-color var(--st-t) var(--st-ease);
+  transition: background-color 260ms var(--st-ease), border-color 260ms var(--st-ease),
+    backdrop-filter 260ms var(--st-ease);
 }
-.nv--stuck { border-bottom-color: var(--st-line); }
-.nv__in { display: flex; align-items: center; gap: 24px; height: 60px; }
+/* 滚动后才出现底色与描边 */
+.nv--stuck {
+  background: color-mix(in srgb, var(--st-bg) 86%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  border-bottom-color: var(--st-line);
+}
 
-.nv__brand { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: var(--st-ink); flex-shrink: 0; }
-.nv__mark { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--st-ink); color: var(--st-bg); }
-.nv__mark img { width: 17px; height: 17px; object-fit: contain; }
-.nv__mark svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
-.nv__name { font-family: var(--st-font-display); font-size: 0.94rem; font-weight: 600; letter-spacing: -0.02em; }
+.nv__in { display: flex; align-items: center; gap: 24px; height: 60px; }
 
 .nv__links { display: none; align-items: center; gap: 2px; margin-left: 8px; }
 .nv__link { padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 450; color: var(--st-ink-2); text-decoration: none; transition: color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease); }
@@ -196,71 +150,22 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 .nv__link.router-link-active { color: var(--st-ink); font-weight: 500; }
 
 .nv__right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-
-/* 主题按钮：看得出是可点的按钮 */
-.thm {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid var(--st-line-2);
-  background: var(--st-bg-soft);
-  color: var(--st-ink-2);
-  cursor: pointer;
-  transition: color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease),
-    border-color var(--st-t) var(--st-ease), transform var(--st-t-fast) var(--st-ease),
-    box-shadow var(--st-t) var(--st-ease);
-}
-.thm:hover {
-  color: var(--st-ink);
-  background: var(--st-bg);
-  border-color: var(--st-ink-3);
-  transform: translateY(-1px);
-  box-shadow: var(--st-shadow-1);
-}
-.thm:active { transform: translateY(0) scale(0.94); }
-.thm:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
-
-.thm__ico { display: grid; place-items: center; transition: transform 520ms var(--st-ease); }
-.thm:hover .thm__ico { transform: rotate(20deg); }
-
-/* 点击波纹 */
-.thm--pulse::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  pointer-events: none;
-  animation: thm-ripple 680ms var(--st-ease);
-}
-@keyframes thm-ripple {
-  0% { box-shadow: 0 0 0 0 var(--st-brand-line); }
-  100% { box-shadow: 0 0 0 16px transparent; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .thm--pulse::after { animation: none; }
-  .thm__ico, .thm { transition: none; }
-}
-.nv__balance { font-size: 0.82rem; font-weight: 550; color: var(--st-ink); text-decoration: none; padding: 5px 9px; border-radius: 6px; font-variant-numeric: tabular-nums; transition: background-color var(--st-t) var(--st-ease); }
+.nv__balance { font-size: 0.82rem; font-weight: 550; color: var(--st-ink); text-decoration: none; padding: 5px 9px; border-radius: 6px; font-variant-numeric: tabular-nums; }
 .nv__balance:hover { background: var(--st-bg-soft); }
 .nv__login { display: none; font-size: 0.85rem; color: var(--st-ink-2); text-decoration: none; padding: 6px 10px; }
 .nv__login:hover { color: var(--st-ink); }
 
 .nv__acct { position: relative; }
-.nv__avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--st-line-2); background: var(--st-bg-soft); color: var(--st-ink); font-family: inherit; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: border-color var(--st-t) var(--st-ease); }
-.nv__avatar:hover { border-color: var(--st-ink-3); }
-
+.nv__avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--st-line-2); background: var(--st-bg-soft); color: var(--st-ink); font-family: inherit; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
 .nv__menu { position: absolute; top: 38px; right: 0; min-width: 200px; padding: 5px; border-radius: var(--st-r-md); border: 1px solid var(--st-line); background: var(--st-bg); box-shadow: var(--st-shadow-3); z-index: 50; }
 .nv__menu-head { padding: 9px 9px 10px; border-bottom: 1px solid var(--st-line); margin-bottom: 4px; }
 .nv__menu-name { font-size: 0.83rem; font-weight: 600; color: var(--st-ink); }
 .nv__menu-mail { margin-top: 1px; font-size: 0.74rem; color: var(--st-ink-3); word-break: break-all; }
-.nv__menu-item { display: block; width: 100%; text-align: left; padding: 7px 9px; border-radius: 6px; border: 0; background: none; font-family: inherit; font-size: 0.84rem; color: var(--st-ink-2); text-decoration: none; cursor: pointer; transition: background-color var(--st-t-fast) var(--st-ease), color var(--st-t-fast) var(--st-ease); }
+.nv__menu-item { display: block; width: 100%; text-align: left; padding: 7px 9px; border-radius: 6px; border: 0; background: none; font-family: inherit; font-size: 0.84rem; color: var(--st-ink-2); text-decoration: none; cursor: pointer; }
 .nv__menu-item:hover { background: var(--st-bg-soft); color: var(--st-ink); }
 .nv__menu-item--danger:hover { background: var(--st-danger-soft); color: var(--st-danger); }
 
-.nv__burger { display: inline-grid; }
+.nv__burger { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--st-line-2); background: var(--st-bg-soft); color: var(--st-ink-2); cursor: pointer; }
 .nv__sheet { position: absolute; inset: 60px 0 auto; padding: 8px var(--st-gutter) 18px; background: var(--st-bg); border-bottom: 1px solid var(--st-line); display: flex; flex-direction: column; }
 .nv__sheet-link { padding: 11px 4px; font-size: 0.95rem; color: var(--st-ink); text-decoration: none; border-bottom: 1px solid var(--st-line); }
 .nv__sheet-link--sub { font-size: 0.86rem; color: var(--st-ink-2); border-bottom: 0; }
