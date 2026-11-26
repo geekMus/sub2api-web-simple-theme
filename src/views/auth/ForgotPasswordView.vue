@@ -1,18 +1,18 @@
 <template>
   <AuthLayout>
-    <div class="space-y-6">
+    <div class="auth-form">
       <!-- Title -->
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+      <div class="auth-form__head">
+        <h2 class="st-display-3 auth-form__title">
           {{ t('auth.forgotPasswordTitle') }}
         </h2>
-        <p class="mt-2 text-sm text-gray-500 dark:text-dark-400">
+        <p class="st-body auth-form__lede">
           {{ t('auth.forgotPasswordHint') }}
         </p>
       </div>
 
       <!-- Success State -->
-      <div v-if="isSubmitted" class="space-y-6">
+      <div v-if="isSubmitted" class="auth-form">
         <div class="rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800/50 dark:bg-green-900/20">
           <div class="flex flex-col items-center gap-4 text-center">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-800/50">
@@ -29,7 +29,7 @@
           </div>
         </div>
 
-        <div class="text-center">
+        <div class="auth-form__head">
           <router-link
             to="/login"
             class="inline-flex items-center gap-2 font-medium text-primary-600 transition-colors hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
@@ -41,10 +41,10 @@
       </div>
 
       <!-- Form State -->
-      <form v-else @submit.prevent="handleSubmit" class="space-y-5">
+      <form v-else @submit.prevent="handleSubmit" class="auth-form__body">
         <!-- Email Input -->
         <div>
-          <label for="email" class="input-label">
+          <label for="email" class="st-label">
             {{ t('auth.emailLabel') }}
           </label>
           <div class="relative">
@@ -59,7 +59,7 @@
               autofocus
               autocomplete="email"
               :disabled="isLoading"
-              class="input pl-11"
+              class="st-input"
               :class="{ 'input-error': errors.email }"
               :placeholder="t('auth.emailPlaceholder')"
             />
@@ -89,7 +89,7 @@
         <button
           type="submit"
           :disabled="isLoading || (turnstileEnabled && !turnstileToken)"
-          class="btn btn-primary w-full"
+          class="st-btn st-btn--primary st-btn--lg auth-form__submit"
         >
           <svg
             v-if="isLoading"

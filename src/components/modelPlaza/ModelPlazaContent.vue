@@ -1,39 +1,59 @@
 <template>
-  <div class="space-y-5">
-    <!-- 页头(独立形态下展示标题;后台形态 AppHeader 已有页面标题) -->
-    <div v-if="!embedded">
-      <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">{{ t('modelPlaza.title') }}</h1>
-      <p class="mt-1.5 text-sm text-gray-500 dark:text-dark-400">{{ t('modelPlaza.description') }}</p>
+  <div class="plaza" :class="{ 'plaza--embedded': embedded }">
+    <!-- 页头（独立形态） -->
+    <header v-if="!embedded" class="plaza__hero">
+      <p class="st-eyebrow st-reveal">{{ c('plaza.eyebrow') }}</p>
+      <h1 class="st-display-2 plaza__title st-reveal" style="--i: 1">{{ c('plaza.title') }}</h1>
+      <p class="st-lede plaza__lede st-reveal" style="--i: 2">{{ c('plaza.lede') }}</p>
+
+      <div class="plaza__meta st-reveal" style="--i: 3">
+        <span class="st-pill st-pill--dot st-pill--accent" v-if="response">
+          {{ response.groups?.length ?? 0 }} {{ c('plaza.groupCount') }} ·
+          {{ modelTotal }} {{ c('plaza.modelCount') }}
+        </span>
+        <span v-if="!isAuthenticated" class="st-pill">{{ c('plaza.anonymousHint') }}</span>
+        <div class="plaza__cta">
+          <RouterLink v-if="isAuthenticated" :to="backTarget" class="st-btn st-btn--primary st-btn--sm">
+            {{ c('plaza.backDashboard') }}
+          </RouterLink>
+          <RouterLink
+            v-else
+            :to="{ path: '/login', query: { redirect: '/model-plaza' } }"
+            class="st-btn st-btn--primary st-btn--sm"
+          >
+            {{ c('plaza.login') }}
+          </RouterLink>
+        </div>
+      </div>
+    </header>
+
+    <!-- 全局价格说明（管理员配置的 Markdown） -->
+    <div v-if="descriptionHtml" class="plaza__note st-card st-card--pad">
+      <p class="plaza__note-label">{{ c('plaza.note') }}</p>
+      <div class="plaza__note-body" v-html="descriptionHtml"></div>
     </div>
 
-    <!-- 全局价格说明(管理员配置,Markdown) -->
-    <div
-      v-if="descriptionHtml"
-      class="plaza-description rounded-2xl border border-gray-100 bg-white px-5 py-4 text-sm shadow-card dark:border-dark-700/50 dark:bg-dark-800/50"
-      v-html="descriptionHtml"
-    ></div>
-
-    <!-- 未登录提示 -->
-    <p
-      v-if="!isAuthenticated"
-      class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-dark-500"
-    >
-      <Icon name="infoCircle" size="xs" class="h-3.5 w-3.5" />
-      {{ t('modelPlaza.anonymousHint') }}
-    </p>
-
-    <!-- 加载/错误/空 -->
-    <div v-if="loading" class="flex min-h-[240px] items-center justify-center">
-      <div class="h-8 w-8 animate-spin rounded-full border-2 border-primary-600/25 border-t-primary-600 dark:border-primary-400/25 dark:border-t-primary-400"></div>
+    <!-- 加载：骨架 -->
+    <div v-if="loading" class="plaza__skeleton" aria-busy="true" aria-live="polite">
+      <div class="plaza__skeleton-filters st-skeleton"></div>
+      <div class="plaza__skeleton-grid">
+        <div v-for="i in 6" :key="i" class="st-skeleton plaza__skeleton-card"></div>
+      </div>
     </div>
-    <div
-      v-else-if="error"
-      class="rounded-2xl border border-red-200 bg-red-50 px-5 py-8 text-center text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
-    >
-      {{ t('modelPlaza.loadFailed') }}
+
+    <!-- 错误 -->
+    <div v-else-if="error" class="plaza__state st-card st-card--pad">
+      <span class="plaza__state-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 8v5M12 16.5v.5" stroke-linecap="round" />
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+      </span>
+      <p class="plaza__state-title">{{ c('plaza.loadFailed') }}</p>
+      <RouterLink to="/home" class="st-btn st-btn--quiet st-btn--sm">{{ c('nf.toHome') }}</RouterLink>
     </div>
+
     <template v-else>
-      <!-- 筛选区:平台 → 分组 → 倍率 -->
       <PlazaFilterBar
         :platforms="platforms"
         :groups="groupOptions"
@@ -48,15 +68,23 @@
         @update:search="searchQuery = $event"
       />
 
-      <!-- 分组分节的模型清单(默认按生效倍率升序) -->
-      <div v-if="filteredGroups.length > 0" class="space-y-5">
-        <PlazaGroupSection v-for="g in filteredGroups" :key="g.id" :group="g" />
+      <div v-if="filteredGroups.length > 0" class="plaza__shelves">
+        <PlazaGroupSection
+          v-for="(g, idx) in filteredGroups"
+          :key="g.id"
+          :group="g"
+          :style="{ '--i': Math.min(idx + 1, 6) }"
+        />
       </div>
-      <div
-        v-else
-        class="rounded-2xl border border-dashed border-gray-300 px-5 py-12 text-center text-sm text-gray-500 dark:border-dark-600 dark:text-dark-400"
-      >
-        {{ searchActive ? t('modelPlaza.noSearchResult') : t('modelPlaza.empty') }}
+
+      <div v-else class="plaza__state st-card st-card--pad">
+        <span class="plaza__state-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="M16 16l4 4" stroke-linecap="round" />
+          </svg>
+        </span>
+        <p class="plaza__state-title">{{ searchActive ? c('plaza.emptySearch') : c('plaza.empty') }}</p>
       </div>
     </template>
   </div>
@@ -64,26 +92,26 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
-import Icon from '@/components/icons/Icon.vue'
 import PlazaFilterBar from './PlazaFilterBar.vue'
 import PlazaGroupSection from './PlazaGroupSection.vue'
 import type { ModelPlazaGroup, ModelPlazaResponse } from '@/api/modelPlaza'
 import { useAuthStore } from '@/stores/auth'
+import { useMiscCopy } from '@/composables/copy/misc'
 
 const props = defineProps<{
   response: ModelPlazaResponse | null
   loading: boolean
   error?: boolean
-  /** 后台内嵌形态(AppLayout 内):隐藏页头。 */
+  /** 后台内嵌形态（AppLayout 内）：隐藏页头。 */
   embedded?: boolean
 }>()
 
-const { t } = useI18n()
+const { c } = useMiscCopy()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
+const backTarget = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
 
 const selectedPlatform = ref<string>('all')
 const selectedGroupId = ref<number | 'all'>('all')
@@ -91,6 +119,9 @@ const selectedRate = ref<number | 'all'>('all')
 const searchQuery = ref('')
 
 const searchActive = computed(() => searchQuery.value.trim() !== '')
+const modelTotal = computed(() =>
+  (props.response?.groups ?? []).reduce((sum, g) => sum + (g.models?.length ?? 0), 0)
+)
 
 const descriptionHtml = computed(() => {
   const md = props.response?.description?.trim()
@@ -112,16 +143,16 @@ const groupOptions = computed(() =>
     id: g.id,
     name: g.name,
     platform: g.platform,
-    rate: effectiveRate(g)
+    rate: effectiveRate(g),
   }))
 )
 
-/** 全量生效倍率;当前组合下不可用的项由 FilterBar 置灰而非隐藏。 */
+/** 全量生效倍率；当前组合下不可用的项由 FilterBar 置灰而非隐藏。 */
 const rates = computed(() =>
   [...new Set((props.response?.groups ?? []).map(effectiveRate))].sort((a, b) => a - b)
 )
 
-/** 数据刷新后选中的倍率可能不复存在,重置为全部。 */
+/** 数据刷新后选中的倍率可能不复存在，重置为全部。 */
 watch(rates, (list) => {
   if (selectedRate.value !== 'all' && !list.includes(selectedRate.value)) {
     selectedRate.value = 'all'
@@ -139,14 +170,14 @@ const filteredGroups = computed(() => {
   if (selectedRate.value !== 'all') {
     groups = groups.filter((g) => effectiveRate(g) === selectedRate.value)
   }
-  // 模型名搜索:分组内只留命中的模型,整组无命中则隐藏该分组。
+  // 模型名搜索：分组内只留命中的模型，整组无命中则隐藏该分组。
   const q = searchQuery.value.trim().toLowerCase()
   if (q) {
     groups = groups
       .map((g) => ({ ...g, models: g.models.filter((m) => m.name.toLowerCase().includes(q)) }))
       .filter((g) => g.models.length > 0)
   }
-  // 专属倍率会改变生效值,不能只依赖后端按默认倍率的排序。
+  // 专属倍率会改变生效值，不能只依赖后端按默认倍率的排序。
   return [...groups].sort(
     (a, b) => effectiveRate(a) - effectiveRate(b) || a.name.localeCompare(b.name)
   )
@@ -154,42 +185,92 @@ const filteredGroups = computed(() => {
 </script>
 
 <style scoped>
-.plaza-description {
-  line-height: 1.7;
+.plaza { display: flex; flex-direction: column; gap: clamp(20px, 3vw, 32px); }
+.plaza--embedded { gap: 16px; }
+
+.plaza__hero { max-width: 62ch; }
+.plaza__title { margin-top: 14px; }
+.plaza__lede { margin-top: 16px; }
+.plaza__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+.plaza__cta { margin-left: auto; display: flex; gap: 8px; }
+
+.plaza__note { display: flex; flex-direction: column; gap: 10px; }
+.plaza__note-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--st-accent);
+}
+.plaza__note-body {
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--st-ink-soft);
   overflow-wrap: anywhere;
 }
-
-.plaza-description :deep(h1),
-.plaza-description :deep(h2),
-.plaza-description :deep(h3) {
-  @apply mb-2 mt-3 font-semibold text-gray-900 first:mt-0 dark:text-white;
+.plaza__note-body :deep(h1),
+.plaza__note-body :deep(h2),
+.plaza__note-body :deep(h3) {
+  margin: 14px 0 6px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--st-ink);
+}
+.plaza__note-body :deep(h1:first-child),
+.plaza__note-body :deep(h2:first-child),
+.plaza__note-body :deep(h3:first-child) { margin-top: 0; }
+.plaza__note-body :deep(p) { margin-bottom: 8px; }
+.plaza__note-body :deep(p:last-child) { margin-bottom: 0; }
+.plaza__note-body :deep(a) { color: var(--st-accent); text-underline-offset: 3px; }
+.plaza__note-body :deep(ul),
+.plaza__note-body :deep(ol) { margin: 0 0 8px; padding-left: 20px; }
+.plaza__note-body :deep(li) { margin-bottom: 4px; }
+.plaza__note-body :deep(code) {
+  font-family: var(--st-font-mono);
+  font-size: 0.8rem;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--st-bg-sunk);
 }
 
-.plaza-description :deep(p) {
-  @apply mb-2 text-gray-700 last:mb-0 dark:text-dark-200;
-}
+.plaza__shelves { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 48px); }
 
-.plaza-description :deep(a) {
-  @apply text-primary-600 underline underline-offset-4 hover:text-primary-700 dark:text-primary-300;
+.plaza__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-block: clamp(36px, 6vw, 64px);
+  text-align: center;
 }
-
-.plaza-description :deep(ul) {
-  @apply mb-2 list-disc pl-5;
+.plaza__state-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-sunk);
+  color: var(--st-ink-faint);
 }
+.plaza__state-title { font-size: 0.95rem; color: var(--st-ink-soft); max-width: 40ch; }
 
-.plaza-description :deep(ol) {
-  @apply mb-2 list-decimal pl-5;
+.plaza__skeleton { display: flex; flex-direction: column; gap: 18px; }
+.plaza__skeleton-filters { height: 168px; border-radius: var(--st-radius-lg); }
+.plaza__skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 12px;
 }
+.plaza__skeleton-card { height: 148px; border-radius: var(--st-radius-md); }
 
-.plaza-description :deep(li) {
-  @apply mb-0.5 text-gray-700 dark:text-dark-200;
-}
-
-.plaza-description :deep(code) {
-  @apply rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-dark-800;
-}
-
-.plaza-description :deep(blockquote) {
-  @apply my-2 border-l-4 border-gray-300 pl-3 text-gray-600 dark:border-dark-600 dark:text-dark-300;
+@media (max-width: 720px) {
+  .plaza__cta { margin-left: 0; width: 100%; }
 }
 </style>

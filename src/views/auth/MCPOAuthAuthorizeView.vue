@@ -9,12 +9,12 @@
         </div>
       </div>
       <p v-if="loading" role="status" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{{ t('mcp.consentLoading') }}</p>
-      <div v-else-if="previewError" class="space-y-4">
+      <div v-else-if="previewError" class="auth-form__body">
         <p role="alert" class="text-sm text-red-600 dark:text-red-400">{{ previewError }}</p>
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('mcp.consentRetryHint') }}</p>
         <RouterLink to="/settings/mcp" class="btn btn-secondary">{{ t('mcp.backToConnections') }}</RouterLink>
       </div>
-      <form v-else-if="consent" class="space-y-6" @submit.prevent="decide(true)">
+      <form v-else-if="consent" class="auth-form" @submit.prevent="decide(true)">
         <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-dark-700 dark:bg-dark-900">
           <dl class="space-y-4 text-sm">
             <div>
@@ -40,16 +40,16 @@
         </div>
         <p v-if="authStore.user?.email" class="break-all text-sm text-gray-600 dark:text-gray-300">{{ t('mcp.signedInAs', { email: authStore.user.email }) }}</p>
         <div>
-          <label for="mcp-consent-scope" class="input-label">{{ t('mcp.scope') }}</label>
-          <select id="mcp-consent-scope" v-model="scope" class="input" :disabled="submitting" aria-describedby="mcp-scope-hint">
+          <label for="mcp-consent-scope" class="st-label">{{ t('mcp.scope') }}</label>
+          <select id="mcp-consent-scope" v-model="scope" class="st-input" :disabled="submitting" aria-describedby="mcp-scope-hint">
             <option value="user">{{ t('mcp.userScope') }}</option>
             <option v-if="authStore.isAdmin" value="admin">{{ t('mcp.adminScope') }}</option>
           </select>
           <p id="mcp-scope-hint" class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ scope === 'admin' ? t('mcp.adminScopeHint') : t('mcp.userScopeHint') }}</p>
         </div>
         <div>
-          <label for="mcp-consent-permissions" class="input-label">{{ t('mcp.permissions') }}</label>
-          <select id="mcp-consent-permissions" v-model="readOnly" class="input" :disabled="submitting" aria-describedby="mcp-permissions-hint">
+          <label for="mcp-consent-permissions" class="st-label">{{ t('mcp.permissions') }}</label>
+          <select id="mcp-consent-permissions" v-model="readOnly" class="st-input" :disabled="submitting" aria-describedby="mcp-permissions-hint">
             <option :value="true">{{ t('mcp.readOnly') }}</option>
             <option :value="false">{{ t('mcp.readWrite') }}</option>
           </select>

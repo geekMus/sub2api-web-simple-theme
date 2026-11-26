@@ -1,0 +1,132 @@
+/* ============================================================================
+   兼容层：用户端外壳（.st-root）内的旧类名映射到 simple-theme
+   ----------------------------------------------------------------------------
+   用户端页面里还有大量历史组件用 .card / .btn / .badge / .input 等旧类名。
+   直接改这些组件风险高（业务逻辑与测试耦合），所以在用户端作用域内做类名映射。
+   管理员后台走 AppLayout，不在 .st-root 内，因此完全不受影响。
+   ========================================================================== */
+
+.st-root .card {
+  position: relative;
+  border-radius: var(--st-radius-lg);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-elev);
+  box-shadow: var(--st-shadow-sm);
+  overflow: hidden;
+}
+
+.st-root .card-header,
+.st-root .card-body,
+.st-root .card-footer {
+  padding: clamp(16px, 2vw, 22px) clamp(18px, 2.2vw, 26px);
+}
+
+.st-root .card-header { border-bottom: 1px solid var(--st-line); }
+
+.st-root .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  border: 1px solid var(--st-line-strong);
+  background: transparent;
+  color: var(--st-ink);
+  font-size: 0.88rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: transform var(--st-dur-fast) var(--st-ease), box-shadow var(--st-dur) var(--st-ease),
+    background-color var(--st-dur) var(--st-ease), border-color var(--st-dur) var(--st-ease);
+}
+.st-root .btn:hover { border-color: var(--st-ink-soft); transform: translateY(-1px); }
+.st-root .btn:active { transform: translateY(0) scale(0.985); }
+.st-root .btn:disabled, .st-root .btn[disabled] { opacity: 0.45; pointer-events: none; }
+
+.st-root .btn-primary {
+  border-color: transparent;
+  background: var(--st-accent);
+  color: var(--st-accent-ink);
+  font-weight: 600;
+  box-shadow: 0 8px 24px -12px var(--st-accent), var(--st-inner-top);
+}
+.st-root .btn-primary:hover { box-shadow: 0 14px 36px -14px var(--st-accent); }
+.st-root .btn-secondary, .st-root .btn-outline { border-color: var(--st-line); background: var(--st-bg-elev); box-shadow: var(--st-shadow-sm); }
+.st-root .btn-ghost { border-color: transparent; color: var(--st-ink-soft); }
+.st-root .btn-ghost:hover { color: var(--st-ink); background: var(--st-accent-soft); }
+.st-root .btn-danger { border-color: transparent; background: #e0554d; color: #fff; }
+.st-root .btn-sm { height: 34px; padding-inline: 14px; font-size: 0.82rem; }
+.st-root .btn-lg { height: 48px; padding-inline: 24px; font-size: 0.95rem; }
+
+.st-root .input,
+.st-root .select,
+.st-root .textarea {
+  width: 100%;
+  border-radius: var(--st-radius-md);
+  border: 1px solid var(--st-line-strong);
+  background: var(--st-bg-elev);
+  color: var(--st-ink);
+  font-size: 0.93rem;
+  padding: 11px 14px;
+  transition: border-color var(--st-dur) var(--st-ease), box-shadow var(--st-dur) var(--st-ease);
+}
+.st-root .input::placeholder, .st-root .textarea::placeholder { color: var(--st-ink-faint); }
+.st-root .input:focus, .st-root .select:focus, .st-root .textarea:focus {
+  outline: none;
+  border-color: var(--st-accent);
+  box-shadow: 0 0 0 4px var(--st-accent-soft);
+}
+.st-root .input-error { border-color: #e0554d; box-shadow: 0 0 0 4px rgba(224, 85, 77, 0.12); }
+.st-root .input-label { display: block; margin-bottom: 8px; font-size: 0.8rem; font-weight: 550; color: var(--st-ink-soft); }
+
+.st-root .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding-inline: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-sunk);
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--st-ink-soft);
+}
+.st-root .badge-primary, .st-root .badge-success { border-color: var(--st-accent-line); background: var(--st-accent-soft); color: var(--st-accent); }
+.st-root .badge-danger { border-color: rgba(224, 85, 77, 0.3); background: rgba(224, 85, 77, 0.1); color: #e0554d; }
+.st-root .badge-warning { border-color: rgba(214, 158, 46, 0.32); background: rgba(214, 158, 46, 0.1); color: #b8860b; }
+
+.st-root h1, .st-root h2, .st-root h3, .st-root h4 { color: var(--st-ink-strong); }
+.st-root .divider, .st-root hr { border-color: var(--st-line); }
+
+.st-root .modal-overlay { background: var(--st-scrim); backdrop-filter: blur(6px); }
+.st-root .modal-content, .st-root .modal-panel {
+  border-radius: var(--st-radius-xl);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-elev);
+  box-shadow: var(--st-shadow-lg);
+}
+
+.st-root table { width: 100%; border-collapse: collapse; }
+.st-root thead th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--st-ink-faint);
+  border-bottom: 1px solid var(--st-line);
+}
+.st-root tbody td {
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: var(--st-ink-soft);
+  border-bottom: 1px solid var(--st-line);
+}
+.st-root tbody tr:last-child td { border-bottom: 0; }
+.st-root tbody tr:hover { background: color-mix(in srgb, var(--st-accent) 4%, transparent); }
+
+/* 旧骨架/空态/加载 */
+.st-root .skeleton { border-radius: var(--st-radius-md); background: var(--st-bg-sunk); }

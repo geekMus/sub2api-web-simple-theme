@@ -1,12 +1,12 @@
 <template>
   <AuthLayout>
-    <div class="space-y-6">
+    <div class="auth-form">
       <!-- Title -->
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+      <div class="auth-form__head">
+        <h2 class="st-display-3 auth-form__title">
           {{ t('auth.verifyYourEmail') }}
         </h2>
-        <p class="mt-2 text-sm text-gray-500 dark:text-dark-400">
+        <p class="st-body auth-form__lede">
           {{ t('auth.sendCodeDesc') }}
           <span class="font-medium text-gray-700 dark:text-gray-300">{{ email }}</span>
         </p>
@@ -29,7 +29,7 @@
       </div>
 
       <!-- Verification Form -->
-      <form v-else @submit.prevent="handleVerify" class="space-y-5">
+      <form v-else @submit.prevent="handleVerify" class="auth-form__body">
         <!-- Verification Code Input -->
         <div>
           <label for="code" class="input-label text-center">
@@ -44,7 +44,7 @@
             inputmode="numeric"
             maxlength="6"
             :disabled="isLoading"
-            class="input py-3 text-center font-mono text-xl tracking-[0.5em]"
+            class="st-input py-3 text-center font-mono text-xl tracking-[0.5em]"
             :class="{ 'input-error': errors.code }"
             placeholder="000000"
           />
@@ -109,7 +109,7 @@
         <button
           type="submit"
           :disabled="isLoading || !verifyCode || (pendingOAuthCreateTurnstileRequired && !createAccountTurnstileToken)"
-          class="btn btn-primary w-full"
+          class="st-btn st-btn--primary st-btn--lg auth-form__submit"
         >
           <svg
             v-if="isLoading"
@@ -136,7 +136,7 @@
         </button>
 
         <!-- Resend Code -->
-        <div class="text-center">
+        <div class="auth-form__head">
           <button
             v-if="countdown > 0"
             type="button"

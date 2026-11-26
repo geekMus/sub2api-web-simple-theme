@@ -21,9 +21,9 @@
 
         <div class="mt-6 space-y-4">
           <div>
-            <label class="input-label">{{ t('auth.emailLabel') }}</label>
+            <label class="st-label">{{ t('auth.emailLabel') }}</label>
             <input
-              class="input w-full"
+              class="st-input w-full"
               type="email"
               :value="registrationEmail"
               readonly
@@ -31,11 +31,11 @@
             />
           </div>
           <div>
-            <label class="input-label">{{ t('auth.passwordLabel') }}</label>
+            <label class="st-label">{{ t('auth.passwordLabel') }}</label>
             <input
               v-model="password"
               type="password"
-              class="input w-full"
+              class="st-input w-full"
               :placeholder="t('auth.createPasswordPlaceholder')"
               :disabled="isSubmitting"
               autocomplete="new-password"
@@ -43,11 +43,11 @@
             />
           </div>
           <div>
-            <label class="input-label">{{ t('auth.confirmPassword') }}</label>
+            <label class="st-label">{{ t('auth.confirmPassword') }}</label>
             <input
               v-model="confirmPassword"
               type="password"
-              class="input w-full"
+              class="st-input w-full"
               :placeholder="t('auth.confirmPasswordPlaceholder')"
               :disabled="isSubmitting"
               autocomplete="new-password"
@@ -55,11 +55,11 @@
             />
           </div>
           <div v-if="invitationRequired">
-            <label class="input-label">{{ t('auth.invitationCodeLabel') }}</label>
+            <label class="st-label">{{ t('auth.invitationCodeLabel') }}</label>
             <input
               v-model="invitationCode"
               type="text"
-              class="input w-full"
+              class="st-input w-full"
               :placeholder="t('auth.invitationCodePlaceholder')"
               :disabled="isSubmitting"
               @keyup.enter="handleSubmitRegistration"
@@ -69,7 +69,7 @@
             {{ registrationError }}
           </p>
           <button
-            class="btn btn-primary w-full"
+            class="st-btn st-btn--primary st-btn--lg auth-form__submit"
             type="button"
             :disabled="isSubmitting || !canSubmitRegistration"
             @click="handleSubmitRegistration"
@@ -86,7 +86,7 @@
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
           {{ t('auth.oauth.invalidCallbackHint') }}
         </p>
-        <button class="btn btn-primary mt-6" type="button" @click="router.replace('/login')">
+        <button class="st-btn st-btn--primary mt-6" type="button" @click="router.replace('/login')">
           {{ t('auth.backToLogin') }}
         </button>
       </div>
@@ -101,9 +101,9 @@
 
         <div class="mt-6 space-y-4">
           <div>
-            <label class="input-label">{{ t('auth.oauth.code') }}</label>
+            <label class="st-label">{{ t('auth.oauth.code') }}</label>
             <div class="flex gap-2">
-              <input class="input flex-1 font-mono text-sm" :value="code" readonly />
+              <input class="st-input flex-1 font-mono text-sm" :value="code" readonly />
               <button class="btn btn-secondary" type="button" :disabled="!code" @click="copy(code)">
                 {{ t('common.copy') }}
               </button>
@@ -111,9 +111,9 @@
           </div>
 
           <div>
-            <label class="input-label">{{ t('auth.oauth.state') }}</label>
+            <label class="st-label">{{ t('auth.oauth.state') }}</label>
             <div class="flex gap-2">
-              <input class="input flex-1 font-mono text-sm" :value="state" readonly />
+              <input class="st-input flex-1 font-mono text-sm" :value="state" readonly />
               <button
                 class="btn btn-secondary"
                 type="button"
@@ -126,9 +126,9 @@
           </div>
 
           <div>
-            <label class="input-label">{{ t('auth.oauth.fullUrl') }}</label>
+            <label class="st-label">{{ t('auth.oauth.fullUrl') }}</label>
             <div class="flex gap-2">
-              <input class="input flex-1 font-mono text-xs" :value="fullUrl" readonly />
+              <input class="st-input flex-1 font-mono text-xs" :value="fullUrl" readonly />
               <button
                 class="btn btn-secondary"
                 type="button"

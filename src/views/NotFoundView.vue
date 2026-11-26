@@ -1,91 +1,155 @@
 <template>
-  <div
-    class="relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-50 px-4 dark:bg-dark-950"
-  >
-    <!-- Background Decoration -->
-    <div class="pointer-events-none absolute inset-0 overflow-hidden">
-      <div
-        class="absolute -right-40 -top-40 h-80 w-80 rounded-full bg-primary-400/10 blur-3xl"
-      ></div>
-      <div
-        class="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-primary-500/10 blur-3xl"
-      ></div>
-    </div>
+  <UserShell>
+    <section class="st-section nf">
+      <div class="st-shell nf__grid">
+        <div class="nf__copy">
+          <p class="st-eyebrow st-reveal">{{ c('nf.eyebrow') }}</p>
+          <h1 class="st-display-1 nf__code st-reveal" style="--i: 1">404</h1>
+          <h2 class="st-display-2 nf__title st-reveal" style="--i: 2">{{ c('nf.title') }}</h2>
+          <p class="st-lede nf__lede st-reveal" style="--i: 3">{{ c('nf.lede') }}</p>
 
-    <div class="relative z-10 w-full max-w-md text-center">
-      <!-- 404 Display -->
-      <div class="mb-8">
-        <div class="relative inline-block">
-          <span class="text-[12rem] font-bold leading-none text-gray-100 dark:text-dark-800"
-            >404</span
-          >
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div
-              class="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/30"
-            >
-              <svg
-                class="h-12 w-12 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                />
+          <div class="nf__actions st-reveal" style="--i: 4">
+            <router-link to="/dashboard" class="st-btn st-btn--primary st-btn--lg">
+              {{ c('nf.toDashboard') }}
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <path d="M4 10h11M11 5.5L15.5 10 11 14.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-            </div>
+            </router-link>
+            <router-link to="/home" class="st-btn st-btn--quiet st-btn--lg">{{ c('nf.toHome') }}</router-link>
+            <button type="button" class="st-btn st-btn--ghost st-btn--lg" @click="goBack">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <path d="M15 10H5M9 5.5L4.5 10 9 14.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              {{ c('nf.back') }}
+            </button>
           </div>
+
+          <p class="nf__help st-reveal" style="--i: 5">{{ c('nf.help') }}</p>
+        </div>
+
+        <!-- 插画：一条断掉的路线 -->
+        <div class="nf__art st-reveal" style="--i: 2" aria-hidden="true">
+          <svg viewBox="0 0 420 420" class="nf__svg">
+            <defs>
+              <linearGradient id="nf-glow" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="var(--st-accent)" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="var(--st-accent)" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            <circle cx="210" cy="210" r="150" fill="url(#nf-glow)" />
+            <circle cx="210" cy="210" r="150" class="nf-ring" />
+            <circle cx="210" cy="210" r="112" class="nf-ring nf-ring--faint" />
+
+            <!-- 断掉的路径 -->
+            <path class="nf-route" d="M62 320c46-18 64-58 96-64 34-6 34 34 62 34 24 0 34-26 58-46" />
+            <path class="nf-route nf-route--dash" d="M278 244c26-20 44-44 82-52" />
+
+            <!-- 路线上的点 -->
+            <circle cx="62" cy="320" r="5" class="nf-node" />
+            <circle cx="220" cy="290" r="5" class="nf-node" />
+
+            <!-- 丢失的位置：悬浮图钉 -->
+            <g class="nf-pin">
+              <circle cx="360" cy="192" r="26" class="nf-pin__halo" />
+              <path class="nf-pin__body" d="M360 158c-13.3 0-24 10.7-24 24 0 18 24 38 24 38s24-20 24-38c0-13.3-10.7-24-24-24z" />
+              <circle cx="360" cy="182" r="8" class="nf-pin__hole" />
+            </g>
+
+            <!-- 散落的问号方块 -->
+            <rect x="76" y="96" width="34" height="34" rx="10" class="nf-block" />
+            <rect x="128" y="60" width="22" height="22" rx="7" class="nf-block nf-block--faint" />
+            <rect x="316" y="66" width="28" height="28" rx="9" class="nf-block" />
+            <rect x="58" y="212" width="20" height="20" rx="6" class="nf-block nf-block--faint" />
+          </svg>
         </div>
       </div>
-
-      <!-- Text Content -->
-      <div class="mb-8">
-        <h1 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('errors.pageNotFound') }}
-        </h1>
-        <p class="text-gray-500 dark:text-dark-400">
-          The page you are looking for doesn't exist or has been moved.
-        </p>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex flex-col justify-center gap-3 sm:flex-row">
-        <button @click="goBack" class="btn btn-secondary">
-          <Icon name="arrowLeft" size="md" class="mr-2" />
-          Go Back
-        </button>
-        <router-link to="/dashboard" class="btn btn-primary">
-          <Icon name="home" size="md" class="mr-2" />
-          Go to Dashboard
-        </router-link>
-      </div>
-
-      <!-- Help Link -->
-      <p class="mt-8 text-sm text-gray-400 dark:text-dark-500">
-        Need help?
-        <a
-          href="#"
-          class="text-primary-600 transition-colors hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-        >
-          Contact support
-        </a>
-      </p>
-    </div>
-  </div>
+    </section>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import Icon from '@/components/icons/Icon.vue'
+import UserShell from '@/components/shell/UserShell.vue'
+import { useMiscCopy } from '@/composables/copy/misc'
 
-const { t } = useI18n()
 const router = useRouter()
+const { c } = useMiscCopy()
 
 function goBack(): void {
   router.back()
 }
 </script>
+
+<style scoped>
+.nf { padding-top: clamp(56px, 9vw, 128px); padding-bottom: clamp(72px, 10vw, 160px); }
+.nf__grid { display: grid; grid-template-columns: 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+.nf__code {
+  margin-top: 10px;
+  background: linear-gradient(100deg, var(--st-accent), color-mix(in srgb, var(--st-accent) 34%, var(--st-ink-strong)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.06em;
+  line-height: 0.86;
+}
+.nf__title { margin-top: 18px; }
+.nf__lede { margin-top: 16px; }
+.nf__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+.nf__help {
+  margin-top: 26px;
+  font-size: 0.86rem;
+  line-height: 1.7;
+  color: var(--st-ink-faint);
+  max-width: 46ch;
+}
+
+.nf__art { justify-self: center; width: min(420px, 100%); }
+.nf__svg { width: 100%; height: auto; overflow: visible; }
+
+.nf-ring { fill: none; stroke: var(--st-line-strong); stroke-width: 1; stroke-dasharray: 2 7; }
+.nf-ring--faint { stroke: var(--st-line); }
+
+.nf-route {
+  fill: none;
+  stroke: var(--st-accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 340;
+  stroke-dashoffset: 340;
+  animation: nf-draw 1.8s var(--st-ease) 0.2s forwards;
+}
+.nf-route--dash {
+  stroke: var(--st-ink-faint);
+  stroke-dasharray: 3 9;
+  stroke-width: 1.6;
+  animation: nf-fade 1.2s var(--st-ease) 1.4s forwards;
+  opacity: 0;
+}
+@keyframes nf-draw { to { stroke-dashoffset: 0; } }
+@keyframes nf-fade { to { opacity: 1; } }
+
+.nf-node { fill: var(--st-bg-elev); stroke: var(--st-accent); stroke-width: 2; }
+
+.nf-pin__halo { fill: color-mix(in srgb, var(--st-accent) 14%, transparent); }
+.nf-pin__body { fill: var(--st-accent); }
+.nf-pin__hole { fill: var(--st-bg-elev); }
+.nf-pin { animation: nf-float 5.5s var(--st-ease-out) infinite alternate; }
+@keyframes nf-float {
+  from { transform: translateY(-3px); }
+  to { transform: translateY(5px); }
+}
+
+.nf-block { fill: none; stroke: var(--st-line-strong); stroke-width: 1.4; }
+.nf-block--faint { stroke: var(--st-line); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-route, .nf-route--dash, .nf-pin { animation: none; }
+  .nf-route { stroke-dashoffset: 0; }
+  .nf-route--dash { opacity: 1; }
+}
+
+@media (min-width: 900px) {
+  .nf__grid { grid-template-columns: 1.05fr 0.95fr; }
+}
+</style>

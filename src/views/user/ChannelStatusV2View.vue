@@ -1,19 +1,14 @@
 <template>
-  <AppLayout>
-    <div class="space-y-6 pb-12">
+  <UserShell>
+    <div class="st-shell monitor-v2">
       <!-- Ops-style elevated shell: title toolbar + filters (mirrors OpsDashboardHeader) -->
-      <section
-        class="card sticky top-0 z-20 !rounded-3xl !border-0 p-0 shadow-sm ring-1 ring-gray-900/5 backdrop-blur-sm dark:!bg-dark-800 dark:ring-dark-700 supports-[backdrop-filter]:bg-white/95 dark:supports-[backdrop-filter]:bg-dark-800/95"
-      >
-        <header class="page-header mb-0 flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 dark:border-dark-700 sm:px-6">
+      <section class="st-card monitor-v2__toolbar">
+        <header class="monitor-v2__head">
           <div class="min-w-0">
-            <h1 class="page-title flex items-center gap-2 text-xl font-black text-gray-900 dark:text-white">
-              <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400">
-                <Icon name="chart" size="sm" />
-              </span>
+            <h1 class="st-display-2 monitor-v2__title">
               {{ t('channelMonitorV2.title') }}
             </h1>
-            <div class="page-description mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <div class="monitor-v2__status">
               <span class="relative flex h-2 w-2 shrink-0">
                 <span
                   class="relative inline-flex h-2 w-2 rounded-full"
@@ -454,14 +449,14 @@
         </div>
       </section>
     </div>
-  </AppLayout>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AppLayout from '@/components/layout/AppLayout.vue'
+import UserShell from '@/components/shell/UserShell.vue'
 import Icon from '@/components/icons/Icon.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import Select from '@/components/common/Select.vue'
@@ -962,3 +957,42 @@ details > summary::-webkit-details-marker {
   display: none;
 }
 </style>
+
+
+<style scoped>
+.monitor-v2 {
+  padding-block: clamp(20px, 3vw, 40px) clamp(48px, 7vw, 88px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.monitor-v2__toolbar {
+  position: sticky;
+  top: 80px;
+  z-index: 20;
+  padding: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--st-bg-elev) 92%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+.monitor-v2__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px clamp(16px, 2vw, 22px);
+  border-bottom: 1px solid var(--st-line);
+}
+.monitor-v2__title { font-size: clamp(1.4rem, 2.2vw, 1.9rem); }
+.monitor-v2__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--st-ink-faint);
+}
+</style>
+

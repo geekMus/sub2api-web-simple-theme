@@ -1,7 +1,7 @@
 <template>
-  <AppLayout>
+  <UserShell :show-footer="false">
     <div class="custom-page-layout">
-      <div class="card flex-1 min-h-0 overflow-hidden">
+      <div class="st-card custom-page-panel">
         <div v-if="loading" class="flex h-full items-center justify-center py-12">
           <div
             class="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"
@@ -122,7 +122,7 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
@@ -133,7 +133,7 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { useAuthStore } from '@/stores/auth'
 import { useAdminSettingsStore } from '@/stores/adminSettings'
-import AppLayout from '@/components/layout/AppLayout.vue'
+import UserShell from '@/components/shell/UserShell.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { buildApiUrl } from '@/api/client'
 import { buildEmbeddedUrl, detectTheme } from '@/utils/embedded-url'
@@ -455,7 +455,11 @@ onUnmounted(() => {
 <style scoped>
 .custom-page-layout {
   @apply flex flex-col;
-  height: calc(100vh - 64px - 4rem);
+  height: calc(100vh - 72px - 3rem);
+  padding: clamp(16px, 2.4vw, 32px) var(--st-gutter);
+  max-width: var(--st-max);
+  margin-inline: auto;
+  width: 100%;
 }
 
 .toc-sidebar {
@@ -582,3 +586,62 @@ onUnmounted(() => {
 .copy-btn:hover { background: rgba(255, 255, 255, 0.25); }
 pre:hover .copy-btn { opacity: 1; }
 </style>
+
+<style scoped>
+.custom-page-layout { padding-block: 0; }
+.custom-page-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--st-radius-lg);
+  background: var(--st-bg-elev);
+  display: flex;
+  flex-direction: column;
+}
+.toc-sidebar {
+  border-right: 1px solid var(--st-line) !important;
+  background: var(--st-bg-sunk) !important;
+}
+.toc-header { border-bottom: 1px solid var(--st-line) !important; padding: 14px 16px !important; }
+.toc-title { font-size: 11px !important; letter-spacing: 0.14em; text-transform: uppercase; color: var(--st-ink-faint) !important; }
+.toc-nav { padding: 10px 8px !important; }
+.toc-item {
+  border-radius: 8px !important;
+  font-size: 0.82rem !important;
+  color: var(--st-ink-soft) !important;
+  padding-block: 6px !important;
+}
+.toc-item:hover { background: var(--st-accent-soft) !important; color: var(--st-ink) !important; }
+.toc-item.toc-active { background: var(--st-accent-soft) !important; color: var(--st-accent) !important; font-weight: 600 !important; }
+.toc-toggle-btn {
+  border: 1px solid var(--st-line-strong) !important;
+  background: var(--st-bg-elev) !important;
+  color: var(--st-ink-soft) !important;
+  border-radius: 999px !important;
+  box-shadow: var(--st-shadow-sm) !important;
+}
+.custom-embed-shell { border-radius: var(--st-radius-lg); background: var(--st-bg-sunk) !important; }
+.custom-open-fab { border-radius: 999px !important; }
+</style>
+<style>
+.markdown-page-content { line-height: 1.8; color: var(--st-ink-soft); max-width: 72ch; margin-inline: auto; }
+.markdown-page-content h1 { font-size: 1.7rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink-strong); margin: 1.6em 0 0.6em; padding-bottom: 10px; border-bottom: 1px solid var(--st-line); }
+.markdown-page-content h2 { font-size: 1.28rem; font-weight: 600; color: var(--st-ink-strong); margin: 1.5em 0 0.5em; }
+.markdown-page-content h3 { font-size: 1.06rem; font-weight: 600; color: var(--st-ink); margin: 1.3em 0 0.4em; }
+.markdown-page-content p { margin-bottom: 1.05em; }
+.markdown-page-content ul { list-style: disc; padding-left: 1.4em; margin-bottom: 1.05em; }
+.markdown-page-content ol { list-style: decimal; padding-left: 1.4em; margin-bottom: 1.05em; }
+.markdown-page-content li { margin-bottom: 0.35em; }
+.markdown-page-content a { color: var(--st-accent); text-underline-offset: 3px; }
+.markdown-page-content blockquote { border-left: 2px solid var(--st-accent-line); padding-left: 16px; color: var(--st-ink-soft); margin: 1.3em 0; }
+.markdown-page-content code { font-family: var(--st-font-mono); font-size: 0.86em; background: var(--st-bg-sunk); border: 1px solid var(--st-line); border-radius: 6px; padding: 2px 6px; }
+.markdown-page-content pre { background: var(--st-bg-sunk); border: 1px solid var(--st-line); border-radius: var(--st-radius-md); padding: 16px 18px; overflow-x: auto; margin: 1.3em 0; position: relative; }
+.markdown-page-content pre code { background: transparent; border: 0; padding: 0; color: var(--st-ink-soft); }
+.markdown-page-content table { width: 100%; border-collapse: collapse; margin: 1.3em 0; font-size: 0.88rem; }
+.markdown-page-content th, .markdown-page-content td { border-bottom: 1px solid var(--st-line); padding: 9px 12px; text-align: left; }
+.markdown-page-content th { font-size: 0.76rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--st-ink-faint); }
+.markdown-page-content img { max-width: 100%; height: auto; border-radius: var(--st-radius-md); margin: 1.3em 0; }
+.markdown-page-content hr { border: 0; height: 1px; background: var(--st-line); margin: 2em 0; }
+.copy-btn { border-radius: 999px; background: var(--st-bg-elev); color: var(--st-ink-soft); border: 1px solid var(--st-line-strong); }
+</style>
+

@@ -1,158 +1,134 @@
 <template>
-  <AppLayout>
-    <div class="space-y-6">
-      <div v-if="loading" class="flex justify-center py-12">
-        <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"
-        ></div>
-      </div>
+  <UserShell>
+    <section class="st-section--tight aff">
+      <div class="st-shell">
+        <header class="aff__hero">
+          <p class="st-eyebrow st-reveal">{{ c('aff.eyebrow') }}</p>
+          <h1 class="st-display-2 aff__title st-reveal" style="--i: 1">{{ c('aff.title') }}</h1>
+          <p class="st-lede aff__lede st-reveal" style="--i: 2">{{ c('aff.lede') }}</p>
+        </header>
 
-      <template v-else-if="detail">
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="card p-5">
-            <p class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-dark-400">
-              <Icon name="dollar" size="sm" class="text-primary-500" />
-              {{ t('affiliate.stats.rebateRate') }}
-            </p>
-            <p class="mt-2 text-2xl font-semibold text-primary-600 dark:text-primary-400">
-              {{ formattedRebateRate }}<span class="ml-0.5 text-base font-medium">%</span>
-            </p>
-            <p class="mt-1 text-xs text-gray-400 dark:text-dark-500">
-              {{ t('affiliate.stats.rebateRateHint') }}
-            </p>
-          </div>
-          <div class="card p-5">
-            <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.invitedUsers') }}</p>
-            <p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ formatCount(detail.aff_count) }}
-            </p>
-          </div>
-          <div class="card p-5">
-            <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.availableQuota') }}</p>
-            <p class="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
-              {{ formatCurrency(detail.aff_quota) }}
-            </p>
-          </div>
-          <div class="card p-5">
-            <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.totalQuota') }}</p>
-            <p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ formatCurrency(detail.aff_history_quota) }}
-            </p>
-            <p v-if="detail.aff_frozen_quota > 0" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
-              {{ t('affiliate.stats.frozenQuota') }}: {{ formatCurrency(detail.aff_frozen_quota) }}
-            </p>
-          </div>
+        <!-- 加载 -->
+        <div v-if="loading" class="aff__stats" aria-busy="true">
+          <div v-for="i in 4" :key="i" class="st-card st-skeleton aff__sk-stat"></div>
         </div>
 
-        <div class="card p-6">
-          <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('affiliate.title') }}</h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.description') }}</p>
-
-          <div class="mt-5 grid gap-4 md:grid-cols-2">
-            <div class="space-y-2">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('affiliate.yourCode') }}</p>
-              <div class="flex flex-col items-stretch gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-dark-700 dark:bg-dark-900 sm:flex-row sm:items-center">
-                <code class="min-w-0 break-all text-sm font-semibold text-gray-900 dark:text-white sm:flex-1 sm:truncate">{{ detail.aff_code }}</code>
-                <button class="btn btn-secondary btn-sm w-full sm:w-auto sm:shrink-0" @click="copyCode">
-                  <Icon name="copy" size="sm" />
-                  <span>{{ t('affiliate.copyCode') }}</span>
-                </button>
-              </div>
+        <template v-else-if="detail">
+          <!-- 数字 -->
+          <div class="aff__stats aff__stats--live st-reveal" style="--i: 2">
+            <div class="st-card st-card--pad aff__stat aff__stat--accent">
+              <p class="st-stat__label">{{ t('affiliate.stats.rebateRate') }}</p>
+              <p class="st-stat__value st-num">{{ formattedRebateRate }}<span class="st-stat__unit">%</span></p>
+              <p class="aff__hint">{{ t('affiliate.stats.rebateRateHint') }}</p>
             </div>
-
-            <div class="space-y-2">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('affiliate.inviteLink') }}</p>
-              <div class="flex flex-col items-stretch gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-dark-700 dark:bg-dark-900 sm:flex-row sm:items-center">
-                <code class="min-w-0 break-all text-sm text-gray-700 dark:text-gray-300 sm:flex-1 sm:truncate">{{ inviteLink }}</code>
-                <button class="btn btn-secondary btn-sm w-full sm:w-auto sm:shrink-0" @click="copyInviteLink">
-                  <Icon name="copy" size="sm" />
-                  <span>{{ t('affiliate.copyLink') }}</span>
-                </button>
-              </div>
+            <div class="st-card st-card--pad aff__stat">
+              <p class="st-stat__label">{{ t('affiliate.stats.invitedUsers') }}</p>
+              <p class="st-stat__value st-num">{{ formatCount(detail.aff_count) }}</p>
+            </div>
+            <div class="st-card st-card--pad aff__stat">
+              <p class="st-stat__label">{{ t('affiliate.stats.availableQuota') }}</p>
+              <p class="st-stat__value st-num aff__value--accent">{{ formatCurrency(detail.aff_quota) }}</p>
+            </div>
+            <div class="st-card st-card--pad aff__stat">
+              <p class="st-stat__label">{{ t('affiliate.stats.totalQuota') }}</p>
+              <p class="st-stat__value st-num">{{ formatCurrency(detail.aff_history_quota) }}</p>
+              <p v-if="detail.aff_frozen_quota > 0" class="aff__hint aff__hint--warn">
+                {{ t('affiliate.stats.frozenQuota') }}: {{ formatCurrency(detail.aff_frozen_quota) }}
+              </p>
             </div>
           </div>
 
-          <div class="mt-5 rounded-xl border border-primary-200 bg-primary-50 p-4 dark:border-primary-900/40 dark:bg-primary-900/20">
-            <p class="text-sm font-medium text-primary-800 dark:text-primary-200">{{ t('affiliate.tips.title') }}</p>
-            <ul class="mt-2 space-y-1 text-sm text-primary-700 dark:text-primary-300">
-              <li>1. {{ t('affiliate.tips.line1') }}</li>
-              <li>2. {{ t('affiliate.tips.line2', { rate: `${formattedRebateRate}%` }) }}</li>
-              <li>3. {{ t('affiliate.tips.line3') }}</li>
-              <li v-if="detail.aff_frozen_quota > 0">4. {{ t('affiliate.tips.line4') }}</li>
+          <!-- 邀请链接 -->
+          <section class="st-card st-card--pad aff__card st-reveal" style="--i: 3">
+            <h2 class="st-display-3">{{ c('aff.inviteTitle') }}</h2>
+            <p class="st-body">{{ t('affiliate.description') }}</p>
+
+            <div class="aff__fields">
+              <div class="aff__field">
+                <p class="st-label">{{ t('affiliate.yourCode') }}</p>
+                <div class="aff__valuebox">
+                  <code class="aff__code">{{ detail.aff_code }}</code>
+                  <button class="st-btn st-btn--quiet st-btn--sm" @click="copyCode">{{ t('affiliate.copyCode') }}</button>
+                </div>
+              </div>
+              <div class="aff__field">
+                <p class="st-label">{{ t('affiliate.inviteLink') }}</p>
+                <div class="aff__valuebox">
+                  <code class="aff__link">{{ inviteLink }}</code>
+                  <button class="st-btn st-btn--quiet st-btn--sm" @click="copyInviteLink">{{ t('affiliate.copyLink') }}</button>
+                </div>
+              </div>
+            </div>
+
+            <ul class="aff__tips">
+              <li>01 · {{ t('affiliate.tips.line1') }}</li>
+              <li>02 · {{ t('affiliate.tips.line2', { rate: `${formattedRebateRate}%` }) }}</li>
+              <li>03 · {{ t('affiliate.tips.line3') }}</li>
+              <li v-if="detail.aff_frozen_quota > 0">04 · {{ t('affiliate.tips.line4') }}</li>
             </ul>
-          </div>
-        </div>
+          </section>
 
-        <div class="card p-6">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <!-- 转余额 -->
+          <section class="st-card st-card--pad aff__card aff__transfer st-reveal" style="--i: 4">
             <div>
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('affiliate.transfer.title') }}</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.transfer.description') }}</p>
+              <h2 class="st-display-3">{{ c('aff.transferTitle') }}</h2>
+              <p class="st-body">{{ t('affiliate.transfer.description') }}</p>
+              <p v-if="detail.aff_quota <= 0" class="aff__hint aff__hint--warn">{{ t('affiliate.transfer.empty') }}</p>
             </div>
-            <button
-              class="btn btn-primary"
-              :disabled="transferring || detail.aff_quota <= 0"
-              @click="transferQuota"
-            >
-              <Icon v-if="transferring" name="refresh" size="sm" class="animate-spin" />
-              <Icon v-else name="dollar" size="sm" />
-              <span>{{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}</span>
+            <button class="st-btn st-btn--primary" :disabled="transferring || detail.aff_quota <= 0" @click="transferQuota">
+              {{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}
             </button>
-          </div>
-          <p v-if="detail.aff_quota <= 0" class="mt-3 text-sm text-amber-600 dark:text-amber-400">
-            {{ t('affiliate.transfer.empty') }}
-          </p>
-        </div>
+          </section>
 
-        <div class="card p-6">
-          <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('affiliate.invitees.title') }}</h3>
-          <div v-if="detail.invitees.length === 0" class="mt-4 rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-dark-700 dark:text-dark-400">
-            {{ t('affiliate.invitees.empty') }}
-          </div>
-          <div v-else class="mt-4 overflow-x-auto">
-            <table class="w-full min-w-[560px] text-left text-sm">
-              <thead>
-                <tr class="border-b border-gray-200 text-gray-500 dark:border-dark-700 dark:text-dark-400">
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.email') }}</th>
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.username') }}</th>
-                  <th class="px-3 py-2 font-medium text-right">{{ t('affiliate.invitees.columns.rebate') }}</th>
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.joinedAt') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="item in detail.invitees"
-                  :key="item.user_id"
-                  class="border-b border-gray-100 last:border-b-0 dark:border-dark-800"
-                >
-                  <td class="px-3 py-3 text-gray-900 dark:text-white">{{ item.email || '-' }}</td>
-                  <td class="px-3 py-3 text-gray-700 dark:text-gray-300">{{ item.username || '-' }}</td>
-                  <td class="px-3 py-3 text-right font-medium text-emerald-600 dark:text-emerald-400">{{ formatCurrency(item.total_rebate) }}</td>
-                  <td class="px-3 py-3 text-gray-700 dark:text-gray-300">{{ formatDateTime(item.created_at) || '-' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </template>
-    </div>
-  </AppLayout>
+          <!-- 邀请列表 -->
+          <section class="st-card st-card--pad aff__card st-reveal" style="--i: 5">
+            <div class="aff__list-head">
+              <h2 class="st-display-3">{{ c('aff.inviteesTitle') }}</h2>
+              <span class="st-pill st-num">{{ detail.invitees.length }}</span>
+            </div>
+
+            <div v-if="detail.invitees.length === 0" class="aff__empty">
+              <span class="aff__empty-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" stroke-linecap="round" />
+                  <circle cx="9.5" cy="8" r="3" />
+                  <path d="M18 8v6M21 11h-6" stroke-linecap="round" />
+                </svg>
+              </span>
+              <p>{{ c('aff.inviteesEmpty') }}</p>
+            </div>
+
+            <ul v-else class="st-list aff__invitees">
+              <li v-for="item in detail.invitees" :key="item.user_id" class="st-row aff__invitee">
+                <div class="aff__invitee-main">
+                  <p class="st-row__title">{{ item.username || item.email || '-' }}</p>
+                  <p class="st-row__meta">{{ item.email || '-' }} · {{ formatDateTime(item.created_at) || '-' }}</p>
+                </div>
+                <span class="aff__rebate st-num">+{{ formatCurrency(item.total_rebate) }}</span>
+              </li>
+            </ul>
+          </section>
+        </template>
+      </div>
+    </section>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppLayout from '@/components/layout/AppLayout.vue'
-import Icon from '@/components/icons/Icon.vue'
+import UserShell from '@/components/shell/UserShell.vue'
 import userAPI from '@/api/user'
 import type { UserAffiliateDetail } from '@/types'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { useClipboard } from '@/composables/useClipboard'
+import { useMiscCopy } from '@/composables/copy/misc'
 import { formatCurrency, formatDateTime } from '@/utils/format'
 import { extractApiErrorMessage } from '@/utils/apiError'
 
 const { t } = useI18n()
+const { c } = useMiscCopy()
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const { copyToClipboard } = useClipboard()
@@ -225,3 +201,108 @@ onMounted(() => {
   void loadAffiliateDetail()
 })
 </script>
+
+<style scoped>
+.aff { padding-bottom: clamp(56px, 8vw, 96px); }
+.aff__hero { max-width: 58ch; margin-bottom: clamp(24px, 3.4vw, 40px); }
+.aff__title { margin-top: 14px; }
+.aff__lede { margin-top: 14px; }
+
+.aff__stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.aff__sk-stat { height: 128px; }
+.aff__stat { display: flex; flex-direction: column; gap: 6px; }
+.aff__stat--accent { border-color: var(--st-accent-line); background: color-mix(in srgb, var(--st-accent) 6%, var(--st-bg-elev)); }
+.aff__value--accent { color: var(--st-accent); }
+.aff__hint { font-size: 0.76rem; line-height: 1.6; color: var(--st-ink-faint); }
+.aff__hint--warn { color: hsl(36 88% 48%); }
+
+.aff__card { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+
+.aff__fields { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 4px; }
+.aff__field { min-width: 0; }
+.aff__valuebox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 14px;
+  border-radius: var(--st-radius-md);
+  border: 1px solid var(--st-line-strong);
+  background: var(--st-bg-sunk);
+}
+.aff__code {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--st-font-mono);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--st-ink);
+  overflow-wrap: anywhere;
+}
+.aff__link {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--st-font-mono);
+  font-size: 0.76rem;
+  color: var(--st-ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aff__valuebox .st-btn { flex-shrink: 0; }
+
+.aff__tips {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  border-top: 1px solid var(--st-line);
+}
+.aff__tips li {
+  padding: 9px 0;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--st-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.aff__tips li + li { border-top: 1px dashed var(--st-line); }
+
+.aff__transfer { flex-direction: row; align-items: center; justify-content: space-between; gap: 18px; }
+.aff__transfer .st-btn { flex-shrink: 0; }
+
+.aff__list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.aff__invitees { margin-top: 2px; }
+.aff__invitee { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-inline: 8px; }
+.aff__invitee-main { min-width: 0; }
+.aff__invitee-main .st-row__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aff__rebate { font-size: 0.88rem; font-weight: 600; color: var(--st-accent); white-space: nowrap; }
+
+.aff__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 0.86rem;
+  color: var(--st-ink-faint);
+  border: 1px dashed var(--st-line-strong);
+  border-radius: var(--st-radius-md);
+}
+.aff__empty-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--st-line); color: var(--st-ink-faint); }
+
+@media (min-width: 720px) {
+  .aff__stats { grid-template-columns: repeat(2, 1fr); }
+  .aff__fields { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1080px) {
+  .aff__stats { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 640px) {
+  .aff__transfer { flex-direction: column; align-items: stretch; }
+  .aff__transfer .st-btn { width: 100%; }
+}
+</style>

@@ -156,6 +156,8 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: devPort,
+      // 某些编辑工具会写原子替换临时目录，chokidar 监听它会 EBUSY 崩掉 dev server
+      watch: { ignored: ['**/.*.tmpdir/**', '**/*.tmp', '**/.git/**'] },
       proxy: {
         '/api': {
           target: backendUrl,

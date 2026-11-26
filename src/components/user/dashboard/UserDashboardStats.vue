@@ -1,235 +1,171 @@
 <template>
-  <!-- Row 1: Core Stats -->
-  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-    <!-- Balance -->
-    <div v-if="!isSimple" class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-emerald-100 p-2 dark:bg-emerald-900/30">
-          <svg class="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-          </svg>
-        </div>
-        <div>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.balance') }}</p>
-          <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400">${{ formatBalance(balance) }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('common.available') }}</p>
-        </div>
-      </div>
+  <div class="dash-stats">
+    <!-- 关键数字：余额是主角 -->
+    <div class="dash-stats__grid">
+      <article v-if="!isSimple" class="st-card st-card--pad st-card--halo dash-stats__hero">
+        <header class="dash-stats__hero-head">
+          <p class="st-eyebrow">{{ c('usercore.dash.balance') }}</p>
+          <span class="st-pill st-pill--accent st-pill--dot">{{ c('usercore.available') }}</span>
+        </header>
+        <p class="dash-stats__balance st-num">
+          ${{ formatBalance(balance) }}<span class="dash-stats__unit">{{ c('usercore.dash.balanceUnit') }}</span>
+        </p>
+        <p class="dash-stats__hero-note">{{ c('usercore.dash.balanceNote') }}</p>
+        <span class="dash-stats__arc" aria-hidden="true"></span>
+      </article>
+
+      <article class="st-card st-card--pad st-card--lift dash-stats__tile">
+        <p class="st-stat__label">{{ c('usercore.dash.todayCalls') }}</p>
+        <p class="st-stat__value st-num">{{ formatNumber(stats?.today_requests || 0) }}</p>
+        <p class="dash-stats__tile-meta">
+          {{ c('usercore.total') }} <span class="st-num">{{ formatNumber(stats?.total_requests || 0) }}</span>
+        </p>
+      </article>
+
+      <article class="st-card st-card--pad st-card--lift dash-stats__tile">
+        <p class="st-stat__label">{{ c('usercore.dash.todayTokens') }}</p>
+        <p class="st-stat__value st-num">{{ formatTokens(stats?.today_tokens || 0) }}</p>
+        <p class="dash-stats__tile-meta">
+          {{ c('usercore.dash.tokensInOut', { input: formatTokens(stats?.today_input_tokens || 0), output: formatTokens(stats?.today_output_tokens || 0) }) }}
+        </p>
+      </article>
+
+      <article class="st-card st-card--pad st-card--lift dash-stats__tile">
+        <p class="st-stat__label">{{ c('usercore.dash.totalSpend') }}</p>
+        <p class="st-stat__value st-num">
+          ${{ formatCost(stats?.total_actual_cost || 0) }}<span class="st-stat__unit">{{ c('usercore.dash.balanceUnit') }}</span>
+        </p>
+        <p class="dash-stats__tile-meta">
+          {{ c('usercore.today') }} <span class="st-num">${{ formatCost(stats?.today_actual_cost || 0) }}</span>
+        </p>
+      </article>
     </div>
 
-    <!-- API Keys -->
-    <div class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/30">
-          <Icon name="key" size="md" class="text-blue-600 dark:text-blue-400" :stroke-width="2" />
-        </div>
-        <div>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.apiKeys') }}</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-white">{{ stats?.total_api_keys || 0 }}</p>
-          <p class="text-xs text-green-600 dark:text-green-400">{{ stats?.active_api_keys || 0 }} {{ t('common.active') }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Today Requests -->
-    <div class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-green-100 p-2 dark:bg-green-900/30">
-          <Icon name="chart" size="md" class="text-green-600 dark:text-green-400" :stroke-width="2" />
-        </div>
-        <div>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.todayRequests') }}</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-white">{{ stats?.today_requests || 0 }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('common.total') }}: {{ formatNumber(stats?.total_requests || 0) }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Today Cost -->
-    <div class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-purple-100 p-2 dark:bg-purple-900/30">
-          <Icon name="dollar" size="md" class="text-purple-600 dark:text-purple-400" :stroke-width="2" />
-        </div>
-        <div>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.todayCost') }}</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-white">
-            <span class="text-purple-600 dark:text-purple-400" :title="t('dashboard.actual')">${{ formatCost(stats?.today_actual_cost || 0) }}</span>
-            <span class="text-sm font-normal text-gray-400 dark:text-gray-500" :title="t('dashboard.standard')"> / ${{ formatCost(stats?.today_cost || 0) }}</span>
-          </p>
-          <p class="text-xs">
-            <span class="text-gray-500 dark:text-gray-400">{{ t('common.total') }}: </span>
-            <span class="text-purple-600 dark:text-purple-400" :title="t('dashboard.actual')">${{ formatCost(stats?.total_actual_cost || 0) }}</span>
-            <span class="text-gray-400 dark:text-gray-500" :title="t('dashboard.standard')"> / ${{ formatCost(stats?.total_cost || 0) }}</span>
+    <!-- 细节条：把剩余指标收进一行，不堆卡片 -->
+    <div class="st-card st-card--pad dash-stats__strip">
+      <p class="st-rule-title">{{ c('usercore.dash.more') }}</p>
+      <dl class="dash-stats__strip-body">
+        <div class="dash-stats__cell">
+          <dt>{{ c('usercore.dash.keysTitle') }}</dt>
+          <dd class="st-num">{{ stats?.active_api_keys || 0 }}<span class="dash-stats__cell-sub">/{{ stats?.total_api_keys || 0 }}</span></dd>
+          <p class="dash-stats__cell-meta">
+            {{ c('usercore.dash.keysMeta', { active: stats?.active_api_keys || 0, total: stats?.total_api_keys || 0 }) }}
           </p>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Row 2: Token Stats -->
-  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-    <!-- Today Tokens -->
-    <div class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-amber-100 p-2 dark:bg-amber-900/30">
-          <Icon name="cube" size="md" class="text-amber-600 dark:text-amber-400" :stroke-width="2" />
+        <div class="dash-stats__cell">
+          <dt>{{ c('usercore.dash.totalTokens') }}</dt>
+          <dd class="st-num">{{ formatTokens(stats?.total_tokens || 0) }}</dd>
+          <p class="dash-stats__cell-meta">
+            {{ c('usercore.dash.tokensInOut', { input: formatTokens(stats?.total_input_tokens || 0), output: formatTokens(stats?.total_output_tokens || 0) }) }}
+          </p>
         </div>
+        <div class="dash-stats__cell">
+          <dt>{{ c('usercore.dash.speed') }}</dt>
+          <dd class="st-num">{{ formatTokens(stats?.rpm || 0) }}<span class="dash-stats__cell-sub">RPM</span></dd>
+          <p class="dash-stats__cell-meta">
+            <span class="st-num">{{ formatTokens(stats?.tpm || 0) }}</span> TPM
+          </p>
+        </div>
+        <div class="dash-stats__cell">
+          <dt>{{ c('usercore.dash.latency') }}</dt>
+          <dd class="st-num">{{ formatDuration(stats?.average_duration_ms || 0) }}</dd>
+          <p class="dash-stats__cell-meta">
+            {{ c('usercore.dash.tokensCache', { cache: formatTokens((stats?.total_cache_creation_tokens || 0) + (stats?.total_cache_read_tokens || 0)) }) }}
+          </p>
+        </div>
+      </dl>
+    </div>
+
+    <!-- 按平台拆开 -->
+    <section v-if="!isSimple && platformCards.length > 0" class="dash-stats__platform">
+      <header class="dash-stats__section-head">
         <div>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.todayTokens') }}</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatTokens(stats?.today_tokens || 0) }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('dashboard.input') }}: {{ formatTokens(stats?.today_input_tokens || 0) }} / {{ t('dashboard.output') }}: {{ formatTokens(stats?.today_output_tokens || 0) }} / {{ t('dashboard.cache') }}: {{ formatTokens((stats?.today_cache_creation_tokens || 0) + (stats?.today_cache_read_tokens || 0)) }}</p>
+          <p class="st-eyebrow">{{ t('dashboard.platformBreakdown') }}</p>
+          <h2 class="st-display-3 dash-stats__section-title">{{ c('usercore.dash.platformTitle') }}</h2>
+          <p class="st-body dash-stats__section-lede">{{ c('usercore.dash.platformLede') }}</p>
         </div>
-      </div>
-    </div>
+        <span class="st-pill">{{ t('dashboard.platformCount', { count: platformCount }) }}</span>
+      </header>
 
-    <!-- Total Tokens -->
-    <div class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-indigo-100 p-2 dark:bg-indigo-900/30">
-          <Icon name="database" size="md" class="text-indigo-600 dark:text-indigo-400" :stroke-width="2" />
-        </div>
-        <div>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.totalTokens') }}</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatTokens(stats?.total_tokens || 0) }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('dashboard.input') }}: {{ formatTokens(stats?.total_input_tokens || 0) }} / {{ t('dashboard.output') }}: {{ formatTokens(stats?.total_output_tokens || 0) }} / {{ t('dashboard.cache') }}: {{ formatTokens((stats?.total_cache_creation_tokens || 0) + (stats?.total_cache_read_tokens || 0)) }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Performance (RPM/TPM) -->
-    <div class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-violet-100 p-2 dark:bg-violet-900/30">
-          <Icon name="bolt" size="md" class="text-violet-600 dark:text-violet-400" :stroke-width="2" />
-        </div>
-        <div class="flex-1">
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.performance') }}</p>
-          <div class="flex items-baseline gap-2">
-            <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatTokens(stats?.rpm || 0) }}</p>
-            <span class="text-xs text-gray-500 dark:text-gray-400">RPM</span>
-          </div>
-          <div class="flex items-baseline gap-2">
-            <p class="text-sm font-semibold text-violet-600 dark:text-violet-400">{{ formatTokens(stats?.tpm || 0) }}</p>
-            <span class="text-xs text-gray-500 dark:text-gray-400">TPM</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Avg Response Time -->
-    <div class="card p-4">
-      <div class="flex items-center gap-3">
-        <div class="rounded-lg bg-rose-100 p-2 dark:bg-rose-900/30">
-          <Icon name="clock" size="md" class="text-rose-600 dark:text-rose-400" :stroke-width="2" />
-        </div>
-        <div>
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('dashboard.avgResponse') }}</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-white">{{ formatDuration(stats?.average_duration_ms || 0) }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('dashboard.averageTime') }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Row 3: Per-platform breakdown -->
-  <div v-if="!isSimple && platformCards.length > 0" class="card p-4">
-    <div class="mb-3 flex items-center justify-between">
-      <h3 class="text-sm font-semibold text-gray-900 dark:text-white">{{ t('dashboard.platformBreakdown') }}</h3>
-      <span class="text-xs text-gray-500 dark:text-gray-400">
-        {{ t('dashboard.platformCount', { count: platformCount }) }}
-      </span>
-    </div>
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div
-        v-for="item in platformCards"
-        :key="item.platform"
-        data-testid="platform-card"
-        :data-platform="item.platform"
-        :class="[
-          'rounded-lg border p-3',
-          item.isOther
-            ? 'border-dashed border-gray-300 bg-gray-50 dark:border-dark-500 dark:bg-dark-700/30'
-            : 'border-gray-200 dark:border-dark-600'
-        ]"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-semibold text-gray-900 dark:text-white">
-            {{ item.isOther ? t('dashboard.platformOther') : platformLabel(item.platform) }}
-          </span>
-          <span class="font-mono text-sm text-purple-600 dark:text-purple-400" :title="t('dashboard.actual')">
-            ${{ formatCost(item.total_actual_cost) }}
-          </span>
-        </div>
-        <div class="mt-2 space-y-1 text-xs">
-          <div class="flex items-center justify-between">
-            <span class="text-gray-500 dark:text-gray-400">{{ t('dashboard.todayCost') }}</span>
-            <span class="font-mono text-gray-900 dark:text-white">${{ formatCost(item.today_actual_cost) }}</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-gray-500 dark:text-gray-400">{{ t('dashboard.requests') }}</span>
-            <span class="font-mono text-gray-700 dark:text-gray-300">
-              {{ item.total_requests > 0 ? formatNumber(item.total_requests) : '-' }}
+      <div class="dash-stats__platform-grid">
+        <article
+          v-for="item in platformCards"
+          :key="item.platform"
+          data-testid="platform-card"
+          :data-platform="item.platform"
+          class="st-card st-card--pad st-card--lift dash-stats__plat"
+          :class="{ 'dash-stats__plat--other': item.isOther }"
+        >
+          <header class="dash-stats__plat-head">
+            <span class="dash-stats__plat-name">
+              {{ item.isOther ? c('usercore.dash.platformOther') : platformLabel(item.platform) }}
             </span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-gray-500 dark:text-gray-400">{{ t('dashboard.tokens') }}</span>
-            <span class="font-mono text-gray-700 dark:text-gray-300">
-              {{ item.total_tokens > 0 ? formatTokens(item.total_tokens) : '-' }}
+            <span class="dash-stats__plat-cost st-num" :title="t('dashboard.actual')">
+              ${{ formatCost(item.total_actual_cost) }}
             </span>
-          </div>
-        </div>
+          </header>
 
-        <!-- Quota 区：仅当 quota 配置存在、非 __other__ 且至少有一个窗口配了 limit 时显示 -->
-        <div v-if="hasAnyLimit(item.quota) && !item.isOther" class="mt-3 space-y-1.5 border-t border-gray-200 pt-2 dark:border-dark-700">
-          <p class="text-[10px] uppercase tracking-wide text-gray-400">
-            {{ t('dashboard.platformQuota.title') }}
-          </p>
-          <template v-for="w in (['daily', 'weekly', 'monthly'] as const)" :key="w">
-            <div v-if="quotaVal(item.quota, `${w}_limit_usd`) != null" class="space-y-0.5">
-              <!-- limit=0：完全禁用 -->
-              <template v-if="(quotaVal(item.quota, `${w}_limit_usd`) as number) === 0">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-600 dark:text-gray-300">{{ t(`dashboard.platformQuota.${w}`) }}</span>
-                  <span class="font-mono text-red-500">{{ t('dashboard.platformQuota.disabled') }}</span>
-                </div>
-                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-700">
-                  <div class="h-full w-full rounded-full bg-red-500" />
-                </div>
-              </template>
-              <!-- limit>0：正常用量进度条 -->
-              <template v-else>
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-600 dark:text-gray-300">{{ t(`dashboard.platformQuota.${w}`) }}</span>
-                  <span class="font-mono text-gray-700 dark:text-gray-200">
-                    ${{ formatUsd((quotaVal(item.quota, `${w}_usage_usd`) as number) ?? 0) }} / ${{ formatUsd(quotaVal(item.quota, `${w}_limit_usd`) as number) }}
-                  </span>
-                </div>
-                <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-700">
-                  <div
-                    class="h-full rounded-full transition-all"
-                    :class="quotaBarClass(calcPercent((quotaVal(item.quota, `${w}_usage_usd`) as number) ?? 0, quotaVal(item.quota, `${w}_limit_usd`) as number))"
-                    :style="{ width: calcPercent((quotaVal(item.quota, `${w}_usage_usd`) as number) ?? 0, quotaVal(item.quota, `${w}_limit_usd`) as number) + '%' }"
-                  />
-                </div>
-                <p v-if="quotaVal(item.quota, `${w}_window_resets_at`)" class="text-[10px] text-gray-400">
-                  {{ t('dashboard.platformQuota.resetsAt', { time: formatResetTime(quotaVal(item.quota, `${w}_window_resets_at`) as string) }) }}
-                </p>
-              </template>
+          <dl class="dash-stats__plat-rows">
+            <div>
+              <dt>{{ t('dashboard.todayCost') }}</dt>
+              <dd class="st-num">${{ formatCost(item.today_actual_cost) }}</dd>
             </div>
-          </template>
-        </div>
+            <div>
+              <dt>{{ t('dashboard.requests') }}</dt>
+              <dd class="st-num">{{ item.total_requests > 0 ? formatNumber(item.total_requests) : '-' }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('dashboard.tokens') }}</dt>
+              <dd class="st-num">{{ item.total_tokens > 0 ? formatTokens(item.total_tokens) : '-' }}</dd>
+            </div>
+          </dl>
+
+          <!-- 配额：仅在配置了限额时出现 -->
+          <div v-if="hasAnyLimit(item.quota) && !item.isOther" class="dash-stats__quota">
+            <p class="dash-stats__quota-title">{{ t('dashboard.platformQuota.title') }}</p>
+            <template v-for="w in (['daily', 'weekly', 'monthly'] as const)" :key="w">
+              <div v-if="quotaVal(item.quota, `${w}_limit_usd`) != null" class="dash-stats__quota-row">
+                <!-- limit=0：完全禁用 -->
+                <template v-if="(quotaVal(item.quota, `${w}_limit_usd`) as number) === 0">
+                  <div class="dash-stats__quota-line">
+                    <span class="dash-stats__quota-label">{{ t(`dashboard.platformQuota.${w}`) }}</span>
+                    <span class="dash-stats__quota-disabled">{{ t('dashboard.platformQuota.disabled') }}</span>
+                  </div>
+                  <div class="dash-stats__bar"><span class="dash-stats__bar-fill dash-stats__bar-fill--off"></span></div>
+                </template>
+                <template v-else>
+                  <div class="dash-stats__quota-line">
+                    <span class="dash-stats__quota-label">{{ t(`dashboard.platformQuota.${w}`) }}</span>
+                    <span class="dash-stats__quota-value st-num">
+                      ${{ formatUsd((quotaVal(item.quota, `${w}_usage_usd`) as number) ?? 0) }} / ${{ formatUsd(quotaVal(item.quota, `${w}_limit_usd`) as number) }}
+                    </span>
+                  </div>
+                  <div class="dash-stats__bar">
+                    <span
+                      class="dash-stats__bar-fill"
+                      :class="quotaBarClass(calcPercent((quotaVal(item.quota, `${w}_usage_usd`) as number) ?? 0, quotaVal(item.quota, `${w}_limit_usd`) as number))"
+                      :style="{ width: calcPercent((quotaVal(item.quota, `${w}_usage_usd`) as number) ?? 0, quotaVal(item.quota, `${w}_limit_usd`) as number) + '%' }"
+                    ></span>
+                  </div>
+                  <p v-if="quotaVal(item.quota, `${w}_window_resets_at`)" class="dash-stats__quota-reset">
+                    {{ t('dashboard.platformQuota.resetsAt', { time: formatResetTime(quotaVal(item.quota, `${w}_window_resets_at`) as string) }) }}
+                  </p>
+                </template>
+              </div>
+            </template>
+          </div>
+        </article>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Icon from '@/components/icons/Icon.vue'
 import type { PlatformDashboardStats, UserDashboardStats as UserStatsType } from '@/api/usage'
 import type { PlatformQuotaItem } from '@/types'
+import { useUserCoreCopy } from '@/composables/copy/userCore'
 
 interface FusedPlatformCard {
   platform: string
@@ -248,6 +184,7 @@ const props = defineProps<{
   platformQuotas?: PlatformQuotaItem[] | null
 }>()
 const { t } = useI18n()
+const { c } = useUserCoreCopy()
 
 const PLATFORM_LABELS: Record<string, string> = {
   anthropic: 'Claude',
@@ -266,21 +203,15 @@ const platformLabel = (p: string) => PLATFORM_LABELS[p] ?? p
 
 // 处理"各平台之和 < 总值"的差值：后端按平台聚合时过滤了无法归属平台的行
 // （group 与 account 都缺 platform）。这里把差值作为"其他"卡片显式展示，
-// 避免 Row 1 总值与 Row 3 平台拆分加总对不上、用户困惑。
+// 避免关键数字与平台拆分加总对不上、用户困惑。
 const OTHER_THRESHOLD = 0.0001
 const platformCards = computed<FusedPlatformCard[]>(() => {
-  // 建立 by_platform Map
   const byPlat = new Map<string, PlatformDashboardStats>()
   for (const item of props.stats?.by_platform ?? []) byPlat.set(item.platform, item)
 
-  // 建立 quota Map。三档全空的记录不产生卡片，挂到卡片上也不渲染配额区。
   const byQuota = new Map<string, PlatformQuotaItem>()
   for (const q of props.platformQuotas ?? []) byQuota.set(q.platform, q)
 
-  // 卡片集合 = 有用量的平台 ∪ 至少配置了一档限额的平台。
-  // 三档全空的限额记录等价于不限额，不单独产生卡片。
-  // 后端 by_platform / quota 接口均不会返回 platform='__other__'，
-  // 无需显式排除；__other__ 由下方差值补差逻辑单独追加。
   const platforms = new Set<string>(byPlat.keys())
   for (const [platform, q] of byQuota) {
     if (hasAnyLimit(q)) platforms.add(platform)
@@ -301,7 +232,6 @@ const platformCards = computed<FusedPlatformCard[]>(() => {
     })
   }
 
-  // 排序：按 PLATFORM_ORDER，未知平台按名称排序
   cards.sort((a, b) => {
     const ai = PLATFORM_ORDER.indexOf(a.platform)
     const bi = PLATFORM_ORDER.indexOf(b.platform)
@@ -311,7 +241,6 @@ const platformCards = computed<FusedPlatformCard[]>(() => {
     return ai - bi
   })
 
-  // __other__ 补差逻辑：只对 by_platform 有 usage 数据的总和计算
   const total = props.stats?.total_actual_cost ?? 0
   const today = props.stats?.today_actual_cost ?? 0
   const sumTotal = cards.reduce((s, c) => s + c.total_actual_cost, 0)
@@ -336,8 +265,6 @@ const platformCards = computed<FusedPlatformCard[]>(() => {
 // 标题右侧的平台计数 = 实际渲染的平台卡片数，不含"其他"差额卡。
 const platformCount = computed(() => platformCards.value.filter((c) => !c.isOther).length)
 
-// Quota helpers
-
 type QuotaWindow = 'daily' | 'weekly' | 'monthly'
 type QuotaField = `${QuotaWindow}_limit_usd` | `${QuotaWindow}_usage_usd` | `${QuotaWindow}_window_resets_at`
 
@@ -356,9 +283,9 @@ function calcPercent(usage: number, limit: number): number {
 }
 
 function quotaBarClass(p: number): string {
-  if (p >= 95) return 'bg-red-500'
-  if (p >= 75) return 'bg-amber-500'
-  return 'bg-green-500'
+  if (p >= 95) return 'dash-stats__bar-fill--danger'
+  if (p >= 75) return 'dash-stats__bar-fill--warn'
+  return 'dash-stats__bar-fill--ok'
 }
 
 // 与 formatBalance 一致使用 Intl.NumberFormat 做半偶舍入，避免 toFixed 在不同 JS 引擎
@@ -400,3 +327,128 @@ const formatTokens = (t: number) => {
 }
 const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${ms.toFixed(0)}ms`
 </script>
+
+<style scoped>
+.dash-stats { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 28px); }
+
+/* 关键数字 -------------------------------------------------------------- */
+.dash-stats__grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+
+.dash-stats__hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 208px;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--st-accent) 8%, var(--st-bg-elev)), var(--st-bg-elev) 62%);
+}
+
+.dash-stats__hero-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.dash-stats__balance {
+  font-family: var(--st-font-display);
+  font-size: clamp(2.9rem, 5.4vw, 4.2rem);
+  line-height: 0.95;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--st-ink-strong);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.dash-stats__unit {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--st-ink-faint);
+}
+
+.dash-stats__hero-note {
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--st-ink-faint);
+  max-width: 32ch;
+  margin-top: auto;
+}
+
+.dash-stats__arc {
+  position: absolute;
+  right: -70px;
+  bottom: -110px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  border: 1px solid var(--st-accent-line);
+  box-shadow: inset 0 0 0 26px color-mix(in srgb, var(--st-accent) 6%, transparent);
+  pointer-events: none;
+}
+
+.dash-stats__tile { display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; }
+.dash-stats__tile .st-stat__value { font-size: clamp(1.7rem, 2.4vw, 2.1rem); }
+.dash-stats__tile-meta { font-size: 0.78rem; color: var(--st-ink-faint); margin-top: auto; }
+
+/* 细节条 -------------------------------------------------------------- */
+.dash-stats__strip { display: flex; flex-direction: column; gap: 14px; }
+.dash-stats__strip-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+.dash-stats__cell { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dash-stats__cell dt { font-size: 0.76rem; color: var(--st-ink-faint); letter-spacing: 0.02em; }
+.dash-stats__cell dd {
+  font-family: var(--st-font-display);
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: var(--st-ink);
+  letter-spacing: -0.02em;
+}
+.dash-stats__cell-sub { font-size: 0.72rem; font-weight: 500; color: var(--st-ink-faint); margin-left: 3px; }
+.dash-stats__cell-meta { font-size: 0.72rem; color: var(--st-ink-faint); }
+
+/* 平台 -------------------------------------------------------------- */
+.dash-stats__platform { display: flex; flex-direction: column; gap: 18px; }
+.dash-stats__section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.dash-stats__section-title { margin-top: 10px; }
+.dash-stats__section-lede { margin-top: 8px; font-size: 0.9rem; max-width: 46ch; }
+.dash-stats__platform-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+.dash-stats__plat { display: flex; flex-direction: column; gap: 12px; }
+.dash-stats__plat--other { border-style: dashed; background: color-mix(in srgb, var(--st-bg-elev) 70%, var(--st-bg-sunk)); }
+.dash-stats__plat-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.dash-stats__plat-name { font-size: 0.98rem; font-weight: 600; color: var(--st-ink); letter-spacing: -0.01em; }
+.dash-stats__plat-cost { font-size: 0.98rem; font-weight: 600; color: var(--st-accent); }
+
+.dash-stats__plat-rows { display: flex; flex-direction: column; gap: 6px; }
+.dash-stats__plat-rows > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.dash-stats__plat-rows dt { font-size: 0.76rem; color: var(--st-ink-faint); }
+.dash-stats__plat-rows dd { font-size: 0.84rem; color: var(--st-ink-soft); }
+
+.dash-stats__quota { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--st-line); }
+.dash-stats__quota-title { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-ink-faint); }
+.dash-stats__quota-row { display: flex; flex-direction: column; gap: 4px; }
+.dash-stats__quota-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.dash-stats__quota-label { font-size: 0.76rem; color: var(--st-ink-soft); }
+.dash-stats__quota-value { font-size: 0.76rem; color: var(--st-ink); }
+.dash-stats__quota-disabled { font-size: 0.76rem; color: #e0554d; }
+.dash-stats__quota-reset { font-size: 0.68rem; color: var(--st-ink-faint); }
+.dash-stats__bar { height: 4px; border-radius: 999px; background: var(--st-bg-sunk); overflow: hidden; }
+.dash-stats__bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--st-accent); transition: width var(--st-dur) var(--st-ease); }
+.dash-stats__bar-fill--ok { background: var(--st-accent); }
+.dash-stats__bar-fill--warn { background: #d9a520; }
+.dash-stats__bar-fill--danger, .dash-stats__bar-fill--off { background: #e0554d; }
+
+@media (min-width: 720px) {
+  .dash-stats__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dash-stats__strip-body { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .dash-stats__platform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .dash-stats__grid { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
+  .dash-stats__platform-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+</style>
+

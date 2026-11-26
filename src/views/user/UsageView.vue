@@ -1,29 +1,96 @@
 <template>
-  <AppLayout>
-    <div class="space-y-6">
-      <UsageStatsCards :stats="usageStats" :show-account-cost="false" :strike-standard-cost="true" />
-
-      <div class="space-y-4">
-        <div class="card p-4">
-          <div class="flex flex-wrap items-center gap-4">
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.dashboard.timeRange') }}:</span>
-              <DateRangePicker
-                v-model:start-date="startDate"
-                v-model:end-date="endDate"
-                @change="onDateRangeChange"
-              />
-            </div>
-            <div class="ml-auto flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.dashboard.granularity') }}:</span>
-              <div class="w-28">
-                <Select v-model="granularity" :options="granularityOptions" @change="loadChartData" />
-              </div>
-            </div>
+  <UserShell>
+    <!-- 头部：一句话 + 区间 + 关键数字 -->
+    <section class="st-section head-sec">
+      <div class="st-shell">
+        <div class="head">
+          <div class="head__copy">
+            <p class="st-eyebrow st-reveal">{{ c('usage.eyebrow') }}</p>
+            <h1 class="st-display-2 head__title st-reveal" style="--i: 1">{{ c('usage.title') }}</h1>
+            <p class="st-lede st-reveal" style="--i: 2">{{ c('usage.lede') }}</p>
+          </div>
+          <div class="head__pills st-reveal" style="--i: 2">
+            <span class="st-pill st-pill--accent st-pill--dot">{{ c('usage.range.' + usageRangePreset) }}</span>
+            <span class="st-pill">{{ cf('usage.logs.count', { n: pagination.total }) }}</span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- 时间范围分段控件 -->
+        <div class="toolbar st-reveal" style="--i: 3">
+          <div class="st-seg" role="tablist">
+            <button
+              v-for="preset in usageRangePresets"
+              :key="preset.key"
+              type="button"
+              class="st-seg__item"
+              :class="{ 'st-seg__item--active': usageRangePreset === preset.key }"
+              @click="applyUsageRangePreset(preset.key)"
+            >
+              {{ preset.label }}
+            </button>
+          </div>
+          <div class="toolbar__range">
+            <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" @change="onDateRangeChange" />
+          </div>
+          <div class="toolbar__granularity">
+            <div class="st-seg">
+              <button
+                v-for="option in granularityOptions"
+                :key="String(option.value)"
+                type="button"
+                class="st-seg__item"
+                :class="{ 'st-seg__item--active': granularity === option.value }"
+                @click="setGranularity(String(option.value))"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+          <div class="toolbar__actions">
+            <button type="button" class="st-btn st-btn--ghost st-btn--sm" @click="refreshData" :disabled="activeTab === 'errors' ? errorLoading : loading">
+              {{ t('common.refresh') }}
+            </button>
+            <button type="button" class="st-btn st-btn--ghost st-btn--sm" @click="resetFilters">
+              {{ t('common.reset') }}
+            </button>
+            <button
+              v-if="activeTab !== 'errors'"
+              type="button"
+              class="st-btn st-btn--primary st-btn--sm"
+              @click="exportToCSV"
+              :disabled="exporting"
+            >
+              {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 关键数字 -->
+        <div class="stats">
+          <article
+            v-for="(card, index) in summaryCards"
+            :key="card.label"
+            class="st-card st-card--pad st-card--lift stat st-reveal"
+            :style="{ '--i': index + 1 }"
+          >
+            <span class="st-stat__label">{{ card.label }}</span>
+            <span class="st-stat__value st-num">
+              {{ card.value }}<span v-if="card.unit" class="st-stat__unit">{{ card.unit }}</span>
+            </span>
+            <span v-if="card.hint" class="stat__hint">{{ card.hint }}</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 图表 -->
+    <section class="st-section--tight">
+      <div class="st-shell charts">
+        <article class="st-card st-card--pad chart">
+          <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
+        </article>
+
+        <article class="st-card st-card--pad chart">
           <ModelDistributionChart
             v-model:metric="modelDistributionMetric"
             :model-stats="requestedModelStats"
@@ -35,6 +102,9 @@
             :start-date="startDate"
             :end-date="endDate"
           />
+        </article>
+
+        <article class="st-card st-card--pad chart">
           <GroupDistributionChart
             v-model:metric="groupDistributionMetric"
             :group-stats="groupStats"
@@ -45,9 +115,9 @@
             :start-date="startDate"
             :end-date="endDate"
           />
-        </div>
+        </article>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <article class="st-card st-card--pad chart">
           <EndpointDistributionChart
             v-model:source="endpointDistributionSource"
             v-model:metric="endpointDistributionMetric"
@@ -63,19 +133,113 @@
             :start-date="startDate"
             :end-date="endDate"
           />
-          <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
-        </div>
+        </article>
       </div>
+    </section>
 
-      <div class="card p-6">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-          <div v-if="activeTab === 'errors'" class="flex flex-1 flex-wrap items-end gap-4">
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.errors.keyName') }}</label>
+    <!-- 明细 -->
+    <section class="st-section--tight logs-sec">
+      <div class="st-shell">
+        <div class="tabs">
+          <div class="st-seg">
+            <button type="button" class="st-seg__item" :class="{ 'st-seg__item--active': activeTab === 'usage' }" @click="activeTab = 'usage'">
+              {{ t('usage.tabs.usage') }}
+            </button>
+            <button v-if="errorViewEnabled" type="button" class="st-seg__item" :class="{ 'st-seg__item--active': activeTab === 'errors' }" @click="switchToErrors">
+              {{ t('usage.tabs.errors') }}
+            </button>
+          </div>
+          <div class="tabs__tools">
+            <div v-if="activeTab !== 'errors'" class="st-seg">
+              <button type="button" class="st-seg__item" :class="{ 'st-seg__item--active': sortState.sort_order === 'desc' }" @click="handleSort('created_at', 'desc')">
+                {{ c('usage.logs.newest') }}
+              </button>
+              <button type="button" class="st-seg__item" :class="{ 'st-seg__item--active': sortState.sort_order === 'asc' }" @click="handleSort('created_at', 'asc')">
+                {{ c('usage.logs.oldest') }}
+              </button>
+            </div>
+            <div class="st-colset" ref="columnDropdownRef">
+              <button
+                type="button"
+                data-testid="usage-column-settings"
+                class="st-btn st-btn--quiet st-btn--sm"
+                :title="t('admin.users.columnSettings')"
+                @click="showColumnDropdown = !showColumnDropdown"
+              >
+                <Icon name="grid" size="sm" />
+                <span class="st-colset__label">{{ c('usage.logs.colSettings') }}</span>
+              </button>
+              <div v-if="showColumnDropdown" class="st-colset__menu">
+                <button
+                  v-for="col in currentToggleableColumns"
+                  :key="col.key"
+                  type="button"
+                  :data-testid="'usage-column-toggle-' + col.key"
+                  class="st-colset__item"
+                  @click="toggleCurrentColumn(col.key)"
+                >
+                  <span>{{ col.label }}</span>
+                  <Icon v-if="isCurrentColumnVisible(col.key)" name="check" size="sm" class="st-accent" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 筛选（可折叠，保留原有全部筛选） -->
+        <details v-if="activeTab === 'usage'" class="st-card st-card--pad filters" open>
+          <summary class="filters__summary">
+            <span class="st-eyebrow">{{ c('usage.filters.title') }}</span>
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M5 8l5 5 5-5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </summary>
+          <div class="filters__grid">
+            <div>
+              <label class="st-label">{{ t('usage.apiKeyFilter') }}</label>
+              <Select v-model="filters.api_key_id" :options="apiKeyOptions" @change="applyFilters" />
+            </div>
+            <div>
+              <label class="st-label">{{ t('usage.model') }}</label>
+              <Select v-model="filters.model" :options="modelOptions" searchable @change="applyFilters" />
+            </div>
+            <div>
+              <label class="st-label">{{ t('admin.usage.group') }}</label>
+              <Select v-model="filters.group_id" :options="groupOptions" searchable @change="applyFilters" />
+            </div>
+            <div>
+              <label class="st-label">{{ t('usage.type') }}</label>
+              <Select v-model="filters.request_type" :options="requestTypeOptions" @change="applyFilters" />
+            </div>
+            <div>
+              <label class="st-label">{{ t('usage.compactionFilter') }}</label>
+              <Select v-model="filters.native_compaction_v2" :options="compactionOptions" @change="applyFilters" />
+            </div>
+            <div v-if="subscriptionFeatureEnabled">
+              <label class="st-label">{{ t('admin.usage.billingType') }}</label>
+              <Select v-model="filters.billing_type" :options="billingTypeOptions" @change="applyFilters" />
+            </div>
+            <div>
+              <label class="st-label">{{ t('admin.usage.billingMode') }}</label>
+              <Select v-model="filters.billing_mode" :options="billingModeOptions" @change="applyFilters" />
+            </div>
+          </div>
+        </details>
+
+        <details v-if="activeTab === 'errors' && errorViewEnabled" class="st-card st-card--pad filters" open>
+          <summary class="filters__summary">
+            <span class="st-eyebrow">{{ c('usage.filters.title') }}</span>
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M5 8l5 5 5-5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </summary>
+          <div class="filters__grid">
+            <div>
+              <label class="st-label">{{ t('usage.errors.keyName') }}</label>
               <Select v-model="errorFilter.api_key_id" :options="errorKeyOptions" @change="applyErrorFilters" />
             </div>
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.errors.model') }}</label>
+            <div>
+              <label class="st-label">{{ t('usage.errors.model') }}</label>
               <Select
                 v-model="errorFilter.model"
                 :options="errorModelOptions"
@@ -86,137 +250,100 @@
                 @change="applyErrorFilters"
               />
             </div>
-            <div class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('usage.errors.category') }}</label>
+            <div>
+              <label class="st-label">{{ t('usage.errors.category') }}</label>
               <Select v-model="errorFilter.category" :options="errorCategoryOptions" @change="applyErrorFilters" />
             </div>
-            <div class="w-full sm:w-auto sm:min-w-[180px]">
-              <label class="input-label">{{ t('usage.errors.status') }}</label>
+            <div>
+              <label class="st-label">{{ t('usage.errors.status') }}</label>
               <Select v-model="errorFilter.status_code" :options="errorStatusOptions" @change="applyErrorFilters" />
             </div>
           </div>
-          <div v-else class="flex flex-1 flex-wrap items-end gap-4">
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.apiKeyFilter') }}</label>
-              <Select v-model="filters.api_key_id" :options="apiKeyOptions" @change="applyFilters" />
+        </details>
+
+        <!-- 账单式明细 -->
+        <template v-if="activeTab === 'usage'">
+          <div v-if="loading && usageLogs.length === 0" class="logs">
+            <div class="day__head day__head--skeleton">
+              <span class="st-skeleton sk-chip"></span>
+              <span class="st-skeleton sk-chip"></span>
             </div>
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.model') }}</label>
-              <Select v-model="filters.model" :options="modelOptions" searchable @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('admin.usage.group') }}</label>
-              <Select v-model="filters.group_id" :options="groupOptions" searchable @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[180px]">
-              <label class="input-label">{{ t('usage.type') }}</label>
-              <Select v-model="filters.request_type" :options="requestTypeOptions" @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[180px]">
-              <label class="input-label">{{ t('usage.compactionFilter') }}</label>
-              <Select v-model="filters.native_compaction_v2" :options="compactionOptions" @change="applyFilters" />
-            </div>
-            <div v-if="subscriptionFeatureEnabled" class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('admin.usage.billingType') }}</label>
-              <Select v-model="filters.billing_type" :options="billingTypeOptions" @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('admin.usage.billingMode') }}</label>
-              <Select v-model="filters.billing_mode" :options="billingModeOptions" @change="applyFilters" />
-            </div>
+            <div v-for="i in 6" :key="i" class="st-skeleton sk-row" :style="{ animationDelay: i * 60 + 'ms' }"></div>
           </div>
 
-          <div class="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
-            <button type="button" @click="refreshData" :disabled="activeTab === 'errors' ? errorLoading : loading" class="btn btn-secondary">
-              {{ t('common.refresh') }}
-            </button>
-            <button type="button" @click="resetFilters" class="btn btn-secondary">
-              {{ t('common.reset') }}
-            </button>
-            <div class="relative" ref="columnDropdownRef">
-              <button
-                type="button"
-                data-testid="usage-column-settings"
-                @click="showColumnDropdown = !showColumnDropdown"
-                class="btn btn-secondary px-2 md:px-3"
-                :title="t('admin.users.columnSettings')"
-              >
-                <Icon name="grid" size="sm" />
-                <span class="hidden md:inline">{{ t('admin.users.columnSettings') }}</span>
-              </button>
-              <div
-                v-if="showColumnDropdown"
-                class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
-              >
-                <button
-                  v-for="col in currentToggleableColumns"
-                  :key="col.key"
-                  type="button"
-                  :data-testid="`usage-column-toggle-${col.key}`"
-                  @click="toggleCurrentColumn(col.key)"
-                  class="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
-                >
-                  <span>{{ col.label }}</span>
-                  <Icon v-if="isCurrentColumnVisible(col.key)" name="check" size="sm" class="text-primary-500" />
-                </button>
-              </div>
+          <div v-else-if="usageLogs.length === 0" class="st-card st-card--pad empty">
+            <div class="empty__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M4 7h16M4 12h10M4 17h7" stroke-linecap="round" />
+                <circle cx="18" cy="16" r="3.2" />
+              </svg>
             </div>
-            <button v-if="activeTab !== 'errors'" type="button" @click="exportToCSV" :disabled="exporting" class="btn btn-primary">
-              {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
-            </button>
+            <h2 class="st-display-3">{{ c('usage.logs.empty') }}</h2>
+            <p class="st-body">{{ c('usage.logs.emptyHint') }}</p>
+            <RouterLink to="/keys" class="st-btn st-btn--primary st-btn--sm">{{ c('usage.logs.emptyCta') }}</RouterLink>
           </div>
+
+          <div v-else class="logs">
+            <article v-for="(group, gi) in usageDayGroups" :key="group.key" class="day st-reveal" :style="{ '--i': gi + 1 }">
+              <header class="day__head">
+                <span class="day__date">{{ group.label }}</span>
+                <span class="day__sum">
+                  <span class="st-num">{{ group.count }}</span>
+                  <span class="day__sum-unit">{{ c('usage.sum.requests') }}</span>
+                  <span class="day__sum-cost st-num">{{ fmtMoney(group.spend, 4) }}</span>
+                </span>
+              </header>
+              <div class="st-list day__list">
+                <div v-for="log in group.rows" :key="log.id" class="st-row log">
+                  <span class="log__time st-num">{{ logTime(log) }}</span>
+                  <span class="log__main">
+                    <span class="st-row__title">{{ log.model || '—' }}</span>
+                    <span class="st-row__meta log__meta">
+                      <span v-if="showField('api_key')">{{ log.api_key?.name || '—' }}</span>
+                      <span v-if="showField('endpoint') && log.inbound_endpoint"> · {{ log.inbound_endpoint }}</span>
+                      <span v-else-if="log.reasoning_effort"> · {{ formatReasoningEffort(log.reasoning_effort) }}</span>
+                    </span>
+                  </span>
+                  <span class="log__tokens st-num">
+                    <span class="log__tok">{{ fmtCompact(log.input_tokens) }}<i>{{ c('usage.logs.tokensIn') }}</i></span>
+                    <span class="log__tok">{{ fmtCompact(log.output_tokens) }}<i>{{ c('usage.logs.tokensOut') }}</i></span>
+                    <span v-if="showField('tokens') && (log.cache_read_tokens ?? 0) > 0" class="log__tok log__tok--cache">
+                      {{ fmtCompact(log.cache_read_tokens) }}<i>{{ c('usage.logs.tokensCache') }}</i>
+                    </span>
+                  </span>
+                  <span class="log__cost st-num">{{ fmtMoney(log.actual_cost, 4) }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <Pagination
+            v-if="pagination.total > 0"
+            :page="pagination.page"
+            :total="pagination.total"
+            :page-size="pagination.page_size"
+            @update:page="handlePageChange"
+            @update:pageSize="handlePageSizeChange"
+          />
+        </template>
+
+        <div v-else-if="errorViewEnabled" class="st-card errors-card">
+          <UserErrorRequestsTable
+            :rows="errorRows"
+            :total="errorTotal"
+            :loading="errorLoading"
+            :page="errorPage"
+            :page-size="errorPageSize"
+            :visible-column-keys="errVisibleColumnKeys"
+            @sort="onErrorSort"
+            @update:page="onErrorPage"
+            @update:pageSize="onErrorPageSize"
+            @ipGeoBatchFailed="handleIpGeoBatchFailed"
+          />
         </div>
       </div>
-
-      <div v-if="errorViewEnabled" class="flex gap-2 border-b border-gray-200 dark:border-dark-700">
-        <button class="tab" :class="{ 'tab-active': activeTab === 'usage' }" @click="activeTab = 'usage'">
-          {{ t('usage.tabs.usage') }}
-        </button>
-        <button class="tab" :class="{ 'tab-active': activeTab === 'errors' }" @click="switchToErrors">
-          {{ t('usage.tabs.errors') }}
-        </button>
-      </div>
-
-      <template v-if="activeTab === 'usage'">
-        <UsageTable
-          :data="usageLogs"
-          :loading="loading"
-          :columns="visibleColumns"
-          :server-side-sort="true"
-          :show-account-billing="false"
-          :show-upstream-endpoint="false"
-          default-sort-key="created_at"
-          default-sort-order="desc"
-          @sort="handleSort"
-          @ipGeoBatchFailed="handleIpGeoBatchFailed"
-        />
-
-        <Pagination
-          v-if="pagination.total > 0"
-          :page="pagination.page"
-          :total="pagination.total"
-          :page-size="pagination.page_size"
-          @update:page="handlePageChange"
-          @update:pageSize="handlePageSizeChange"
-        />
-      </template>
-
-      <UserErrorRequestsTable
-        v-else-if="errorViewEnabled"
-        :rows="errorRows"
-        :total="errorTotal"
-        :loading="errorLoading"
-        :page="errorPage"
-        :page-size="errorPageSize"
-        :visible-column-keys="errVisibleColumnKeys"
-        @sort="onErrorSort"
-        @update:page="onErrorPage"
-        @update:pageSize="onErrorPageSize"
-        @ipGeoBatchFailed="handleIpGeoBatchFailed"
-      />
-    </div>
-  </AppLayout>
-
+    </section>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
@@ -225,12 +352,11 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { FeatureFlags, resolveFeatureFlag } from '@/utils/featureFlags'
 import { keysAPI, usageAPI, userGroupsAPI } from '@/api'
-import AppLayout from '@/components/layout/AppLayout.vue'
+import UserShell from '@/components/shell/UserShell.vue'
+import { useBillingCopy } from '@/composables/copy/billing'
 import Pagination from '@/components/common/Pagination.vue'
 import Select, { type SelectOption } from '@/components/common/Select.vue'
 import DateRangePicker from '@/components/common/DateRangePicker.vue'
-import UsageStatsCards from '@/components/admin/usage/UsageStatsCards.vue'
-import UsageTable from '@/components/admin/usage/UsageTable.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import GroupDistributionChart from '@/components/charts/GroupDistributionChart.vue'
 import EndpointDistributionChart from '@/components/charts/EndpointDistributionChart.vue'
@@ -258,6 +384,121 @@ import { COMMON_ERROR_STATUS_CODES } from '@/utils/errorBadges'
 
 const { t } = useI18n()
 const appStore = useAppStore()
+
+const { c, cf } = useBillingCopy()
+
+// ── 展示层：账单摘要 / 区间预设 / 行式明细（只影响渲染，不改变任何请求参数） ──
+type UsageRangePreset = 'today' | '7d' | '30d'
+const usageRangePreset = ref<UsageRangePreset>('today')
+
+const usageRangePresets = computed(() => [
+  { key: 'today' as const, label: c('usage.range.today') },
+  { key: '7d' as const, label: c('usage.range.7d') },
+  { key: '30d' as const, label: c('usage.range.30d') },
+])
+
+function applyUsageRangePreset(key: UsageRangePreset) {
+  usageRangePreset.value = key
+  const end = new Date()
+  const days = key === 'today' ? 0 : key === '7d' ? 7 : 30
+  const start = new Date(end.getTime() - days * 86400000)
+  onDateRangeChange({ startDate: formatLocalDate(start), endDate: formatLocalDate(end), preset: key })
+}
+
+function setGranularity(value: string) {
+  const next: 'day' | 'hour' = value === 'hour' ? 'hour' : 'day'
+  if (granularity.value === next) return
+  granularity.value = next
+  void loadChartData()
+}
+
+function fmtMoney(value: number | null | undefined, digits = 2): string {
+  const amount = Number(value ?? 0)
+  return '$' + (Number.isFinite(amount) ? amount : 0).toFixed(digits)
+}
+
+function fmtCompact(value: number | null | undefined): string {
+  const amount = Number(value ?? 0)
+  if (!Number.isFinite(amount) || amount <= 0) return '0'
+  if (amount >= 1_000_000_000) return (amount / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B'
+  if (amount >= 1_000_000) return (amount / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (amount >= 1_000) return (amount / 1_000).toFixed(1).replace(/\.0$/, '') + 'K'
+  return String(Math.round(amount))
+}
+
+const summaryCards = computed(() => {
+  const stats = usageStats.value
+  const spend = stats?.total_actual_cost ?? 0
+  const standard = stats?.total_cost ?? 0
+  const requests = stats?.total_requests ?? 0
+  const tokens = stats?.total_tokens ?? 0
+  const avgCost = requests > 0 ? spend / requests : 0
+  const latency = stats?.average_duration_ms ?? 0
+  return [
+    {
+      label: c('usage.sum.spend'),
+      value: fmtMoney(spend),
+      unit: '',
+      hint: standard > spend ? c('usage.sum.standard') + ' ' + fmtMoney(standard) : '',
+    },
+    { label: c('usage.sum.requests'), value: fmtCompact(requests), unit: '', hint: '' },
+    { label: c('usage.sum.tokens'), value: fmtCompact(tokens), unit: '', hint: '' },
+    {
+      label: c('usage.sum.avgCost'),
+      value: fmtMoney(avgCost, 4),
+      unit: '',
+      hint: requests > 0 ? '/ ' + requests + ' ' + c('usage.sum.perCall') : '',
+    },
+    {
+      label: c('usage.sum.avgLatency'),
+      value: String(Math.max(0, Math.round(latency))),
+      unit: 'ms',
+      hint: '',
+    },
+  ]
+})
+
+function formatDayLabel(key: string): string {
+  if (!key) return '—'
+  const date = new Date(key + 'T00:00:00')
+  if (Number.isNaN(date.getTime())) return key
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' })
+}
+
+interface UsageDayGroup {
+  key: string
+  label: string
+  rows: UsageLog[]
+  spend: number
+  count: number
+}
+
+const usageDayGroups = computed<UsageDayGroup[]>(() => {
+  const groups: UsageDayGroup[] = []
+  for (const log of usageLogs.value) {
+    const key = String(log.created_at || '').slice(0, 10)
+    let group = groups.find((item) => item.key === key)
+    if (!group) {
+      group = { key, label: formatDayLabel(key), rows: [], spend: 0, count: 0 }
+      groups.push(group)
+    }
+    group.rows.push(log)
+    group.spend += Number(log.actual_cost ?? 0)
+    group.count += 1
+  }
+  return groups
+})
+
+function logTime(log: UsageLog): string {
+  const raw = String(log.created_at || '')
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return raw.slice(11, 16) || '—'
+  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+}
+
+function showField(key: string): boolean {
+  return visibleColumns.value.some((column) => column.key === key)
+}
 
 type DistributionMetric = 'tokens' | 'actual_cost'
 type EndpointSource = 'inbound' | 'upstream' | 'path'
@@ -936,3 +1177,168 @@ watch(endpointDistributionSource, () => {
   // Endpoint source switching is handled by the chart component using already loaded stats.
 })
 </script>
+
+<style scoped>
+.head-sec { padding-bottom: clamp(20px, 3vw, 36px); }
+.head { display: flex; flex-direction: column; gap: 18px; }
+.head__title { margin-top: 14px; max-width: 22ch; }
+.head__copy .st-lede { margin-top: 16px; }
+.head__pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: clamp(24px, 3vw, 36px);
+  padding-top: 20px;
+  border-top: 1px solid var(--st-line);
+}
+.toolbar__granularity { margin-left: auto; }
+.toolbar__range { min-width: 0; }
+.toolbar__actions { display: flex; align-items: center; gap: 6px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+.stat { display: flex; flex-direction: column; gap: 8px; }
+.stat__hint { font-size: 0.76rem; color: var(--st-ink-faint); }
+
+.charts { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.chart { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.chart__head { display: flex; flex-direction: column; gap: 6px; }
+.chart__head .st-body { font-size: 0.85rem; }
+
+.logs-sec { padding-bottom: clamp(64px, 8vw, 120px); }
+.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+.tabs__tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+.st-colset { position: relative; }
+.st-colset__label { display: none; }
+.st-colset__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  min-width: 190px;
+  padding: 6px;
+  border-radius: var(--st-radius-md);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-elev);
+  box-shadow: var(--st-shadow-md);
+}
+.st-colset__item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  color: var(--st-ink-soft);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: background-color var(--st-dur) var(--st-ease), color var(--st-dur) var(--st-ease);
+}
+.st-colset__item:hover { background: var(--st-accent-soft); color: var(--st-ink); }
+
+.filters { margin-bottom: 16px; }
+.filters__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.filters__summary::-webkit-details-marker { display: none; }
+.filters__summary svg { color: var(--st-ink-faint); transition: transform var(--st-dur) var(--st-ease); }
+.filters[open] .filters__summary svg { transform: rotate(180deg); }
+.filters__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.logs { display: flex; flex-direction: column; gap: 26px; }
+.day { display: flex; flex-direction: column; gap: 6px; }
+.day__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-inline: 16px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--st-ink-faint);
+}
+.day__date { font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+.day__sum { display: inline-flex; align-items: baseline; gap: 6px; }
+.day__sum-unit { font-size: 0.72rem; }
+.day__sum-cost { margin-left: 8px; color: var(--st-ink-soft); }
+.day__list {
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-radius-lg);
+  background: var(--st-bg-elev);
+  overflow: hidden;
+}
+.day__head--skeleton { padding-block: 10px; }
+
+.log { grid-template-columns: 62px minmax(0, 1fr) auto 92px; gap: 14px; }
+.log__time { font-size: 0.8rem; color: var(--st-ink-faint); }
+.log__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.log__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log__tokens { display: inline-flex; align-items: baseline; gap: 12px; justify-content: flex-end; }
+.log__tok { font-size: 0.82rem; color: var(--st-ink-soft); }
+.log__tok i { font-style: normal; font-size: 0.68rem; color: var(--st-ink-faint); margin-left: 3px; }
+.log__tok--cache { color: var(--st-ink-faint); }
+.log__cost { text-align: right; font-size: 0.9rem; font-weight: 600; color: var(--st-ink-strong); }
+
+.sk-row { height: 52px; margin-block: 6px; border-radius: var(--st-radius-md); }
+.sk-chip { display: inline-block; width: 96px; height: 12px; }
+
+.empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding-block: clamp(40px, 6vw, 72px); }
+.empty__mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line);
+  background: var(--st-accent-soft);
+  color: var(--st-accent);
+  margin-bottom: 4px;
+}
+.empty .st-lede, .empty .st-body { max-width: 42ch; }
+.empty .st-btn { margin-top: 8px; }
+
+.errors-card { overflow: hidden; padding: 8px; }
+
+@media (min-width: 720px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .filters__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .st-colset__label { display: inline; }
+}
+@media (min-width: 1024px) {
+  .head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+  .stats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .logs { gap: 30px; }
+  .filters__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .log { grid-template-columns: 52px minmax(0, 1fr) auto; row-gap: 4px; }
+  .log__tokens { grid-column: 2 / 3; justify-content: flex-start; gap: 10px; }
+  .log__cost { grid-column: 3 / 4; grid-row: 1 / 2; }
+  .log__time { grid-row: 1 / 2; }
+  .log__main { grid-column: 2 / 3; }
+  .toolbar__granularity { margin-left: 0; }
+}
+</style>

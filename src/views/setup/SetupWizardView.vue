@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 dark:from-dark-900 dark:to-dark-800"
-  >
+  <div class="st-root setup-page">
     <div class="w-full max-w-2xl">
       <!-- Logo & Title -->
       <div class="mb-8 text-center">
@@ -58,7 +56,7 @@
       </div>
 
       <!-- Step Content -->
-      <div class="rounded-2xl bg-white p-8 shadow-xl dark:bg-dark-800">
+      <div class="st-card setup-card">
         <!-- Step 1: Database -->
         <div v-if="currentStep === 0" class="space-y-6">
           <div class="mb-6 text-center">
@@ -72,20 +70,20 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label class="input-label">{{ t('setup.database.host') }}</label>
+              <label class="st-label">{{ t('setup.database.host') }}</label>
               <input
                 v-model="formData.database.host"
                 type="text"
-                class="input"
+                class="st-input"
                 placeholder="localhost"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.database.port') }}</label>
+              <label class="st-label">{{ t('setup.database.port') }}</label>
               <input
                 v-model.number="formData.database.port"
                 type="number"
-                class="input"
+                class="st-input"
                 placeholder="5432"
               />
             </div>
@@ -105,20 +103,20 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label class="input-label">{{ t('setup.database.username') }}</label>
+              <label class="st-label">{{ t('setup.database.username') }}</label>
               <input
                 v-model="formData.database.user"
                 type="text"
-                class="input"
+                class="st-input"
                 placeholder="postgres"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.database.password') }}</label>
+              <label class="st-label">{{ t('setup.database.password') }}</label>
               <input
                 v-model="formData.database.password"
                 type="password"
-                class="input"
+                class="st-input"
                 :placeholder="t('setup.database.passwordPlaceholder')"
               />
             </div>
@@ -126,16 +124,16 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label class="input-label">{{ t('setup.database.databaseName') }}</label>
+              <label class="st-label">{{ t('setup.database.databaseName') }}</label>
               <input
                 v-model="formData.database.dbname"
                 type="text"
-                class="input"
+                class="st-input"
                 placeholder="sub2api"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.database.sslMode') }}</label>
+              <label class="st-label">{{ t('setup.database.sslMode') }}</label>
               <Select
                 v-model="formData.database.sslmode"
                 :options="[
@@ -151,7 +149,7 @@
           <button
             @click="testDatabaseConnection"
             :disabled="testingDb"
-            class="btn btn-secondary w-full"
+            class="st-btn st-btn--quiet w-full"
           >
             <svg
               v-if="testingDb"
@@ -197,20 +195,20 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label class="input-label">{{ t('setup.redis.host') }}</label>
+              <label class="st-label">{{ t('setup.redis.host') }}</label>
               <input
                 v-model="formData.redis.host"
                 type="text"
-                class="input"
+                class="st-input"
                 placeholder="localhost"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.redis.port') }}</label>
+              <label class="st-label">{{ t('setup.redis.port') }}</label>
               <input
                 v-model.number="formData.redis.port"
                 type="number"
-                class="input"
+                class="st-input"
                 placeholder="6379"
               />
             </div>
@@ -218,29 +216,29 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label class="input-label">{{ t('setup.redis.username') }}</label>
+              <label class="st-label">{{ t('setup.redis.username') }}</label>
               <input
                 v-model="formData.redis.username"
                 type="text"
-                class="input"
+                class="st-input"
                 :placeholder="t('setup.redis.usernamePlaceholder')"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.redis.password') }}</label>
+              <label class="st-label">{{ t('setup.redis.password') }}</label>
               <input
                 v-model="formData.redis.password"
                 type="password"
-                class="input"
+                class="st-input"
                 :placeholder="t('setup.redis.passwordPlaceholder')"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.redis.database') }}</label>
+              <label class="st-label">{{ t('setup.redis.database') }}</label>
               <input
                 v-model.number="formData.redis.db"
                 type="number"
-                class="input"
+                class="st-input"
                 placeholder="0"
               />
             </div>
@@ -261,7 +259,7 @@
           <button
             @click="testRedisConnection"
             :disabled="testingRedis"
-            class="btn btn-secondary w-full"
+            class="st-btn st-btn--quiet w-full"
           >
             <svg
               v-if="testingRedis"
@@ -312,36 +310,36 @@
           </div>
 
           <div>
-            <label class="input-label">{{ t('setup.admin.email') }}</label>
+            <label class="st-label">{{ t('setup.admin.email') }}</label>
             <input
               v-model="formData.admin.email"
               type="email"
-              class="input"
+              class="st-input"
               placeholder="admin@example.com"
             />
           </div>
 
           <div>
-            <label class="input-label">{{ t('setup.admin.password') }}</label>
+            <label class="st-label">{{ t('setup.admin.password') }}</label>
             <input
               v-model="formData.admin.password"
               type="password"
-              class="input"
+              class="st-input"
               :placeholder="t('setup.admin.passwordPlaceholder')"
             />
           </div>
 
           <div>
-            <label class="input-label">{{ t('setup.admin.confirmPassword') }}</label>
+            <label class="st-label">{{ t('setup.admin.confirmPassword') }}</label>
             <input
               v-model="confirmPassword"
               type="password"
-              class="input"
+              class="st-input"
               :placeholder="t('setup.admin.confirmPasswordPlaceholder')"
             />
             <p
               v-if="confirmPassword && formData.admin.password !== confirmPassword"
-              class="input-error-text"
+              class="setup-err"
             >
               {{ t('setup.admin.passwordMismatch') }}
             </p>
@@ -447,7 +445,7 @@
           <button
             v-if="currentStep > 0 && !installSuccess"
             @click="currentStep--"
-            class="btn btn-secondary"
+            class="st-btn st-btn--quiet"
           >
             <Icon name="chevronLeft" size="sm" class="mr-2" :stroke-width="2" />
             {{ t('common.back') }}
@@ -458,7 +456,7 @@
             v-if="currentStep < 3"
             @click="nextStep"
             :disabled="!canProceed"
-            class="btn btn-primary"
+            class="st-btn st-btn--primary"
           >
             {{ t('common.next') }}
             <Icon name="chevronRight" size="sm" class="ml-2" :stroke-width="2" />
@@ -468,7 +466,7 @@
             v-else-if="!installSuccess"
             @click="performInstall"
             :disabled="installing"
-            class="btn btn-primary"
+            class="st-btn st-btn--primary"
           >
             <svg
               v-if="installing"
@@ -684,3 +682,31 @@ async function waitForServiceRestart() {
   errorMessage.value = t('setup.status.timeout')
 }
 </script>
+
+<style scoped>
+.setup-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 56px) var(--st-gutter);
+  min-height: 100vh;
+  background: var(--st-bg);
+  color: var(--st-ink);
+  font-family: var(--st-font-body);
+}
+.setup-card {
+  padding: clamp(22px, 3vw, 36px);
+  border-radius: var(--st-radius-xl);
+  box-shadow: var(--st-shadow-md);
+}
+.setup-page :deep(.bg-primary-500) { background-color: var(--st-accent) !important; color: var(--st-accent-ink) !important; }
+.setup-page :deep(.bg-primary-100) { background-color: color-mix(in srgb, var(--st-accent) 18%, transparent) !important; }
+.setup-page :deep(.ring-primary-100), .setup-page :deep(.ring-primary-900) { --tw-ring-color: var(--st-accent-soft) !important; }
+.setup-page :deep(.bg-gray-200) { background-color: var(--st-bg-sunk) !important; }
+.setup-page :deep(.text-gray-500), .setup-page :deep(.text-gray-400) { color: var(--st-ink-faint) !important; }
+.setup-page :deep(.text-gray-900) { color: var(--st-ink) !important; }
+.setup-page :deep(.bg-green-50) { background-color: var(--st-accent-soft) !important; }
+.setup-page :deep(.text-green-700), .setup-page :deep(.text-green-600), .setup-page :deep(.text-green-500) { color: var(--st-accent) !important; }
+.setup-err { margin-top: 6px; font-size: 0.78rem; color: hsl(3 72% 55%); }
+</style>
+

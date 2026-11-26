@@ -107,11 +107,22 @@
             <h3 class="st-display-3">{{ c('home.feature1Title') }}</h3>
             <p class="st-body">{{ c('home.feature1Body') }}</p>
             <div class="bento__code" aria-hidden="true">
-              <div class="bento__code-bar"><i></i><i></i><i></i></div>
-              <pre><code><span class="tok-k">const</span> res = <span class="tok-k">await</span> client.messages.create({
-  model: <span class="tok-s">'claude-opus-4'</span>,   <span class="tok-c">// 改这一行就够了</span>
+              <div class="bento__code-bar"><i></i><i></i><i></i><span>app.ts</span></div>
+              <pre><code><span class="tok-k">const</span> client = <span class="tok-k">new</span> OpenAI({
+  baseURL: <span class="tok-s">'https://api.example.com/v1'</span>,
+  apiKey:  process.env.AI_KEY
+})
+
+<span class="tok-k">const</span> res = <span class="tok-k">await</span> client.chat.completions.create({
+  model: <span class="tok-s">'claude-opus-4'</span>, <span class="tok-c">// ← 只改这一行</span>
   messages: [{ role: <span class="tok-s">'user'</span>, content: <span class="tok-s">'你好'</span> }]
 })</code></pre>
+            </div>
+            <div class="bento__chips">
+              <span class="st-pill st-pill--accent st-pill--dot">Claude</span>
+              <span class="st-pill">GPT-5</span>
+              <span class="st-pill">Gemini 2.5</span>
+              <span class="st-pill">Grok</span>
             </div>
           </article>
 
@@ -145,7 +156,7 @@
           <p class="st-eyebrow">{{ c('home.sectionFaqEyebrow') }}</p>
           <h2 class="st-display-2">{{ c('home.sectionFaqTitle') }}</h2>
         </header>
-        <div class="faq__list">
+        <div class="faq__list st-card st-card--pad">
           <details v-for="item in faqs" :key="item.q" class="faq__item">
             <summary class="faq__q">
               <span>{{ item.q }}</span>
@@ -278,13 +289,16 @@ const faqs = computed(() => [
 .sa-wire { stroke: var(--st-accent-line); stroke-width: 1.4; stroke-dasharray: 4 5; }
 
 .bento { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.bento__main { display: flex; flex-direction: column; gap: 12px; }
+.bento__main { display: flex; flex-direction: column; gap: 14px; }
+.sec-head .st-display-2 { max-width: 17ch; }
 .bento__side { display: flex; flex-direction: column; gap: 10px; }
 .bento__code { margin-top: 8px; border-radius: var(--st-radius-md); border: 1px solid var(--st-line); background: var(--st-bg-sunk); overflow: hidden; }
 .bento__code-bar { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--st-line); }
 .bento__code-bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--st-line-strong); }
-.bento__code pre { margin: 0; padding: 14px 16px; overflow-x: auto; }
-.bento__code code { font-family: var(--st-font-mono); font-size: 0.78rem; line-height: 1.75; color: var(--st-ink-soft); white-space: pre; }
+.bento__code pre { margin: 0; padding: 18px 20px; overflow-x: auto; }
+.bento__code code { font-family: var(--st-font-mono); font-size: 0.8rem; line-height: 1.85; color: color-mix(in srgb, var(--st-ink) 82%, var(--st-ink-soft)); white-space: pre; }
+.bento__code-bar span { margin-left: auto; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--st-ink-faint); text-transform: uppercase; }
+.bento__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 14px; }
 .tok-k { color: var(--st-accent); }
 .tok-s { color: color-mix(in srgb, var(--st-accent) 70%, #8f9bff); }
 .tok-c { color: var(--st-ink-faint); }
@@ -299,15 +313,16 @@ const faqs = computed(() => [
 .bento__link--dash { background: repeating-linear-gradient(90deg, var(--st-accent-line) 0 4px, transparent 4px 9px); }
 
 .faq { display: grid; grid-template-columns: 1fr; gap: 24px; }
-.faq__list { display: flex; flex-direction: column; }
+.faq__list { display: flex; flex-direction: column; padding: 6px clamp(18px, 2.4vw, 28px); }
 .faq__item { border-bottom: 1px solid var(--st-line); }
+.faq__item:last-child { border-bottom: 0; }
 .faq__q { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; cursor: pointer; list-style: none; font-size: 1rem; font-weight: 550; color: var(--st-ink); }
 .faq__q::-webkit-details-marker { display: none; }
 .faq__q svg { flex-shrink: 0; color: var(--st-ink-faint); transition: transform var(--st-dur) var(--st-ease); }
 .faq__item[open] .faq__q svg { transform: rotate(180deg); }
 .faq__a { padding: 0 0 20px; font-size: 0.92rem; line-height: 1.75; color: var(--st-ink-soft); max-width: 68ch; }
 
-.cta { position: relative; overflow: hidden; border-radius: var(--st-radius-xl); border: 1px solid var(--st-line); background: var(--st-bg-elev); padding: clamp(32px, 6vw, 72px); text-align: center; box-shadow: var(--st-shadow-md); }
+.cta { position: relative; overflow: hidden; border-radius: var(--st-radius-xl); border: 1px solid var(--st-line); background: var(--st-bg-elev); padding: clamp(28px, 4.4vw, 56px) clamp(24px, 4vw, 48px); text-align: center; box-shadow: var(--st-shadow-md); }
 .cta__glow { position: absolute; inset: -40% 20% auto; height: 320px; background: radial-gradient(circle, var(--st-glow), transparent 65%); filter: blur(40px); pointer-events: none; }
 .cta__title { position: relative; }
 .cta__body { position: relative; margin: 14px auto 0; }

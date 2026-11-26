@@ -1,11 +1,11 @@
 <template>
   <AuthLayout>
-    <div class="space-y-6">
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+    <div class="auth-form">
+      <div class="auth-form__head">
+        <h2 class="st-display-3 auth-form__title">
           {{ t('auth.oidc.callbackTitle', { providerName }) }}
         </h2>
-        <p class="mt-2 text-sm text-gray-500 dark:text-dark-400">
+        <p class="st-body auth-form__lede">
           {{
             isProcessing
               ? t('auth.oidc.callbackProcessing', { providerName })
@@ -24,13 +24,13 @@
             needsBindLogin ||
             needsTotpChallenge
           "
-          class="space-y-4"
+          class="auth-form__body"
         >
           <div
             v-if="adoptionRequired && (suggestedDisplayName || suggestedAvatarUrl)"
             class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-dark-600 dark:bg-dark-800/60"
           >
-            <div class="space-y-3">
+            <div class="auth-alt__list">
               <div class="space-y-1">
                 <p class="text-sm font-medium text-gray-900 dark:text-white">
                   {{ t('auth.oauthFlow.profileDetailsTitle', { providerName }) }}
@@ -85,14 +85,14 @@
               <input
                 v-model="invitationCode"
                 type="text"
-                class="input w-full"
+                class="st-input w-full"
                 :placeholder="t('auth.invitationCodePlaceholder')"
                 :disabled="isSubmitting"
                 @keyup.enter="handleSubmitInvitation"
               />
             </div>
             <button
-              class="btn btn-primary w-full"
+              class="st-btn st-btn--primary st-btn--lg auth-form__submit"
               :disabled="isSubmitting || !invitationCode.trim()"
               @click="handleSubmitInvitation"
             >
@@ -106,7 +106,7 @@
             <div
               class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-dark-600 dark:bg-dark-800/60"
             >
-              <div class="space-y-3">
+              <div class="auth-alt__list">
                 <div class="space-y-1">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ t('auth.alreadyHaveAccount') }}
@@ -125,7 +125,7 @@
                   v-model="existingAccountEmail"
                   data-testid="existing-account-email"
                   type="email"
-                  class="input w-full"
+                  class="st-input w-full"
                   :placeholder="t('auth.emailPlaceholder')"
                   :disabled="isSubmitting"
                 />
@@ -133,7 +133,7 @@
                 <button
                   data-testid="existing-account-submit"
                   type="button"
-                  class="btn btn-secondary w-full"
+                  class="st-btn auth-alt__btn"
                   :disabled="isSubmitting"
                   @click="handleExistingAccountBinding"
                 >
@@ -147,7 +147,7 @@
             <div
               class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-dark-600 dark:bg-dark-800/60"
             >
-              <div class="space-y-4">
+              <div class="auth-form__body">
                 <div class="space-y-1">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ t('auth.oauthFlow.chooseHowToContinue') }}
@@ -160,7 +160,7 @@
                 <button
                   data-testid="wechat-choice-bind-existing"
                   type="button"
-                  class="btn btn-primary w-full"
+                  class="st-btn st-btn--primary st-btn--lg auth-form__submit"
                   :disabled="isSubmitting"
                   @click="switchToBindLoginMode()"
                 >
@@ -170,7 +170,7 @@
                 <button
                   data-testid="wechat-choice-create-account"
                   type="button"
-                  class="btn btn-secondary w-full"
+                  class="st-btn auth-alt__btn"
                   :disabled="isSubmitting"
                   @click="switchToCreateAccountMode()"
                 >
@@ -184,7 +184,7 @@
             <p class="text-sm text-gray-700 dark:text-gray-300">
               {{ t('auth.oauthFlow.reviewProfileBeforeContinue', { providerName }) }}
             </p>
-            <button class="btn btn-primary w-full" :disabled="isSubmitting" @click="handleContinueLogin">
+            <button class="st-btn st-btn--primary st-btn--lg auth-form__submit" :disabled="isSubmitting" @click="handleContinueLogin">
               {{ isSubmitting ? t('common.processing') : t('auth.continue') }}
             </button>
           </template>
@@ -203,7 +203,7 @@
             />
             <button
               v-if="showBackToChooser"
-              class="btn btn-secondary w-full"
+              class="st-btn auth-alt__btn"
               :disabled="isSubmitting"
               @click="switchToCreateAccountMode()"
             >
@@ -219,7 +219,7 @@
               v-if="hasCurrentAuthToken"
               class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-dark-600 dark:bg-dark-800/60"
             >
-              <div class="space-y-3">
+              <div class="auth-alt__list">
                 <div class="space-y-1">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ t('auth.oauthFlow.bindCurrentAccountTitle') }}
@@ -232,7 +232,7 @@
                 <button
                   data-testid="existing-account-submit"
                   type="button"
-                  class="btn btn-primary w-full"
+                  class="st-btn st-btn--primary st-btn--lg auth-form__submit"
                   :disabled="isSubmitting"
                   @click="handleBindCurrentAccount"
                 >
@@ -240,12 +240,12 @@
                 </button>
               </div>
             </div>
-            <div v-else class="space-y-3">
+            <div v-else class="auth-alt__list">
               <input
                 v-model="bindLoginEmail"
                 data-testid="wechat-bind-login-email"
                 type="email"
-                class="input w-full"
+                class="st-input w-full"
                 :placeholder="t('auth.emailPlaceholder')"
                 :disabled="isSubmitting"
                 @keyup.enter="handleBindLogin"
@@ -254,14 +254,14 @@
                 v-model="bindLoginPassword"
                 data-testid="wechat-bind-login-password"
                 type="password"
-                class="input w-full"
+                class="st-input w-full"
                 :placeholder="t('auth.passwordPlaceholder')"
                 :disabled="isSubmitting"
                 @keyup.enter="handleBindLogin"
               />
               <button
                 data-testid="wechat-bind-login-submit"
-                class="btn btn-primary w-full"
+                class="st-btn st-btn--primary st-btn--lg auth-form__submit"
                 :disabled="isSubmitting || !bindLoginEmail.trim() || !bindLoginPassword"
                 @click="handleBindLogin"
               >
@@ -270,7 +270,7 @@
             </div>
             <button
               v-if="showBackToChooser"
-              class="btn btn-secondary w-full"
+              class="st-btn auth-alt__btn"
               :disabled="isSubmitting"
               @click="switchToCreateAccountMode()"
             >
@@ -287,21 +287,21 @@
                 })
               }}
             </p>
-            <div class="space-y-3">
+            <div class="auth-alt__list">
               <input
                 v-model="totpCode"
                 data-testid="wechat-bind-login-totp"
                 type="text"
                 inputmode="numeric"
                 maxlength="6"
-                class="input w-full"
+                class="st-input w-full"
                 placeholder="123456"
                 :disabled="isSubmitting"
                 @keyup.enter="handleSubmitTotpChallenge"
               />
               <button
                 data-testid="wechat-bind-login-totp-submit"
-                class="btn btn-primary w-full"
+                class="st-btn st-btn--primary st-btn--lg auth-form__submit"
                 :disabled="isSubmitting || totpCode.trim().length !== 6"
                 @click="handleSubmitTotpChallenge"
               >
