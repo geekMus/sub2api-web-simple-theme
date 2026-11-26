@@ -62,29 +62,18 @@
       </button>
     </section>
 
-    <!-- ============ 服务带 ============ -->
-    <section class="strip">
-      <div class="st-shell strip__grid">
-        <article v-for="(s, i) in strip" :key="s.t" class="strip__cell">
-          <span class="strip__idx">{{ String(i + 1).padStart(2, '0') }}</span>
-          <div v-if="i === 0" class="mini" aria-hidden="true">
-            <span class="mini__chip"><i class="mini__dot mini__dot--a"></i>Anthropic</span>
-            <span class="mini__chip"><i class="mini__dot mini__dot--o"></i>OpenAI</span>
-            <span class="mini__chip"><i class="mini__dot mini__dot--g"></i>Gemini</span>
-          </div>
-          <div v-else-if="i === 1" class="mini mini--chart" aria-hidden="true">
-            <span v-for="(h, j) in [30, 52, 40, 68, 58, 84, 64, 46]" :key="j" :style="{ height: h + '%' }" :class="{ 'is-on': j === 5 }"></span>
-          </div>
-          <div v-else class="mini mini--flow" aria-hidden="true">
-            <span class="mini__req">{{ c('home.strip3req') }}</span>
-            <span class="mini__line"></span>
-            <span class="mini__node mini__node--bad">A</span>
-            <span class="mini__line mini__line--dash"></span>
-            <span class="mini__node mini__node--ok">B</span>
-          </div>
-          <h2 class="strip__t">{{ c(s.t) }}</h2>
-          <p class="strip__b">{{ c(s.b) }}</p>
-        </article>
+    <!-- ============ 路由：一条线扇出到各个工具 ============ -->
+    <section class="st-section route">
+      <div class="st-shell route__grid">
+        <div class="route__copy">
+          <h2 class="st-display-2">{{ c('home.routeTitle') }}</h2>
+          <p class="st-lede route__desc">{{ c('home.routeDesc') }}</p>
+          <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="route__link">
+            {{ c('home.routeLink') }}
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </router-link>
+        </div>
+        <div class="route__art"><FanoutArt /></div>
       </div>
     </section>
 
@@ -114,10 +103,17 @@
     <section class="st-section--tight">
       <div class="st-shell">
         <div class="cta">
-          <h2 class="st-display-2 cta__t">{{ c('home.ctaTitle') }}</h2>
-          <div class="cta__a">
-            <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">{{ isAuthenticated ? c('home.ctaConsole') : c('home.ctaStart') }}</router-link>
+          <div class="cta__copy">
+            <h2 class="st-display-2 cta__t">{{ c('home.ctaTitle') }}</h2>
+            <p class="st-lede cta__b">{{ c('home.ctaDesc') }}</p>
+            <div class="cta__a">
+              <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">
+                {{ isAuthenticated ? c('home.ctaConsole') : c('home.ctaStart') }}
+              </router-link>
+              <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer" class="st-btn st-btn--quiet st-btn--lg">{{ c('home.ctaDocs') }}</a>
+            </div>
           </div>
+          <div class="cta__art"><RingsArt /></div>
         </div>
       </div>
     </section>
@@ -131,6 +127,8 @@ import UserShell from '@/components/shell/UserShell.vue'
 import TerminalArt from '@/components/shell/art/TerminalArt.vue'
 import MockUsage from '@/components/shell/art/MockUsage.vue'
 import MockKeys from '@/components/shell/art/MockKeys.vue'
+import FanoutArt from '@/components/shell/art/FanoutArt.vue'
+import RingsArt from '@/components/shell/art/RingsArt.vue'
 import { useSimpleCopy } from '@/composables/useSimpleCopy'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
@@ -171,11 +169,6 @@ function scrollDown() {
   window.scrollTo({ top: top > 0 ? top : window.innerHeight, behavior: 'smooth' })
 }
 
-const strip = [
-  { t: 'home.strip1t', b: 'home.strip1b' },
-  { t: 'home.strip2t', b: 'home.strip2b' },
-  { t: 'home.strip3t', b: 'home.strip3b' },
-]
 </script>
 
 <style scoped>
@@ -301,6 +294,33 @@ const strip = [
 .compact__logo { width: 44px; height: 44px; object-fit: contain; }
 .compact__t { margin: 0; }
 .compact__a { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- 路由扇出（覆盖旧的 strip 样式） ---------- */
+.route { border-block: 1px solid var(--st-line); background: var(--st-bg-soft); }
+.route__grid { display: grid; grid-template-columns: 1fr; gap: clamp(24px, 3vw, 48px); align-items: center; }
+.route__copy { max-width: min(520px, 100%); }
+.route__desc { margin-top: 14px; }
+.route__link {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 20px;
+  font-size: 0.86rem; color: var(--st-ink-2); text-decoration: none;
+  transition: color var(--st-t) var(--st-ease), gap var(--st-t) var(--st-ease);
+}
+.route__link:hover { color: var(--st-brand-text); gap: 9px; }
+.route__art { min-width: 0; }
+
+/* ---------- CTA 覆盖：左文右图 ---------- */
+.cta { display: grid; grid-template-columns: 1fr; gap: clamp(20px, 3vw, 40px); text-align: left; align-items: center; }
+.cta__copy { max-width: min(440px, 100%); }
+.cta__t { max-width: none; }
+.cta__b { margin-top: 12px; }
+.cta__a { justify-content: flex-start; margin-top: 22px; }
+.cta__art { display: none; }
+
+@media (min-width: 900px) {
+  .cta { grid-template-columns: 1fr 0.85fr; }
+  .cta__art { display: block; }
+  .route__grid { grid-template-columns: 0.85fr 1.15fr; }
+}
 
 @media (min-width: 900px) {
   .hero__grid { grid-template-columns: 0.82fr 1.18fr; }
