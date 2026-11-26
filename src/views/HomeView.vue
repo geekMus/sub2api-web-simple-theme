@@ -54,8 +54,7 @@
 
           <!-- 2. 计费：迷你柱状 + 单价 -->
           <div v-else-if="i === 1" class="mini mini--chart" aria-hidden="true">
-            <span v-for="(h, j) in [30, 52, 40, 68, 58, 84, 64]" :key="j" :style="{ height: h + '%' }" :class="{ 'is-on': j === 5 }"></span>
-            <em>$0.0432</em>
+            <span v-for="(h, j) in [30, 52, 40, 68, 58, 84, 64, 46]" :key="j" :style="{ height: h + '%' }" :class="{ 'is-on': j === 5 }"></span>
           </div>
 
           <!-- 3. 容灾：请求 → 失败 → 切换 -->
@@ -215,7 +214,7 @@ const strip = [
 .mini__dot--o { background: #10a37f; }
 .mini__dot--g { background: #4285f4; }
 
-.mini--chart { align-items: flex-end; gap: 4px; padding: 10px 12px 10px 12px; }
+.mini--chart { align-items: flex-end; gap: 4px; padding: 10px 14px; }
 .mini--chart span {
   flex: 1 1 0;
   min-width: 0;
