@@ -8,8 +8,8 @@ const { setLocale } = vi.hoisted(() => ({ setLocale: vi.fn() }))
 vi.mock('@/i18n', () => ({
   setLocale,
   availableLocales: [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' }
+    { code: 'en', name: 'English' },
+    { code: 'zh', name: '中文' }
   ]
 }))
 
@@ -38,15 +38,14 @@ describe('LocaleSwitcher', () => {
     vi.unstubAllGlobals()
   })
 
-  // 分组名称等内容由后端按请求语言返回，已加载的数据要靠整页刷新换成新语言
-  it('reloads the page after switching to another language', async () => {
+  // 切换语言必须即时生效：只调用 setLocale（i18n locale 是响应式的），不得刷新页面
+  it('switches language in place without reloading the page', async () => {
     const wrapper = mountSwitcher()
 
     await choose(wrapper, 'English')
 
     expect(setLocale).toHaveBeenCalledWith('en')
-    expect(reload).toHaveBeenCalledTimes(1)
-    expect(setLocale.mock.invocationCallOrder[0]).toBeLessThan(reload.mock.invocationCallOrder[0])
+    expect(reload).not.toHaveBeenCalled()
   })
 
   it('does nothing when the current language is chosen again', async () => {

@@ -72,7 +72,8 @@ async function selectLocale(code: string) {
   try {
     await setLocale(code)
     isOpen.value = false
-    window.location.reload()
+    // 即时切换：i18n 的 locale 是响应式的，界面文案立刻更新，不刷新页面。
+    // 由后端按请求语言返回的数据（如分组名）会保持旧语言，直到下次请求重新拉取。
   } finally {
     switching.value = false
   }

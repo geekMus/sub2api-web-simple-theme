@@ -38,7 +38,7 @@
           <div class="term__json term__json--i"><span class="term__prop">"id"</span>: <span class="term__str">"msg_01Xk"</span>,</div>
           <div class="term__json term__json--i"><span class="term__prop">"model"</span>: <span class="term__str">"claude-opus-4"</span>,</div>
           <div class="term__json term__json--i"><span class="term__prop">"usage"</span>: { <span class="term__prop">"input_tokens"</span>: <span class="term__num">8412</span>, <span class="term__prop">"output_tokens"</span>: <span class="term__num">1203</span> },</div>
-          <div class="term__json term__json--i"><span class="term__prop">"content"</span>: [{ <span class="term__prop">"type"</span>: <span class="term__str">"text"</span>, <span class="term__prop">"text"</span>: <span class="term__str">"好的，先创建项目骨架…"</span> }]</div>
+          <div class="term__json term__json--i"><span class="term__prop">"content"</span>: [{ <span class="term__prop">"type"</span>: <span class="term__str">"text"</span>, <span class="term__prop">"text"</span>: <span class="term__str">"Let me scaffold the project first…"</span> }]</div>
           <div class="term__json">}</div>
           <div class="term__line">
             <span class="term__prompt">~</span>

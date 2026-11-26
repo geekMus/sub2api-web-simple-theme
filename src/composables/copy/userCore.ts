@@ -10,6 +10,7 @@ type Dict = Record<string, string>
 const zh: Dict = {
   // 通用
   'usercore.loading': '正在加载',
+  'usercore.dash.greetJoin': '{greeting}，{name}',
   'profile.eyebrow': '账户设置',
   'profile.title': '这是你的账户',
   'profile.lede': '身份、安全、通知，都收在这一页里。改动即时生效。',
@@ -150,6 +151,7 @@ const zh: Dict = {
 const en: Dict = {
   // Common
   'usercore.loading': 'Loading',
+  'usercore.dash.greetJoin': '{greeting}, {name}',
   'profile.eyebrow': 'Account',
   'profile.title': 'This is your account',
   'profile.lede': 'Identity, security and notifications, all on one page. Changes apply immediately.',

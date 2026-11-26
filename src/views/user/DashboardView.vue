@@ -6,7 +6,7 @@
         <header class="dash__head">
           <p class="st-eyebrow st-reveal">{{ c('usercore.dash.eyebrow') }}</p>
           <h1 class="st-display-2 dash__title st-reveal" style="--i: 1">
-            {{ greeting }}<template v-if="displayName">，{{ displayName }}</template>
+            {{ greetingLine }}
           </h1>
           <p class="st-lede dash__lede st-reveal" style="--i: 2">{{ c('usercore.dash.lede') }}</p>
           <div class="dash__meta st-reveal" style="--i: 3">
@@ -106,6 +106,14 @@ const trendData = ref<TrendDataPoint[]>([]); const modelStats = ref<ModelStat[]>
 const platformQuotas = ref<PlatformQuotaItem[] | null>(null)
 
 const startDate = ref(formatDateLocalInput(new Date(Date.now() - 6 * 86400000))); const endDate = ref(formatDateLocalInput(new Date())); const granularity = ref('day')
+
+const greetingLine = computed(() => {
+  const name = displayName.value
+  if (!name) return greeting.value
+  return c('usercore.dash.greetJoin')
+    .replace('{greeting}', greeting.value)
+    .replace('{name}', name)
+})
 
 const greeting = computed(() => {
   const hour = new Date().getHours()

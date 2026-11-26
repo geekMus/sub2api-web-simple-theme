@@ -11,9 +11,9 @@
         <h1 class="st-display-1 compact__t">{{ siteName }}</h1>
         <div class="compact__a">
           <router-link :to="compactTarget" class="st-btn st-btn--primary st-btn--lg">
-            {{ isAuthenticated ? '进入控制台' : '登录' }}
+            {{ isAuthenticated ? c('home.ctaConsole') : c('home.signIn') }}
           </router-link>
-          <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="st-btn st-btn--quiet st-btn--lg">模型</router-link>
+          <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="st-btn st-btn--quiet st-btn--lg">{{ c('home.models') }}</router-link>
         </div>
       </div>
     </section>
@@ -25,14 +25,14 @@
       <div class="st-shell hero__grid">
         <div class="hero__copy">
           <h1 class="st-display-1 hero__title st-reveal">
-            一个接口<br /><em>调用所有模型</em>
+            {{ c('home.heroTitle1') }}<br /><em>{{ c('home.heroTitle2') }}</em>
           </h1>
-          <p class="hero__line st-reveal" style="--i: 1">换模型只改一行。</p>
+          <p class="hero__line st-reveal" style="--i: 1">{{ c('home.heroLine') }}</p>
           <div class="hero__cta st-reveal" style="--i: 2">
             <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">
-              {{ isAuthenticated ? '进入控制台' : '免费开始' }}
+              {{ isAuthenticated ? c('home.ctaConsole') : c('home.ctaStart') }}
             </router-link>
-            <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer" class="st-btn st-btn--quiet st-btn--lg">文档</a>
+            <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer" class="st-btn st-btn--quiet st-btn--lg">{{ c('home.ctaDocs') }}</a>
           </div>
         </div>
         <div class="hero__art st-reveal" style="--i: 1">
@@ -59,15 +59,15 @@
 
           <!-- 3. 容灾：请求 → 失败 → 切换 -->
           <div v-else class="mini mini--flow" aria-hidden="true">
-            <span class="mini__req">请求</span>
+            <span class="mini__req">{{ c('home.strip3req') }}</span>
             <span class="mini__line"></span>
             <span class="mini__node mini__node--bad">A</span>
             <span class="mini__line mini__line--dash"></span>
             <span class="mini__node mini__node--ok">B</span>
           </div>
 
-          <h2 class="strip__t">{{ s.t }}</h2>
-          <p class="strip__b">{{ s.b }}</p>
+          <h2 class="strip__t">{{ c(s.t) }}</h2>
+          <p class="strip__b">{{ c(s.b) }}</p>
         </article>
       </div>
     </section>
@@ -76,8 +76,8 @@
     <section class="st-section">
       <div class="st-shell duo duo--rev">
         <div class="duo__copy">
-          <h2 class="st-display-2">账单看得懂</h2>
-          <p class="duo__b">按天、按模型、按通行证。</p>
+          <h2 class="st-display-2">{{ c('home.billTitle') }}</h2>
+          <p class="duo__b">{{ c('home.billLine') }}</p>
         </div>
         <div class="duo__art"><MockUsage /></div>
       </div>
@@ -87,8 +87,8 @@
     <section class="st-section">
       <div class="st-shell duo">
         <div class="duo__copy">
-          <h2 class="st-display-2">一个项目一把钥匙</h2>
-          <p class="duo__b">随时停用，互不影响。</p>
+          <h2 class="st-display-2">{{ c('home.keysTitle') }}</h2>
+          <p class="duo__b">{{ c('home.keysLine') }}</p>
         </div>
         <div class="duo__art duo__art--keys"><MockKeys /></div>
       </div>
@@ -98,9 +98,9 @@
     <section class="st-section--tight">
       <div class="st-shell">
         <div class="cta">
-          <h2 class="st-display-2 cta__t">三十秒发出第一条请求</h2>
+          <h2 class="st-display-2 cta__t">{{ c('home.ctaTitle') }}</h2>
           <div class="cta__a">
-            <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">{{ isAuthenticated ? '进入控制台' : '免费开始' }}</router-link>
+            <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">{{ isAuthenticated ? c('home.ctaConsole') : c('home.ctaStart') }}</router-link>
           </div>
         </div>
       </div>
@@ -115,11 +115,13 @@ import UserShell from '@/components/shell/UserShell.vue'
 import TerminalArt from '@/components/shell/art/TerminalArt.vue'
 import MockUsage from '@/components/shell/art/MockUsage.vue'
 import MockKeys from '@/components/shell/art/MockKeys.vue'
+import { useSimpleCopy } from '@/composables/useSimpleCopy'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
+const { c } = useSimpleCopy()
 
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
 const hasHomeContent = computed(() => homeContent.value.trim().length > 0)
@@ -148,9 +150,9 @@ onMounted(() => {
 })
 
 const strip = [
-  { t: '协议兼容', b: 'OpenAI · Anthropic · Gemini' },
-  { t: '按量计费', b: 'token 级，逐条可查' },
-  { t: '自动容灾', b: '上游失败自动换渠道' },
+  { t: 'home.strip1t', b: 'home.strip1b' },
+  { t: 'home.strip2t', b: 'home.strip2b' },
+  { t: 'home.strip3t', b: 'home.strip3b' },
 ]
 </script>
 
