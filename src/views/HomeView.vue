@@ -52,6 +52,7 @@
     <section class="strip">
       <div class="st-shell strip__grid">
         <article v-for="(s, i) in strip" :key="s.t" class="strip__cell">
+          <span class="strip__idx">{{ String(i + 1).padStart(2, '0') }}</span>
           <!-- 1. 协议：三枚真实厂商标签 -->
           <div v-if="i === 0" class="mini" aria-hidden="true">
             <span class="mini__chip"><i class="mini__dot mini__dot--a"></i>Anthropic</span>
@@ -213,35 +214,36 @@ const strip = [
 .hero__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .hero__art { position: relative; min-width: 0; }
 
-/* ---------- 2. 服务带：浅底全宽 + 三格迷你界面 ---------- */
+/* ---------- 2. 服务带：一条整体规格条，用竖线分栏 ---------- */
 .strip {
   border-block: 1px solid var(--st-line);
   background: var(--st-bg-soft);
-  padding-block: clamp(32px, 3.6vw, 52px);
+  padding-block: clamp(36px, 4.2vw, 60px);
 }
-.strip__grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.strip__grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
 .strip__cell {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 18px 18px 20px;
-  border: 1px solid var(--st-line);
-  border-radius: var(--st-r-md);
-  background: var(--st-bg);
-  transition: border-color var(--st-t) var(--st-ease), transform var(--st-t) var(--st-ease);
+  gap: 14px;
+  padding: 0;
 }
-.strip__cell:hover { border-color: var(--st-line-2); transform: translateY(-1px); }
+.strip__idx {
+  font-family: var(--st-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--st-brand-text);
+}
 
 /* 迷你界面通用容器 */
 .mini {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 62px;
-  padding: 0 12px;
+  height: 68px;
+  padding: 0 14px;
   border-radius: var(--st-r-sm);
   border: 1px solid var(--st-line);
-  background: var(--st-bg-soft);
+  background: var(--st-bg);
   overflow: hidden;
 }
 .mini__chip {
@@ -299,8 +301,8 @@ const strip = [
 .mini__node--bad { background: var(--st-danger-soft); color: var(--st-danger); }
 .mini__node--ok { background: var(--st-brand); color: var(--st-brand-ink); }
 
-.strip__t { margin: 0; font-family: var(--st-font-display); font-size: 1rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink); }
-.strip__b { margin: 0; font-size: 0.84rem; line-height: 1.5; color: var(--st-ink-3); }
+.strip__t { margin: 0; font-family: var(--st-font-display); font-size: 1.08rem; font-weight: 600; letter-spacing: -0.025em; color: var(--st-ink); }
+.strip__b { margin: 0; font-size: 0.86rem; line-height: 1.55; color: var(--st-ink-2); }
 
 /* ---------- 3/4. 双栏 ---------- */
 .duo { display: grid; grid-template-columns: 1fr; gap: clamp(28px, 4vw, 56px); align-items: center; }
@@ -328,7 +330,9 @@ const strip = [
 
 @media (min-width: 900px) {
   .hero__grid { grid-template-columns: 0.8fr 1.2fr; gap: clamp(28px, 3.4vw, 52px); }
-  .strip__grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .strip__grid { grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .strip__cell + .strip__cell { border-left: 1px solid var(--st-line); padding-left: clamp(20px, 2.4vw, 36px); }
+  .strip__cell:not(:last-child) { padding-right: clamp(20px, 2.4vw, 36px); }
   .duo { grid-template-columns: 0.62fr 1fr; }
   .duo--rev { grid-template-columns: 1fr 0.62fr; }
   .duo--rev .duo__copy { order: 2; }

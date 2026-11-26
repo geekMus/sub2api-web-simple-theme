@@ -92,7 +92,7 @@ import { useAppStore, useAuthStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import { useSimpleCopy } from '@/composables/useSimpleCopy'
 import { formatCurrency } from '@/utils/format'
-import { toggleThemeFromElement } from '@/utils/theme-transition'
+import { toggleThemeFrom, toggleThemeFromElement } from '@/utils/theme-transition'
 
 let router: ReturnType<typeof useRouter> | null = null
 let route: ReturnType<typeof useRoute> | null = null
@@ -150,7 +150,10 @@ function toggleTheme(event?: MouseEvent) {
   const el = (event?.currentTarget as HTMLElement | null) ?? null
   pulsing.value = true
   window.setTimeout(() => { pulsing.value = false }, 720)
-  isDark.value = toggleThemeFromElement(el) === 'dark'
+  isDark.value =
+    event && typeof event.clientX === 'number'
+      ? toggleThemeFrom(event.clientX, event.clientY) === 'dark'
+      : toggleThemeFromElement(el) === 'dark'
 }
 
 function onScroll() { scrolled.value = window.scrollY > 4 }

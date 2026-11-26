@@ -1,16 +1,18 @@
 /**
- * 主题切换过渡（自绘遮罩层）
+ * 主题切换过渡
  * ------------------------------------------------------------------
- * 方向语义：
- *   light → dark ：深色圆从按钮处【向外扩散】铺满
- *   dark → light ：深色圆【向内收拢】回按钮，露出亮色
- * 实现：一层 fixed 遮罩 + 一圈品牌色光晕，同步用 Web Animations 驱动。
- * 不用 View Transitions —— 它会把页面替换成快照，装饰层无法渲染。
+ * 实现参考 keleus/BewlyCat 的 useDark()：
+ *   1. 切换期间临时禁用全站 CSS transition —— 否则各元素的颜色过渡会和圆形遮罩叠加，
+ *      画面会变成浑浊的交叉淡入（这是之前「看起来不对」的根因）
+ *   2. 用 View Transitions 快照做圆形遮罩：切暗色时新层在上向外扩散，
+ *      切亮色时旧层在上向内收拢
+ *   3. 动画结束清理临时样式
+ * 不支持 View Transition 或用户要求减少动效时，直接切换。
  */
 export type ThemeName = 'dark' | 'light'
 
-const DURATION = 660
-const EASING = 'cubic-bezier(0.16, 1, 0.3, 1)'
+const DURATION = 320
+const EASING = 'ease-in-out'
 
 export function currentTheme(): ThemeName {
   return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
@@ -25,89 +27,85 @@ export function applyTheme(theme: ThemeName): void {
   }
 }
 
-function radiusFrom(x: number, y: number): number {
-  return Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (callback: () => void | Promise<void>) => {
+    ready: Promise<void>
+    finished: Promise<void>
+  }
 }
 
-function readBg(): string {
-  const v = getComputedStyle(document.documentElement).getPropertyValue('--st-bg').trim()
-  return v || '#000'
+function killTransitions(): HTMLStyleElement {
+  const style = document.createElement('style')
+  style.textContent =
+    '*, *::before, *::after{transition:none !important;animation-duration:0s !important}'
+  document.head.appendChild(style)
+  return style
+}
+
+function baseViewTransitionStyle(): HTMLStyleElement {
+  const style = document.createElement('style')
+  style.textContent = `
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none !important;
+      mix-blend-mode: normal;
+    }
+  `
+  document.head.appendChild(style)
+  return style
 }
 
 export function toggleThemeFrom(x: number, y: number): ThemeName {
   const next: ThemeName = currentTheme() === 'dark' ? 'light' : 'dark'
+  const doc = document as ViewTransitionDocument
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduceMotion) {
+
+  if (typeof doc.startViewTransition !== 'function' || reduceMotion) {
     applyTheme(next)
     return next
   }
 
-  const beforeBg = readBg()
-  applyTheme(next)
-  const afterBg = readBg()
-  // 遮罩始终使用「深色那一侧」的颜色：
-  // 变深色时是新主题色（向外铺），变亮色时是旧主题色（向内收）
-  const veilColor = next === 'dark' ? afterBg : beforeBg
+  const endRadius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+  const noTransitionStyle = killTransitions()
+  const vtStyle = baseViewTransitionStyle()
 
-  const r = radiusFrom(x, y)
-  const fromClip = `circle(${next === 'dark' ? 0 : r}px at ${x}px ${y}px)`
-  const toClip = `circle(${next === 'dark' ? r : 0}px at ${x}px ${y}px)`
+  const transition = doc.startViewTransition(() => {
+    applyTheme(next)
+  })
 
-  const veil = document.createElement('div')
-  veil.setAttribute('aria-hidden', 'true')
-  veil.style.cssText = [
-    'position:fixed',
-    'inset:0',
-    'z-index:2147483000',
-    'pointer-events:none',
-    `background:${veilColor}`,
-    `clip-path:${fromClip}`,
-    'will-change:clip-path',
-  ].join(';')
+  transition.ready
+    .then(() => {
+      const isDarkNow = document.documentElement.classList.contains('dark')
 
-  // 边缘光晕：一圈跟随揭示边界的细环
-  const ring = document.createElement('div')
-  ring.setAttribute('aria-hidden', 'true')
-  const startSize = next === 'dark' ? 0 : r * 2
-  const endSize = next === 'dark' ? r * 2 : 0
-  ring.style.cssText = [
-    'position:fixed',
-    'left:0',
-    'top:0',
-    `width:${startSize}px`,
-    `height:${startSize}px`,
-    'border-radius:9999px',
-    'pointer-events:none',
-    'z-index:2147483001',
-    `border:1.5px solid color-mix(in srgb, var(--st-brand) 65%, transparent)`,
-    'box-shadow:0 0 32px 8px var(--st-brand-soft), inset 0 0 18px var(--st-brand-soft)',
-    `transform:translate(${x}px, ${y}px) translate(-50%,-50%)`,
-    'opacity:0.9',
-    'will-change:width,height,opacity',
-  ].join(';')
+      const zIndexStyle = document.createElement('style')
+      zIndexStyle.textContent = `
+        ::view-transition-old(root) { z-index: ${isDarkNow ? 1 : 9999}; }
+        ::view-transition-new(root) { z-index: ${isDarkNow ? 9999 : 1}; }
+      `
+      document.head.appendChild(zIndexStyle)
 
-  document.body.append(veil, ring)
+      const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
+      const animation = document.documentElement.animate(
+        { clipPath: isDarkNow ? clipPath : [...clipPath].reverse() },
+        {
+          duration: DURATION,
+          easing: EASING,
+          pseudoElement: isDarkNow ? '::view-transition-new(root)' : '::view-transition-old(root)',
+        },
+      )
 
-  const veilAnim = veil.animate(
-    { clipPath: [fromClip, toClip] },
-    { duration: DURATION, easing: EASING, fill: 'forwards' },
-  )
-  const ringAnim = ring.animate(
-    [
-      { width: `${startSize}px`, height: `${startSize}px`, opacity: 0.9 },
-      { width: `${endSize}px`, height: `${endSize}px`, opacity: 0 },
-    ],
-    { duration: DURATION, easing: EASING, fill: 'forwards' },
-  )
+      animation.finished
+        .catch(() => undefined)
+        .finally(() => zIndexStyle.remove())
+    })
+    .catch(() => undefined)
 
-  veilAnim.finished
+  transition.finished
     .catch(() => undefined)
     .finally(() => {
-      veil.remove()
-      ring.remove()
+      noTransitionStyle.remove()
+      vtStyle.remove()
     })
-
-  ringAnim.finished.catch(() => undefined)
 
   return next
 }
