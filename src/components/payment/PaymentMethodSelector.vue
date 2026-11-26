@@ -103,13 +103,13 @@ function methodSelectedClass(_type: string): string {
   transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
 }
 .pm__btn:hover:not(:disabled) { border-color: var(--st-ink-2); }
-.pm__btn--on { border-color: var(--st-brand); background: var(--st-brand-soft); }
+.pm__btn--on { border-color: var(--st-brand-text); background: var(--st-brand-soft); }
 .pm__btn--off { opacity: 0.45; cursor: not-allowed; }
 .pm__btn:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
 .pm__icon { width: 26px; height: 26px; flex-shrink: 0; object-fit: contain; }
 .pm__copy { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
 .pm__label { width: 100%; font-size: 0.86rem; font-weight: 500; line-height: 1.3; }
-.pm__fee { font-size: 0.68rem; color: var(--st-ink-faint); white-space: nowrap; }
+.pm__fee { font-size: 0.75rem; color: var(--st-ink-faint); white-space: nowrap; }
 
 @media (max-width: 400px) {
   .pm__btn { height: auto; min-height: 58px; gap: 6px; padding: 8px; }

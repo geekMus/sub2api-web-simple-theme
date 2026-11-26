@@ -516,7 +516,7 @@ onUnmounted(() => cleanup())
   height: 30px;
   border-radius: 50%;
   border: 3px solid var(--st-line-2);
-  border-top-color: var(--st-brand);
+  border-top-color: var(--st-brand-text);
   animation: psp-spin 0.9s linear infinite;
 }
 @keyframes psp-spin { to { transform: rotate(360deg); } }

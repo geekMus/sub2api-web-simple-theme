@@ -36,7 +36,7 @@ const facts = computed(() => [c('auth.aside.fact1'), c('auth.aside.fact2'), c('a
   margin-top: 14px;
 }
 .auth-aside__accent {
-  color: var(--st-accent);
+  color: var(--st-brand-text);
 }
 .auth-aside__lede {
   margin-top: 14px;
@@ -63,7 +63,7 @@ const facts = computed(() => [c('auth.aside.fact1'), c('auth.aside.fact2'), c('a
   white-space: nowrap;
 }
 .auth-aside__facts svg {
-  color: var(--st-accent);
+  color: var(--st-brand-text);
   flex: none;
 }
 </style>

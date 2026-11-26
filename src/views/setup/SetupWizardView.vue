@@ -526,7 +526,7 @@ async function waitForServiceRestart() {
   font-weight: 600;
   color: var(--st-ink-3);
 }
-.setup-step--active .setup-step__dot { border-color: var(--st-brand); background: var(--st-brand); color: var(--st-brand-ink); box-shadow: 0 0 0 4px var(--st-brand-soft); }
+.setup-step--active .setup-step__dot { border-color: var(--st-brand-text); background: var(--st-brand); color: var(--st-brand-ink); box-shadow: 0 0 0 4px var(--st-brand-soft); }
 .setup-step--done .setup-step__dot { border-color: var(--st-brand-line); background: var(--st-bg); color: var(--st-brand-text); }
 .setup-step__label { font-size: 0.72rem; line-height: 1.35; color: var(--st-ink-3); overflow-wrap: anywhere; }
 .setup-step--active .setup-step__label,
@@ -562,7 +562,7 @@ async function waitForServiceRestart() {
   height: 16px;
   border-radius: 50%;
   border: 2px solid var(--st-line-2);
-  border-top-color: var(--st-brand);
+  border-top-color: var(--st-brand-text);
   animation: setup-spin 800ms linear infinite;
 }
 @keyframes setup-spin { to { transform: rotate(360deg); } }

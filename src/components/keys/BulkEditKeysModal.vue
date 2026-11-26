@@ -305,7 +305,7 @@ const submit = async () => {
   cursor: pointer;
 }
 .bulk-check--plain { font-weight: 400; color: var(--st-ink-2); }
-.bulk-check__box { width: 15px; height: 15px; accent-color: var(--st-brand); cursor: pointer; flex: none; }
+.bulk-check__box { width: 15px; height: 15px; accent-color: var(--st-brand-text); cursor: pointer; flex: none; }
 .bulk-hint { margin-top: 6px; font-size: 0.74rem; line-height: 1.6; color: var(--st-ink-3); }
 .bulk-mono { font-family: var(--st-font-mono); }
 .bulk-error {

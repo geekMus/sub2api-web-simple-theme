@@ -368,7 +368,7 @@ async function verifySavedEmail(email: string) {
 .profile-switch__input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .profile-switch__track { display: block; width: 40px; height: 23px; border-radius: 999px; background: var(--st-bg-sink); border: 1px solid var(--st-line-2); transition: background-color var(--st-t) var(--st-ease), border-color var(--st-t) var(--st-ease); }
 .profile-switch__knob { display: block; width: 17px; height: 17px; margin: 2px; border-radius: 50%; background: var(--st-bg); border: 1px solid var(--st-line-2); transition: transform var(--st-t) var(--st-ease); }
-.profile-switch__input:checked + .profile-switch__track { background: var(--st-brand); border-color: var(--st-brand); }
+.profile-switch__input:checked + .profile-switch__track { background: var(--st-brand); border-color: var(--st-brand-text); }
 .profile-switch__input:checked + .profile-switch__track .profile-switch__knob { transform: translateX(17px); background: var(--st-brand-ink); border-color: transparent; }
 .profile-switch__input:focus-visible + .profile-switch__track { outline: 2px solid var(--st-brand); outline-offset: 2px; }
 .profile-switch--sm .profile-switch__track { width: 34px; height: 20px; }

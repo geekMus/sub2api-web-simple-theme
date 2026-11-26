@@ -340,7 +340,7 @@ onBeforeUnmount(() => { unmounted = true })
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: var(--st-accent);
+  color: var(--st-brand-text);
 }
 .mcp__step-text { font-size: 0.88rem; line-height: 1.7; color: var(--st-ink-soft); }
 
@@ -361,7 +361,7 @@ onBeforeUnmount(() => { unmounted = true })
 .mcp__row-title { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .mcp__client { font-size: 0.92rem; font-weight: 600; color: var(--st-ink); overflow-wrap: anywhere; }
 .mcp__state { font-size: 0.74rem; font-weight: 550; }
-.mcp__state--on { color: var(--st-accent); }
+.mcp__state--on { color: var(--st-brand-text); }
 .mcp__state--off { color: var(--st-ink-faint); }
 .mcp__client-id {
   font-family: var(--st-font-mono);

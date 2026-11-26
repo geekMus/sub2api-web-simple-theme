@@ -233,7 +233,7 @@ onBeforeUnmount(() => observer?.disconnect())
   transition: color var(--st-t) var(--st-ease), border-color var(--st-t) var(--st-ease);
 }
 .doc__toc-link:hover { color: var(--st-ink); }
-.doc__toc-link--active { color: var(--st-brand-text); border-left-color: var(--st-brand); }
+.doc__toc-link--active { color: var(--st-brand-text); border-left-color: var(--st-brand-text); }
 .doc__toc-link--l2 { padding-left: 22px; }
 .doc__toc-link--l3 { padding-left: 32px; font-size: 0.78rem; }
 

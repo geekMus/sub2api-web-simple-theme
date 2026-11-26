@@ -256,7 +256,7 @@ function rateEnabled(r: number): boolean {
   color: var(--st-ink-3);
   transition: border-color var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease);
 }
-.filters__search:focus-within { border-color: var(--st-brand); box-shadow: 0 0 0 4px var(--st-brand-soft); }
+.filters__search:focus-within { border-color: var(--st-brand-text); box-shadow: 0 0 0 4px var(--st-brand-soft); }
 .filters__input {
   flex: 1;
   min-width: 0;

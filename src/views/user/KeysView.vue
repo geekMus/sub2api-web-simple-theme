@@ -1908,7 +1908,7 @@ onUnmounted(() => {
 .keys__card { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .keys__card-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .keys__select { display: inline-flex; align-items: center; flex: none; }
-.keys__select input { width: 15px; height: 15px; accent-color: var(--st-brand); cursor: pointer; }
+.keys__select input { width: 15px; height: 15px; accent-color: var(--st-brand-text); cursor: pointer; }
 .keys__name { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; color: var(--st-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .keys__shield { flex: none; color: var(--st-brand-text); }
 .keys__id { font-size: 0.72rem; color: var(--st-ink-3); }
@@ -2001,7 +2001,7 @@ onUnmounted(() => {
   border: 1px solid var(--st-line-2); background: var(--st-bg-sink); cursor: pointer;
   transition: background-color var(--st-t) var(--st-ease), border-color var(--st-t) var(--st-ease);
 }
-.keys-switch--on { background: var(--st-brand); border-color: var(--st-brand); }
+.keys-switch--on { background: var(--st-brand); border-color: var(--st-brand-text); }
 .keys-switch__knob { display: block; width: 17px; height: 17px; border-radius: 50%; background: var(--st-bg); border: 1px solid var(--st-line-2); transition: transform var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease); }
 .keys-switch--on .keys-switch__knob { transform: translateX(17px); background: var(--st-brand-ink); border-color: transparent; }
 .keys-switch:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
@@ -2013,7 +2013,7 @@ onUnmounted(() => {
   transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
 }
 .keys-provider:hover { border-color: var(--st-line-2); }
-.keys-provider--on { border-color: var(--st-brand); background: var(--st-brand-soft); }
+.keys-provider--on { border-color: var(--st-brand-text); background: var(--st-brand-soft); }
 .keys-provider--off { opacity: 0.45; cursor: not-allowed; }
 .keys-provider__input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .keys-provider__icons { display: flex; align-items: center; justify-content: center; gap: 6px; }

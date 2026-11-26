@@ -197,7 +197,7 @@ watch(() => props.modelValue, (v) => {
   transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
 }
 .amount__btn:hover { border-color: var(--st-ink-2); }
-.amount__btn--on { border-color: var(--st-brand); background: var(--st-brand-soft); }
+.amount__btn--on { border-color: var(--st-brand-text); background: var(--st-brand-soft); }
 .amount__btn:focus-visible { outline: 2px solid var(--st-brand); outline-offset: 2px; }
 .amount__value { line-height: 1.2; font-variant-numeric: tabular-nums; }
 .amount__second { font-size: 0.75rem; line-height: 1.35; color: var(--st-ink-faint); }

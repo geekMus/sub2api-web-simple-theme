@@ -373,7 +373,7 @@ onUnmounted(() => {
   height: 30px;
   border-radius: 50%;
   border: 3px solid var(--st-line-2);
-  border-top-color: var(--st-brand);
+  border-top-color: var(--st-brand-text);
   animation: stripe-spin 0.9s linear infinite;
 }
 .stripe-pay__spin--sm { width: 15px; height: 15px; border-width: 2px; }

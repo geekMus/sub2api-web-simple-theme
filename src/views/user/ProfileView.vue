@@ -172,7 +172,7 @@ onMounted(async () => {
 :deep(.st-btn--primary[disabled]),
 :deep(.st-btn--primary[aria-disabled="true"]) {
   background: var(--st-brand);
-  border-color: var(--st-brand);
+  border-color: var(--st-brand-text);
   color: var(--st-brand-ink);
   opacity: 0.4;
 }

@@ -280,7 +280,7 @@ onMounted(() => {
 .aff__sk-stat { height: 128px; }
 .aff__stat { display: flex; flex-direction: column; gap: 6px; }
 .aff__stat--accent { border-color: var(--st-accent-line); background: color-mix(in srgb, var(--st-accent) 6%, var(--st-bg-elev)); }
-.aff__value--accent { color: var(--st-accent); }
+.aff__value--accent { color: var(--st-brand-text); }
 .aff__hint { font-size: 0.76rem; line-height: 1.6; color: var(--st-ink-faint); }
 .aff__hint--warn { color: var(--st-warn); }
 
@@ -341,7 +341,7 @@ onMounted(() => {
 .aff__invitee { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-inline: 8px; }
 .aff__invitee-main { min-width: 0; }
 .aff__invitee-main .st-row__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aff__rebate { font-size: 0.88rem; font-weight: 600; color: var(--st-accent); white-space: nowrap; }
+.aff__rebate { font-size: 0.88rem; font-weight: 600; color: var(--st-brand-text); white-space: nowrap; }
 
 .aff__empty {
   display: flex;

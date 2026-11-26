@@ -284,7 +284,7 @@ onMounted(loadChannels)
   color: var(--st-ink-3);
   transition: border-color var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease);
 }
-.ch__search:focus-within { border-color: var(--st-brand); box-shadow: 0 0 0 4px var(--st-brand-soft); }
+.ch__search:focus-within { border-color: var(--st-brand-text); box-shadow: 0 0 0 4px var(--st-brand-soft); }
 .ch__search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--st-ink); font-size: 0.88rem; }
 .ch__search input::placeholder { color: var(--st-ink-3); }
 .ch__spin { animation: ch-spin 900ms linear infinite; }

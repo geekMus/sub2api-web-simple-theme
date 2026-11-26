@@ -472,7 +472,7 @@ onUnmounted(() => {
   height: 26px;
   border-radius: 50%;
   border: 2px solid var(--st-line-2);
-  border-top-color: var(--st-brand);
+  border-top-color: var(--st-brand-text);
   animation: page-spin 900ms linear infinite;
 }
 @keyframes page-spin { to { transform: rotate(360deg); } }
@@ -533,7 +533,7 @@ onUnmounted(() => {
 .toc-item.toc-active {
   color: var(--st-brand-text) !important;
   background: var(--st-brand-soft) !important;
-  border-left-color: var(--st-brand);
+  border-left-color: var(--st-brand-text);
   font-weight: 600;
 }
 .toc-level-1 { padding-left: 10px !important; }
