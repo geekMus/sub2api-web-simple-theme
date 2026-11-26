@@ -793,3 +793,12 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* ============================================================================
+   用户端弹窗外壳（只在 .st-root 内生效，管理后台不受影响）
+   ========================================================================== */
+.st-root .modal-overlay { background: var(--st-overlay); backdrop-filter: blur(10px) saturate(140%); }
+.st-root .modal-content { background: var(--st-bg); border: 1px solid var(--st-line); border-radius: 20px; box-shadow: var(--st-shadow-3); }
+.st-root .modal-header { border-color: var(--st-line); padding: 18px 22px; }
+.st-root .modal-title { color: var(--st-ink); font-family: var(--st-font-display); letter-spacing: -0.02em; }
+.st-root .modal-footer { border-color: var(--st-line); padding: 16px 22px; }

@@ -159,7 +159,13 @@
 
 @media (max-width: 900px) {
   .term { transform: none; }
-  .term__body { font-size: 10.5px; }
+  .term__body { font-size: 10px; line-height: 1.7; overflow-x: auto; }
+  .term__bar { padding: 8px 12px; }
+}
+
+@media (max-width: 480px) {
+  .term__body { font-size: 9px; padding: 12px 12px 14px; }
+  .term__title { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .term, .term__cursor { transition: none; animation: none; }

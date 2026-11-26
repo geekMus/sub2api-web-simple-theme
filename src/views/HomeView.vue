@@ -73,7 +73,17 @@
             <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </router-link>
         </div>
-        <div class="route__art"><FanoutArt /></div>
+        <div class="route__art">
+          <FanoutArt class="route__svg" />
+          <!-- 移动端：SVG 缩小后文字看不清，改用列表 -->
+          <ul class="route__list">
+            <li v-for="tool in routeTools" :key="tool.name">
+              <span class="route__dot"></span>
+              <span class="route__name">{{ tool.name }}</span>
+              <span class="route__meta">{{ tool.meta }}</span>
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -264,6 +274,13 @@ onMounted(() => {
   void loadPlaza()
 })
 
+const routeTools = [
+  { name: 'Codex', meta: 'CLI' },
+  { name: 'Work Buddy', meta: '桌面端' },
+  { name: 'DeepSeek Harness', meta: 'Agent' },
+  { name: 'Claude Code', meta: 'CLI' },
+]
+
 function scrollDown() {
   const top = window.innerHeight - 60
   window.scrollTo({ top: top > 0 ? top : window.innerHeight, behavior: 'smooth' })
@@ -363,9 +380,6 @@ function scrollDown() {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
 }
-@media (max-width: 899px) {
-  .hero__art { width: 100%; margin-right: 0; }
-}
 @media (prefers-reduced-motion: reduce) { .hero__art { animation: none; } }
 
 .hero__scroll {
@@ -383,6 +397,43 @@ function scrollDown() {
   50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .hero__scroll { animation: none; } }
+
+/* 桌面端默认：显示 SVG、隐藏列表（移动端在下方覆盖） */
+.route__svg { display: block; }
+.route__list { display: none; }
+
+/* ---------- 移动端（放在最后，确保覆盖基础规则） ---------- */
+@media (max-width: 899px) {
+  .hero__art { width: 100%; margin-right: 0; }
+  .hero {
+    min-height: auto;
+    display: block;
+    padding-block: clamp(20px, 5vw, 32px) clamp(24px, 6vw, 40px);
+  }
+  .hero__grid { padding-block: 0; }
+  .hero__scroll {
+    position: static;
+    left: auto;
+    transform: none;
+    margin: 40px auto 0;
+    animation: none;
+  }
+  .route__svg { display: none; }
+  .hero__scroll { display: none; }
+  .route__list { display: flex; flex-direction: column; gap: 10px; }
+  .route__list li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    border-radius: var(--st-r-md);
+    border: 1px solid var(--st-line);
+    background: var(--st-bg);
+    box-shadow: var(--st-shadow-1);
+  }
+  .route__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--st-brand); flex: none; }
+  .route__name { font-size: 0.92rem; font-weight: 550; color: var(--st-ink); }
+  .route__meta { margin-left: auto; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.5; }
+  .models__grid { grid-template-columns: 1fr; }
+}
 
 /* ---------- 服务带 ---------- */
 .strip { border-block: 1px solid var(--st-line); background: var(--st-bg-soft); padding-block: clamp(36px, 4.2vw, 60px); }
@@ -477,6 +528,7 @@ function scrollDown() {
 }
 .route__link:hover { color: var(--st-brand-text); gap: 9px; }
 .route__art { min-width: 0; }
+
 
 /* ---------- CTA 覆盖：左文右图 ---------- */
 .cta {
