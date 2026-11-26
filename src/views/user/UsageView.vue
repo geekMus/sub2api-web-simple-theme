@@ -1440,6 +1440,8 @@ watch(endpointDistributionSource, () => {
   .st-btn { min-height: 44px; }
   .st-colset__item { min-height: 44px; }
   .filters__summary { min-height: 44px; }
+  .toolbar__range :deep(.date-picker-trigger) { min-height: 44px; }
+  .logs__pager :deep(button), .logs__pager :deep(select) { min-height: 44px; }
   .usage-head__pills { padding-bottom: 0; }
 }
 </style>

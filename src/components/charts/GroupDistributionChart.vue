@@ -351,7 +351,7 @@ const formatCost = (value: number | null | undefined): string => {
   .chart-table td:first-child { grid-column: 1 / -1; margin-bottom: 2px; font-weight: 600; color: var(--st-ink); }
   .chart-table td::before { content: attr(data-label); margin-right: 4px; font-size: 0.75rem; color: var(--st-ink-3); }
   .chart-table td:first-child::before { content: none; }
-  .chart-tab { height: 40px; }
+  .chart-tab { height: 44px; }
 }
 .chart-skeleton { display: flex; flex-direction: column; gap: 10px; justify-content: center; min-height: 190px; padding: 8px 0; }
 .chart-skeleton__row { display: block; height: 14px; border-radius: 999px; }
