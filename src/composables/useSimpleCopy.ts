@@ -260,8 +260,17 @@ const en: Dict = {
 }
 
 export function useSimpleCopy() {
-  const { locale } = useI18n()
-  const dict = computed<Dict>(() => (String(locale.value).toLowerCase().startsWith('zh') ? zh : en))
+  let locale: unknown = 'zh'
+  try {
+    locale = (useI18n() as unknown as { locale?: unknown })?.locale
+  } catch {
+    locale = 'zh'
+  }
+  const readLocale = () => {
+    const raw = locale
+    return typeof raw === 'string' ? raw : String((raw as { value?: unknown } | null)?.value ?? 'zh')
+  }
+  const dict = computed<Dict>(() => (readLocale().toLowerCase().startsWith('zh') ? zh : en))
   const c = (key: string) => dict.value[key] ?? zh[key] ?? key
   return { c, dict }
 }

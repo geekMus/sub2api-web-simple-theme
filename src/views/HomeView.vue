@@ -4,186 +4,214 @@
     <div v-else v-html="homeContent"></div>
   </div>
 
+  <UserShell v-else-if="compactHomeEnabled">
+    <section class="st-section">
+      <div class="st-shell compact" data-testid="compact-home">
+        <p class="st-eyebrow">{{ siteName }}</p>
+        <h1 class="st-display-1 compact__t">{{ siteName }}</h1>
+        <p class="st-lede compact__b">{{ siteSubtitle }}</p>
+        <div class="compact__a">
+          <router-link :to="compactTarget" class="st-btn st-btn--primary st-btn--lg">
+            {{ isAuthenticated ? '进入控制台' : '登录' }}
+          </router-link>
+          <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="st-btn st-btn--quiet st-btn--lg">看看模型</router-link>
+        </div>
+      </div>
+    </section>
+  </UserShell>
+
   <UserShell v-else>
-    <!-- ================= HERO ================= -->
-    <section class="st-section hero">
-      <div class="st-shell hero__grid">
+    <!-- ============ HERO ============ -->
+    <section class="hero terminal-container">
+      <div class="st-shell">
         <div class="hero__copy">
-          <p class="st-eyebrow st-reveal">{{ c('home.eyebrow') }}</p>
+          <p class="st-eyebrow st-reveal">AI 模型统一入口</p>
           <h1 class="st-display-1 hero__title st-reveal" style="--i: 1">
-            {{ c('home.title1') }}<br /><span class="hero__title-accent">{{ c('home.title2') }}</span>
+            一个接口<br /><em>调用所有模型</em>
           </h1>
-          <p class="st-lede hero__lede st-reveal" style="--i: 2">{{ c('home.lede') }}</p>
-          <div class="hero__actions st-reveal" style="--i: 3">
+          <p class="st-lede hero__lede st-reveal" style="--i: 2">
+            Claude、GPT、Gemini、Grok 都在同一个地址后面。改一个参数就换模型，
+            代码不用重写，账单只有一份。
+          </p>
+          <div class="hero__cta st-reveal" style="--i: 3">
             <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">
-              {{ isAuthenticated ? c('nav.openApp') : c('home.ctaPrimary') }}
-              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7">
-                <path d="M4 10h11M11 5.5L15.5 10 11 14.5" stroke-linecap="round" stroke-linejoin="round" />
+              {{ isAuthenticated ? '进入控制台' : '免费开始' }}
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </router-link>
-            <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="st-btn st-btn--quiet st-btn--lg">
-              {{ c('home.ctaSecondary') }}
-            </router-link>
+            <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="st-btn st-btn--quiet st-btn--lg">看看模型</router-link>
           </div>
-          <ul class="hero__trust st-reveal" style="--i: 4">
-            <li v-for="t in trust" :key="t">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                <path d="M3.5 8.5l3 3 6-7" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-              {{ t }}
-            </li>
+          <p class="hero__note st-reveal" style="--i: 4">无需信用卡 · 注册即用 · 随时停用</p>
+        </div>
+
+        <div class="hero__shot st-reveal" style="--i: 2">
+          <div class="hero__glow" aria-hidden="true"></div>
+          <MockApp />
+          <div class="hero__float hero__float--a">
+            <span class="hero__float-k">首字延迟</span>
+            <span class="hero__float-v">312<i>ms</i></span>
+          </div>
+          <div class="hero__float hero__float--b">
+            <span class="hero__dot"></span>
+            <span>4 个渠道在线</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 模型 ============ -->
+    <section class="st-section--tight">
+      <div class="st-shell">
+        <div class="mk-head">
+          <p class="st-eyebrow">已接入的主流模型</p>
+          <router-link v-if="showModelPlazaEntry" to="/model-plaza" class="mk-more">全部模型 →</router-link>
+        </div>
+        <ModelGrid />
+      </div>
+    </section>
+
+    <!-- ============ 特性 1：代码 ============ -->
+    <section class="st-section">
+      <div class="st-shell feat">
+        <div class="feat__copy">
+          <p class="st-eyebrow">接入成本</p>
+          <h2 class="st-display-2 feat__t">换模型，<br />不换代码</h2>
+          <p class="st-lede feat__b">
+            协议与官方保持一致：OpenAI、Anthropic、Gemini 三套格式都能直连。
+            迁移只是把 baseURL 指过来，请求体一个字都不用改。
+          </p>
+          <ul class="feat__list">
+            <li><span>01</span>支持官方 SDK、curl、Claude Code、Cursor</li>
+            <li><span>02</span>流式响应、工具调用、多模态原样透传</li>
+            <li><span>03</span>失败自动切换上游，业务层无感</li>
           </ul>
         </div>
-        <div class="hero__art st-reveal" style="--i: 2">
-          <HeroArt />
+        <div class="feat__shot">
+          <MockCode />
         </div>
       </div>
     </section>
 
-    <!-- ================= 模型跑马灯 ================= -->
-    <section class="st-section--tight">
-      <div class="st-shell models__head">
-        <div>
-          <p class="st-eyebrow">{{ c('home.sectionModelsEyebrow') }}</p>
-          <h2 class="st-display-2 models__title">{{ c('home.sectionModelsTitle') }}</h2>
+    <!-- ============ 特性 2：用量 ============ -->
+    <section class="st-section">
+      <div class="st-shell feat feat--rev">
+        <div class="feat__copy">
+          <p class="st-eyebrow">账单</p>
+          <h2 class="st-display-2 feat__t">每一分钱，<br />都查得到出处</h2>
+          <p class="st-lede feat__b">
+            按 token 计费，逐条可查。哪个模型吃了多少、哪天用得最多，
+            打开页面就能看到，没有看不懂的套餐包。
+          </p>
+          <ul class="feat__list">
+            <li><span>01</span>按天 / 按模型 / 按通行证三种视角</li>
+            <li><span>02</span>输入输出分别计价，倍率透明</li>
+            <li><span>03</span>余额不足自动拦截，不会突然扣爆</li>
+          </ul>
         </div>
-        <p class="st-lede models__lede">{{ c('home.sectionModelsLede') }}</p>
-      </div>
-      <div class="st-marquee models" aria-hidden="true">
-        <div class="st-marquee__track">
-          <span v-for="m in marqueeModels" :key="m" class="models__chip">{{ m }}</span>
-          <span v-for="m in marqueeModels" :key="'dup-' + m" class="models__chip">{{ m }}</span>
+        <div class="feat__shot">
+          <MockUsage />
         </div>
       </div>
     </section>
 
-    <!-- ================= 三步 ================= -->
+    <!-- ============ Bento ============ -->
     <section class="st-section">
       <div class="st-shell">
-        <header class="sec-head">
-          <p class="st-eyebrow">{{ c('home.sectionHowEyebrow') }}</p>
-          <h2 class="st-display-2">{{ c('home.sectionHowTitle') }}</h2>
+        <header class="sh">
+          <p class="st-eyebrow">日常使用</p>
+          <h2 class="st-display-2">该有的都有，<br />不该有的没有</h2>
         </header>
-        <div class="steps">
-          <article v-for="(s, i) in steps" :key="s.title" class="st-card st-card--pad st-card--lift step">
-            <span class="step__index st-num">0{{ i + 1 }}</span>
-            <h3 class="st-display-3">{{ s.title }}</h3>
-            <p class="st-body">{{ s.body }}</p>
-            <div class="step__art" aria-hidden="true">
-              <svg viewBox="0 0 200 64" preserveAspectRatio="none">
-                <template v-if="i === 0">
-                  <rect x="6" y="18" width="120" height="28" rx="14" class="sa-line" />
-                  <circle cx="26" cy="32" r="5" class="sa-dot" />
-                  <rect x="130" y="18" width="64" height="28" rx="14" class="sa-fill" />
-                </template>
-                <template v-else-if="i === 1">
-                  <rect x="6" y="10" width="188" height="14" rx="7" class="sa-line" />
-                  <rect x="6" y="30" width="120" height="14" rx="7" class="sa-line" />
-                  <rect x="134" y="30" width="60" height="14" rx="7" class="sa-fill" />
-                  <rect x="6" y="50" width="80" height="6" rx="3" class="sa-line" />
-                </template>
-                <template v-else>
-                  <circle cx="26" cy="32" r="16" class="sa-line" />
-                  <path d="M26 32 L104 32" class="sa-wire" />
-                  <rect x="104" y="18" width="90" height="28" rx="14" class="sa-fill" />
-                </template>
-              </svg>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
 
-    <!-- ================= Bento 特性 ================= -->
-    <section class="st-section">
-      <div class="st-shell">
-        <header class="sec-head">
-          <p class="st-eyebrow">{{ c('home.sectionFeatureEyebrow') }}</p>
-          <h2 class="st-display-2">{{ c('home.featureTitle') }}</h2>
-          <p class="st-lede">{{ c('home.featureLede') }}</p>
-        </header>
         <div class="bento">
-          <article class="st-card st-card--pad st-card--halo bento__main">
-            <h3 class="st-display-3">{{ c('home.feature1Title') }}</h3>
-            <p class="st-body">{{ c('home.feature1Body') }}</p>
-            <div class="bento__code" aria-hidden="true">
-              <div class="bento__code-bar"><i></i><i></i><i></i><span>app.ts</span></div>
-              <pre><code><span class="tok-k">const</span> client = <span class="tok-k">new</span> OpenAI({
-  baseURL: <span class="tok-s">'https://api.example.com/v1'</span>,
-  apiKey:  process.env.AI_KEY
-})
-
-<span class="tok-k">const</span> res = <span class="tok-k">await</span> client.chat.completions.create({
-  model: <span class="tok-s">'claude-opus-4'</span>, <span class="tok-c">// ← 只改这一行</span>
-  messages: [{ role: <span class="tok-s">'user'</span>, content: <span class="tok-s">'你好'</span> }]
-})</code></pre>
+          <article class="st-card st-card--pad bento__keys">
+            <div class="bento__h">
+              <h3 class="st-display-4">通行证</h3>
+              <p class="st-body">按项目分开建，随时停用或轮换，一把泄露不影响其它。</p>
             </div>
-            <div class="bento__chips">
-              <span class="st-pill st-pill--accent st-pill--dot">Claude</span>
-              <span class="st-pill">GPT-5</span>
-              <span class="st-pill">Gemini 2.5</span>
-              <span class="st-pill">Grok</span>
-            </div>
+            <MockKeys />
           </article>
 
-          <article class="st-card st-card--pad st-card--lift bento__side">
-            <h3 class="st-display-3">{{ c('home.feature2Title') }}</h3>
-            <p class="st-body">{{ c('home.feature2Body') }}</p>
-            <div class="bento__bars" aria-hidden="true">
-              <span v-for="(h, i) in [34, 52, 41, 68, 57, 82, 63]" :key="i" :style="{ height: h + '%' }"></span>
-            </div>
+          <article class="st-card st-card--pad bento__stat">
+            <span class="bento__k">可用率</span>
+            <span class="bento__v">99.9<i>%</i></span>
+            <span class="bento__d">过去 30 天</span>
           </article>
 
-          <article class="st-card st-card--pad st-card--lift bento__side">
-            <h3 class="st-display-3">{{ c('home.feature3Title') }}</h3>
-            <p class="st-body">{{ c('home.feature3Body') }}</p>
-            <div class="bento__flow" aria-hidden="true">
-              <span class="bento__node">A</span>
-              <span class="bento__link"></span>
-              <span class="bento__node bento__node--warn">!</span>
-              <span class="bento__link bento__link--dash"></span>
-              <span class="bento__node bento__node--ok">B</span>
+          <article class="st-card st-card--pad bento__stat">
+            <span class="bento__k">平均首字延迟</span>
+            <span class="bento__v">312<i>ms</i></span>
+            <span class="bento__d">全渠道加权</span>
+          </article>
+
+          <article class="st-card st-card--pad bento__wide">
+            <div class="bento__h">
+              <h3 class="st-display-4">上游抖动自动绕行</h3>
+              <p class="st-body">一个渠道失败就换下一个，你基本感受不到它发生过。</p>
+            </div>
+            <div class="flow" aria-hidden="true">
+              <span class="flow__n">请求</span>
+              <span class="flow__l"></span>
+              <span class="flow__n flow__n--x">A ×</span>
+              <span class="flow__l flow__l--d"></span>
+              <span class="flow__n flow__n--ok">B ✓</span>
+              <span class="flow__l"></span>
+              <span class="flow__n">200</span>
             </div>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- ================= FAQ ================= -->
+    <!-- ============ 数字带 ============ -->
+    <section class="st-section--tight">
+      <div class="st-shell">
+        <div class="nums">
+          <div class="nums__i"><span class="nums__v">3</span><span class="nums__k">套官方协议<br />OpenAI / Anthropic / Gemini</span></div>
+          <div class="nums__i"><span class="nums__v">0</span><span class="nums__k">行业务代码改动<br />换 baseURL 即用</span></div>
+          <div class="nums__i"><span class="nums__v">1</span><span class="nums__k">份账单<br />所有模型合并结算</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
     <section class="st-section">
       <div class="st-shell faq">
-        <header class="sec-head">
-          <p class="st-eyebrow">{{ c('home.sectionFaqEyebrow') }}</p>
-          <h2 class="st-display-2">{{ c('home.sectionFaqTitle') }}</h2>
+        <header class="sh sh--sticky">
+          <p class="st-eyebrow">常见问题</p>
+          <h2 class="st-display-2">你可能想知道</h2>
         </header>
-        <div class="faq__list st-card st-card--pad">
-          <details v-for="item in faqs" :key="item.q" class="faq__item">
+        <div class="faq__list">
+          <details v-for="f in faqs" :key="f.q" class="faq__item">
             <summary class="faq__q">
-              <span>{{ item.q }}</span>
-              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6">
-                <path d="M5 8l5 5 5-5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
+              <span>{{ f.q }}</span>
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </summary>
-            <p class="faq__a">{{ item.a }}</p>
+            <p class="faq__a">{{ f.a }}</p>
           </details>
         </div>
       </div>
     </section>
 
-    <!-- ================= CTA ================= -->
+    <!-- ============ CTA ============ -->
     <section class="st-section--tight">
       <div class="st-shell">
         <div class="cta">
-          <div class="cta__glow" aria-hidden="true"></div>
-          <h2 class="st-display-2 cta__title">{{ c('home.sectionCtaTitle') }}</h2>
-          <p class="st-lede cta__body">{{ c('home.sectionCtaBody') }}</p>
-          <div class="cta__actions">
-            <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">
-              {{ isAuthenticated ? c('nav.openApp') : c('home.ctaPrimary') }}
-            </router-link>
-            <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer" class="st-btn st-btn--quiet st-btn--lg">
-              {{ c('nav.docs') }}
-            </a>
+          <div class="cta__copy">
+            <h2 class="st-display-2 cta__t">第一条请求，<br />三十秒之后</h2>
+            <p class="st-lede cta__b">注册后即可查看实时模型与价格，随时充值、随时停用。</p>
+            <div class="cta__a">
+              <router-link :to="primaryTarget" class="st-btn st-btn--primary st-btn--lg">{{ isAuthenticated ? '进入控制台' : '免费开始' }}</router-link>
+              <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer" class="st-btn st-btn--quiet st-btn--lg">看文档</a>
+            </div>
+          </div>
+          <div class="cta__art" aria-hidden="true">
+            <div class="cta__ring"></div>
+            <div class="cta__ring cta__ring--2"></div>
+            <span class="cta__pill">Claude</span>
+            <span class="cta__pill cta__pill--2">GPT</span>
+            <span class="cta__pill cta__pill--3">Gemini</span>
+            <span class="cta__pill cta__pill--4">Grok</span>
           </div>
         </div>
       </div>
@@ -192,17 +220,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAppStore, useAuthStore } from '@/stores'
 import UserShell from '@/components/shell/UserShell.vue'
-import HeroArt from '@/components/shell/art/HeroArt.vue'
-import { useSimpleCopy } from '@/composables/useSimpleCopy'
+import MockApp from '@/components/shell/art/MockApp.vue'
+import MockCode from '@/components/shell/art/MockCode.vue'
+import MockUsage from '@/components/shell/art/MockUsage.vue'
+import MockKeys from '@/components/shell/art/MockKeys.vue'
+import ModelGrid from '@/components/shell/art/ModelGrid.vue'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
-const { c } = useSimpleCopy()
 
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
 const hasHomeContent = computed(() => homeContent.value.trim().length > 0)
@@ -213,126 +243,148 @@ const isHomeContentUrl = computed(() => {
 const docUrl = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.doc_url || appStore.docUrl || '', { allowRelative: true }))
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const isAdmin = computed(() => authStore.isAdmin)
-const dashboardPath = computed(() => (isAdmin.value ? '/admin/dashboard' : '/dashboard'))
-const primaryTarget = computed(() => (isAuthenticated.value ? dashboardPath.value : '/register'))
-
+const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'Sub2API')
+const siteSubtitle = computed(() => appStore.cachedPublicSettings?.site_subtitle || '')
+const siteLogo = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
+const compactHomeEnabled = computed(
+  () => !hasHomeContent.value && appStore.cachedPublicSettings?.compact_home_enabled === true,
+)
+const primaryTarget = computed(() => (isAuthenticated.value ? (isAdmin.value ? '/admin/dashboard' : '/dashboard') : '/register'))
+const compactTarget = computed(() => (isAuthenticated.value ? (isAdmin.value ? '/admin/dashboard' : '/dashboard') : '/login'))
 const modelPlazaEnabled = computed(() => isFeatureFlagEnabled(FeatureFlags.modelPlaza))
 const showModelPlazaEntry = computed(
   () => modelPlazaEnabled.value && (isAuthenticated.value || appStore.cachedPublicSettings?.model_plaza_require_auth !== true),
 )
 
-const marqueeModels = ['Claude Opus', 'GPT-5', 'Gemini 2.5', 'Grok', 'DeepSeek', 'Qwen', 'GLM', 'Kimi', 'Llama', 'Mistral']
+onMounted(() => {
+  if (!authStore.isAuthenticated || authStore.isAdmin) authStore.checkAuth?.()
+  if (!authStore.isAdmin) appStore.fetchPublicSettings?.()
+})
 
-const steps = computed(() => [
-  { title: c('home.how1Title'), body: c('home.how1Body') },
-  { title: c('home.how2Title'), body: c('home.how2Body') },
-  { title: c('home.how3Title'), body: c('home.how3Body') },
-])
-
-const trust = computed(() => [c('home.trust1'), c('home.trust2'), c('home.trust3'), c('home.trust4')])
-
-const faqs = computed(() => [
-  { q: c('home.faq1Q'), a: c('home.faq1A') },
-  { q: c('home.faq2Q'), a: c('home.faq2A') },
-  { q: c('home.faq3Q'), a: c('home.faq3A') },
-])
+const faqs = [
+  { q: '和直接用官方 API 有什么区别？', a: '协议完全兼容，原来的代码一行都不用改。区别是额度、模型和渠道在一个账户里统一管理，付款也只有一份。' },
+  { q: '计费怎么算？', a: '按实际消耗的 token 计费，不同模型倍率不同。用量页面上的数字就是对账依据，可以按天、按模型查看。' },
+  { q: '上游不稳定怎么办？', a: '检测到失败会自动切换其它可用渠道重试，业务层通常感知不到。渠道状态页可以看到实时健康度。' },
+  { q: '数据会经过你们吗？', a: '请求按需转发到上游，不做长期留存。具体范围和保留策略见使用政策与隐私说明。' },
+]
 </script>
 
 <style scoped>
-.hero { padding-top: clamp(48px, 7vw, 96px); padding-bottom: clamp(40px, 6vw, 72px); }
-.hero__grid { display: grid; grid-template-columns: 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
-.hero__title { margin-top: 18px; }
-.hero__title-accent {
-  background: linear-gradient(100deg, var(--st-accent), color-mix(in srgb, var(--st-accent) 42%, var(--st-ink-strong)));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.hero__lede { margin-top: 22px; }
-.hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-.hero__trust { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 30px; }
-.hero__trust li { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding-inline: 12px; border-radius: 999px; border: 1px solid var(--st-line); font-size: 0.78rem; color: var(--st-ink-soft); }
-.hero__trust svg { color: var(--st-accent); }
+.compact { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding-block: clamp(48px, 10vw, 120px); }
+.compact__t { margin: 0; }
+.compact__b { margin: 0; }
+.compact__a { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 
-.models__head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 26px; }
-.models__title { max-width: 20ch; }
-.models__lede { max-width: 46ch; }
-.models { padding-block: 22px; border-block: 1px solid var(--st-line); }
-.models__chip {
-  display: inline-flex;
-  align-items: center;
-  height: 40px;
-  padding-inline: 20px;
-  border-radius: 999px;
-  border: 1px solid var(--st-line);
-  background: color-mix(in srgb, var(--st-bg-elev) 60%, transparent);
-  font-family: var(--st-font-display);
-  font-size: 0.95rem;
-  font-weight: 550;
-  letter-spacing: -0.01em;
-  color: var(--st-ink-soft);
+/* ---------- hero ---------- */
+.hero { padding-block: clamp(40px, 5vw, 68px) clamp(20px, 2.4vw, 32px); }
+.hero .st-shell { display: grid; grid-template-columns: 1fr; gap: clamp(32px, 4vw, 48px); align-items: center; }
+.hero__title { margin-top: 14px; }
+.hero__title em {
+  font-style: normal;
+  display: inline-block;
   white-space: nowrap;
+  color: var(--st-brand-text);
 }
+.hero__lede { margin-top: 18px; max-width: 44ch; }
+.hero__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.hero__note { margin-top: 14px; font-size: 0.78rem; color: var(--st-ink-3); }
 
-.sec-head { max-width: 62ch; margin-bottom: clamp(28px, 4vw, 48px); }
-.sec-head .st-display-2 { margin-top: 14px; }
-.sec-head .st-lede { margin-top: 14px; }
+.hero__shot { position: relative; }
+.hero__glow {
+  position: absolute; inset: -8% -6% -12%; z-index: -1;
+  background: radial-gradient(60% 60% at 50% 40%, var(--st-brand-soft), transparent 70%);
+  filter: blur(30px);
+}
+.hero__float {
+  position: absolute; display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px;
+  border: 1px solid var(--st-line); background: var(--st-bg);
+  box-shadow: var(--st-shadow-2);
+  font-size: 0.76rem; color: var(--st-ink-2);
+}
+.hero__float--a { right: -14px; top: 12%; flex-direction: column; align-items: flex-start; gap: 2px; }
+.hero__float--b { left: -18px; bottom: 14%; }
+.hero__float-k { font-size: 0.68rem; color: var(--st-ink-3); }
+.hero__float-v { font-family: var(--st-font-display); font-size: 1.1rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink); font-variant-numeric: tabular-nums; }
+.hero__float-v i { font-style: normal; font-size: 0.7rem; color: var(--st-ink-3); margin-left: 1px; }
+.hero__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--st-ok); box-shadow: 0 0 0 3px var(--st-ok-soft); }
 
-.steps { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.step { display: flex; flex-direction: column; gap: 10px; min-height: 240px; }
-.step__index { font-family: var(--st-font-display); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.14em; color: var(--st-accent); }
-.step__art { margin-top: auto; opacity: 0.9; }
-.step__art svg { width: 100%; height: 64px; }
-.sa-line { fill: none; stroke: var(--st-line-strong); stroke-width: 1.4; }
-.sa-fill { fill: var(--st-accent-soft); stroke: var(--st-accent-line); stroke-width: 1.2; }
-.sa-dot { fill: var(--st-accent); }
-.sa-wire { stroke: var(--st-accent-line); stroke-width: 1.4; stroke-dasharray: 4 5; }
+/* ---------- 模型 ---------- */
+.mk-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.mk-more { font-size: 0.8rem; color: var(--st-ink-2); text-decoration: none; transition: color var(--st-t) var(--st-ease); }
+.mk-more:hover { color: var(--st-brand); }
 
-.bento { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.bento__main { display: flex; flex-direction: column; gap: 14px; }
-.sec-head .st-display-2 { max-width: 17ch; }
-.bento__side { display: flex; flex-direction: column; gap: 10px; }
-.bento__code { margin-top: 8px; border-radius: var(--st-radius-md); border: 1px solid var(--st-line); background: var(--st-bg-sunk); overflow: hidden; }
-.bento__code-bar { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--st-line); }
-.bento__code-bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--st-line-strong); }
-.bento__code pre { margin: 0; padding: 18px 20px; overflow-x: auto; }
-.bento__code code { font-family: var(--st-font-mono); font-size: 0.8rem; line-height: 1.85; color: color-mix(in srgb, var(--st-ink) 82%, var(--st-ink-soft)); white-space: pre; }
-.bento__code-bar span { margin-left: auto; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--st-ink-faint); text-transform: uppercase; }
-.bento__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 14px; }
-.tok-k { color: var(--st-accent); }
-.tok-s { color: color-mix(in srgb, var(--st-accent) 70%, #8f9bff); }
-.tok-c { color: var(--st-ink-faint); }
-.bento__bars { display: flex; align-items: flex-end; gap: 6px; height: 84px; margin-top: 6px; }
-.bento__bars span { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, var(--st-accent), color-mix(in srgb, var(--st-accent) 18%, transparent)); transform-origin: bottom; animation: bar-grow var(--st-dur-slow) var(--st-ease) both; }
-@keyframes bar-grow { from { transform: scaleY(0.2); opacity: 0.3; } to { transform: scaleY(1); opacity: 1; } }
-.bento__flow { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.bento__node { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--st-accent-line); color: var(--st-accent); font-size: 0.75rem; font-weight: 600; }
-.bento__node--warn { border-color: rgba(224, 85, 77, 0.5); color: #e0554d; }
-.bento__node--ok { border-color: var(--st-accent); background: var(--st-accent-soft); }
-.bento__link { flex: 1; height: 1px; background: var(--st-line-strong); }
-.bento__link--dash { background: repeating-linear-gradient(90deg, var(--st-accent-line) 0 4px, transparent 4px 9px); }
+/* ---------- 特性 ---------- */
+.feat { display: grid; grid-template-columns: 1fr; gap: clamp(28px, 4vw, 64px); align-items: center; }
+.feat__t { margin-top: 12px; }
+.feat__b { margin-top: 16px; }
+.feat__list { margin: 24px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.feat__list li { display: flex; gap: 12px; padding: 11px 0; border-top: 1px solid var(--st-line); font-size: 0.88rem; color: var(--st-ink-2); }
+.feat__list li span { font-family: var(--st-font-mono); font-size: 0.72rem; color: var(--st-brand); padding-top: 2px; }
+.feat__shot { min-width: 0; width: 100%; justify-self: stretch; }
+.feat__shot > * { width: 100%; }
 
-.faq { display: grid; grid-template-columns: 1fr; gap: 24px; }
-.faq__list { display: flex; flex-direction: column; padding: 6px clamp(18px, 2.4vw, 28px); }
+/* ---------- bento ---------- */
+.sh { max-width: 56ch; margin-bottom: clamp(24px, 3vw, 36px); }
+.sh .st-display-2 { margin-top: 12px; }
+.bento { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.bento__keys { display: flex; flex-direction: column; gap: 14px; }
+.bento__h { display: flex; flex-direction: column; gap: 6px; }
+.bento__stat { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.bento__k { font-size: 0.76rem; color: var(--st-ink-3); }
+.bento__v { font-family: var(--st-font-display); font-size: clamp(2rem, 3.4vw, 2.6rem); font-weight: 600; letter-spacing: -0.04em; color: var(--st-ink); line-height: 1; font-variant-numeric: tabular-nums; }
+.bento__v i { font-style: normal; font-size: 0.9rem; font-weight: 500; color: var(--st-ink-3); margin-left: 2px; }
+.bento__d { font-size: 0.72rem; color: var(--st-ink-3); }
+.bento__wide { display: flex; flex-direction: column; gap: 16px; }
+
+.flow { display: flex; align-items: center; gap: 8px; }
+.flow__n { padding: 6px 10px; border-radius: 7px; border: 1px solid var(--st-line-2); font-size: 0.74rem; color: var(--st-ink-2); white-space: nowrap; }
+.flow__n--x { border-color: transparent; background: var(--st-danger-soft); color: var(--st-danger); }
+.flow__n--ok { border-color: transparent; background: var(--st-ok-soft); color: var(--st-ok); }
+.flow__l { flex: 1; height: 1px; background: var(--st-line-2); min-width: 12px; }
+.flow__l--d { background: repeating-linear-gradient(90deg, var(--st-line-2) 0 3px, transparent 3px 7px); }
+
+/* ---------- 数字带 ---------- */
+.nums { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--st-line); border-block: 1px solid var(--st-line); }
+.nums__i { display: flex; align-items: baseline; gap: 14px; padding: 22px 4px; background: var(--st-bg); }
+.nums__v { font-family: var(--st-font-display); font-size: clamp(1.8rem, 2.8vw, 2.3rem); font-weight: 600; letter-spacing: -0.04em; color: var(--st-ink); line-height: 1; }
+.nums__k { font-size: 0.82rem; line-height: 1.5; color: var(--st-ink-3); }
+
+/* ---------- FAQ ---------- */
+.faq { display: grid; grid-template-columns: 1fr; gap: 8px 56px; align-items: start; }
+.faq__list { border-top: 1px solid var(--st-line); }
 .faq__item { border-bottom: 1px solid var(--st-line); }
-.faq__item:last-child { border-bottom: 0; }
-.faq__q { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; cursor: pointer; list-style: none; font-size: 1rem; font-weight: 550; color: var(--st-ink); }
+.faq__q { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 2px; cursor: pointer; list-style: none; font-size: 0.94rem; font-weight: 500; color: var(--st-ink); }
 .faq__q::-webkit-details-marker { display: none; }
-.faq__q svg { flex-shrink: 0; color: var(--st-ink-faint); transition: transform var(--st-dur) var(--st-ease); }
+.faq__q svg { flex-shrink: 0; color: var(--st-ink-3); transition: transform var(--st-t) var(--st-ease); }
 .faq__item[open] .faq__q svg { transform: rotate(180deg); }
-.faq__a { padding: 0 0 20px; font-size: 0.92rem; line-height: 1.75; color: var(--st-ink-soft); max-width: 68ch; }
+.faq__a { padding: 0 40px 18px 2px; font-size: 0.9rem; line-height: 1.75; color: var(--st-ink-2); max-width: 66ch; }
 
-.cta { position: relative; overflow: hidden; border-radius: var(--st-radius-xl); border: 1px solid var(--st-line); background: var(--st-bg-elev); padding: clamp(28px, 4.4vw, 56px) clamp(24px, 4vw, 48px); text-align: center; box-shadow: var(--st-shadow-md); }
-.cta__glow { position: absolute; inset: -40% 20% auto; height: 320px; background: radial-gradient(circle, var(--st-glow), transparent 65%); filter: blur(40px); pointer-events: none; }
-.cta__title { position: relative; }
-.cta__body { position: relative; margin: 14px auto 0; }
-.cta__actions { position: relative; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 28px; }
+/* ---------- CTA ---------- */
+.cta { position: relative; overflow: hidden; border-radius: var(--st-r-xl); border: 1px solid var(--st-line); background: var(--st-bg-soft); padding: clamp(28px, 4vw, 52px); display: grid; grid-template-columns: 1fr; gap: 24px; align-items: center; }
+.cta__t { max-width: 18ch; }
+.cta__b { margin-top: 12px; }
+.cta__a { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.cta__art { position: relative; height: 180px; }
+.cta__ring { position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 1px solid var(--st-line-2); }
+.cta__ring--2 { width: 220px; height: 220px; margin: -110px 0 0 -110px; border-style: dashed; opacity: 0.6; }
+.cta__pill { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) translate(-78px, -46px); padding: 5px 10px; border-radius: 7px; border: 1px solid var(--st-line); background: var(--st-bg); font-size: 0.74rem; color: var(--st-ink-2); box-shadow: var(--st-shadow-1); }
+.cta__pill--2 { transform: translate(-50%, -50%) translate(64px, -58px); }
+.cta__pill--3 { transform: translate(-50%, -50%) translate(-96px, 40px); }
+.cta__pill--4 { transform: translate(-50%, -50%) translate(74px, 46px); }
 
 @media (min-width: 900px) {
-  .hero__grid { grid-template-columns: 1.05fr 0.95fr; }
-  .steps { grid-template-columns: repeat(3, 1fr); }
-  .bento { grid-template-columns: 1.4fr 1fr; grid-template-rows: auto auto; }
-  .bento__main { grid-row: span 2; }
-  .faq { grid-template-columns: 0.7fr 1.3fr; align-items: start; }
+  .hero .st-shell { grid-template-columns: 0.92fr 1.08fr; }
+  .feat { grid-template-columns: 0.85fr 1.15fr; }
+  .feat--rev { grid-template-columns: 1.2fr 0.8fr; }
+  .feat--rev .feat__copy { order: 2; }
+  .feat--rev .feat__shot { order: 1; }
+  .bento { grid-template-columns: 1.25fr 1fr 1fr; grid-template-rows: auto auto; }
+  .bento__keys { grid-row: span 2; }
+  .bento__wide { grid-column: 2 / span 2; }
+  .nums { grid-template-columns: repeat(3, 1fr); }
+  .nums__i { padding: 26px 18px; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .faq { grid-template-columns: 0.6fr 1.4fr; }
+  .cta { grid-template-columns: 1.2fr 0.8fr; }
 }
 </style>

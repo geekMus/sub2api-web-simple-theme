@@ -9,6 +9,9 @@ node_modules/
 # 忽略构建输出
 dist/
 
+# 本地开发工具脚本（非应用代码）
+scripts/
+
 # 忽略缓存
 .cache/
 .vite/

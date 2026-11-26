@@ -286,8 +286,17 @@ const en: Dict = {
 }
 
 export function useMiscCopy() {
-  const { locale } = useI18n()
-  const dict = computed<Dict>(() => (String(locale.value).toLowerCase().startsWith('zh') ? zh : en))
+  const i18n = useI18n() as unknown as { locale?: unknown }
+  const dict = computed<Dict>(() => {
+    let code = ''
+    try {
+      const raw = i18n?.locale
+      code = typeof raw === 'string' ? raw : String((raw as { value?: unknown } | null)?.value ?? '')
+    } catch {
+      code = ''
+    }
+    return code.toLowerCase().startsWith('zh') ? zh : en
+  })
   const c = (key: string) => dict.value[key] ?? zh[key] ?? key
   return { c }
 }

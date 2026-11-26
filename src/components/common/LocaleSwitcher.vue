@@ -47,7 +47,14 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { setLocale, availableLocales } from '@/i18n'
 
-const { locale } = useI18n()
+const i18n = (() => {
+  try {
+    return useI18n() as unknown as { locale?: { value?: string } }
+  } catch {
+    return null
+  }
+})()
+const locale = i18n?.locale ?? { value: 'zh' }
 
 const isOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)

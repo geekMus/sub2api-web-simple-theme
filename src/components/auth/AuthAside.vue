@@ -10,7 +10,7 @@
     </div>
 
     <div class="auth-aside__art st-reveal" style="--i: 3">
-      <AuthArt />
+      <MockApp flat />
     </div>
 
     <ul class="auth-aside__facts st-reveal" style="--i: 4">
@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import AuthArt from './AuthArt.vue'
+import MockApp from '@/components/shell/art/MockApp.vue'
 import { useAuthCopy } from '@/composables/copy/auth'
 
 const { c } = useAuthCopy()
@@ -52,7 +52,8 @@ const facts = computed(() => [c('auth.aside.fact1'), c('auth.aside.fact2'), c('a
   max-width: 44ch;
 }
 .auth-aside__art {
-  margin-block: clamp(4px, 1vw, 12px);
+  margin-block: clamp(6px, 1.2vw, 14px);
+  max-width: 460px;
 }
 .auth-aside__facts {
   display: flex;
