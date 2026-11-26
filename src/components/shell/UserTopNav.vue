@@ -27,7 +27,7 @@
           {{ c('nav.authEntry') }}
         </router-link>
 
-        <button class="nv__burger" type="button" :aria-label="c('nav.menu')" @click="sheetOpen = !sheetOpen">
+        <button ref="burgerRef" class="nv__burger" type="button" :aria-label="c('nav.menu')" @click="sheetOpen = !sheetOpen">
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5">
             <path v-if="!sheetOpen" d="M3 6h14M3 10h14M3 14h14" stroke-linecap="round" />
             <path v-else d="M5 5l10 10M15 5L5 15" stroke-linecap="round" />
@@ -37,7 +37,7 @@
     </div>
 
     <transition name="sheet">
-      <div v-if="sheetOpen" class="nv__sheet">
+      <div v-if="sheetOpen" ref="sheetRef" class="nv__sheet" @click.stop>
         <!-- 只放导航栏放不下的：语言切换；登录/注册与主题按钮本来就在导航栏上 -->
         <div class="nv__sheet-section">
           <span class="nv__sheet-label">{{ c('nav.language') }}</span>
@@ -80,6 +80,21 @@ const initial = computed(() => String(user.value?.username || user.value?.email 
 const money = computed(() => formatCurrency(user.value?.balance ?? 0))
 const menuOpen = ref(false)
 const sheetOpen = ref(false)
+const sheetRef = ref<HTMLElement | null>(null)
+const burgerRef = ref<HTMLElement | null>(null)
+
+function closeSheetOnOutside(e: MouseEvent) {
+  if (!sheetOpen.value) return
+  const target = e.target as Node | null
+  if (!target) return
+  if (sheetRef.value?.contains(target)) return
+  if (burgerRef.value?.contains(target)) return
+  sheetOpen.value = false
+}
+
+function closeSheetOnEsc(e: KeyboardEvent) {
+  if (e.key === 'Escape') sheetOpen.value = false
+}
 const scrolled = ref(false)
 
 const accountMenu = computed(() => {
@@ -100,9 +115,15 @@ async function signOut() {
 
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
+  document.addEventListener('click', closeSheetOnOutside)
+  document.addEventListener('keydown', closeSheetOnEsc)
   onScroll()
 })
-onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  document.removeEventListener('click', closeSheetOnOutside)
+  document.removeEventListener('keydown', closeSheetOnEsc)
+})
 </script>
 
 <style scoped>
@@ -142,19 +163,24 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 .nv__burger { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--st-line-2); background: var(--st-bg-soft); color: var(--st-ink-2); cursor: pointer; }
 .nv__sheet {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: var(--st-gutter);
-  width: 220px;
-  padding: 10px;
-  border-radius: var(--st-r-md);
+  width: min(248px, calc(100vw - 24px));
+  padding: 14px;
+  border-radius: 16px;
   border: 1px solid var(--st-line);
   background: var(--st-bg);
   box-shadow: var(--st-shadow-3);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   z-index: 60;
+  transform-origin: top right;
 }
+
+/* 菜单内的语言切换铺满整行、两个 Tab 等宽 */
+.nv__sheet :deep(.ls) { display: flex; width: 100%; }
+.nv__sheet :deep(.ls__tab) { flex: 1 1 0; justify-content: center; }
 .nv__sheet-section { display: flex; flex-direction: column; gap: 8px; }
 .nv__sheet-section--links { border-top: 1px solid var(--st-line); padding-top: 10px; }
 .nv__sheet-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; }
@@ -169,8 +195,11 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 
 .pop-enter-active, .pop-leave-active { transition: opacity var(--st-t-fast) var(--st-ease), transform var(--st-t-fast) var(--st-ease); }
 .pop-enter-from, .pop-leave-to { opacity: 0; transform: translateY(-4px); }
-.sheet-enter-active, .sheet-leave-active { transition: opacity var(--st-t) var(--st-ease), transform var(--st-t) var(--st-ease); }
-.sheet-enter-from, .sheet-leave-to { opacity: 0; transform: translateY(-6px); }
+/* 下拉面板进出场：淡入 + 轻微下移 + 缩放，从右上角展开 */
+.sheet-enter-active { transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+.sheet-leave-active { transition: opacity 140ms ease, transform 140ms ease; }
+.sheet-enter-from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+.sheet-leave-to { opacity: 0; transform: translateY(-6px) scale(0.98); }
 
 /* 窄屏：语言切换收进抽屉，导航只留品牌 + 主题 + 主按钮 + 菜单 */
 @media (max-width: 560px) {

@@ -22,13 +22,13 @@
   }
 
   /* 滚动条：始终可见、可拖动；悬停加深 */
+  /* Firefox：亮色偏绿，暗色用品牌绿 */
   html {
     scrollbar-width: thin;
-    scrollbar-color: rgba(120, 122, 130, 0.45) transparent;
+    scrollbar-color: rgba(108, 140, 40, 0.5) transparent;
   }
-  .dark html,
   html.dark {
-    scrollbar-color: rgba(160, 163, 172, 0.42) transparent;
+    scrollbar-color: rgba(170, 205, 90, 0.42) transparent;
   }
 
   ::-webkit-scrollbar {
@@ -42,23 +42,39 @@
 
   ::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    /* 用透明边框做出内缩，滚动条更细但点击区域更宽 */
+    /* 用透明边框做出内缩：视觉更细，点击区域更宽好抓 */
     border: 2px solid transparent;
     background-clip: padding-box;
-    background-color: rgba(120, 122, 130, 0.42);
-    transition: background-color 0.18s ease;
+    background-color: rgba(108, 140, 40, 0.48);
+    transition: background-color 0.16s ease;
   }
 
+  /* 悬停 */
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(120, 122, 130, 0.7);
+    background-color: rgba(108, 140, 40, 0.72);
   }
 
-  .dark ::-webkit-scrollbar-thumb {
-    background-color: rgba(170, 173, 182, 0.38);
+  /* 按下 / 拖动中：加深到实色，去掉一切灰色默认态 */
+  ::-webkit-scrollbar-thumb:active {
+    background-color: rgba(84, 112, 28, 0.92);
   }
 
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(200, 203, 212, 0.62);
+  html.dark ::-webkit-scrollbar-thumb {
+    background-color: rgba(170, 205, 90, 0.4);
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(190, 225, 110, 0.68);
+  }
+  html.dark ::-webkit-scrollbar-thumb:active {
+    background-color: rgba(201, 242, 74, 0.95);
+  }
+
+  /* 窗口失焦时略淡，但仍可辨认 */
+  ::-webkit-scrollbar-thumb:window-inactive {
+    background-color: rgba(108, 140, 40, 0.32);
+  }
+  html.dark ::-webkit-scrollbar-thumb:window-inactive {
+    background-color: rgba(170, 205, 90, 0.26);
   }
 
   /* 选中文本样式 */
