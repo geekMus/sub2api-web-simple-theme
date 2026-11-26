@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 把 beichen-web 的构建产物同步到 sub2api 后端的 embed 目录。
+ * 把 sub2api-web-simple-theme 的构建产物同步到 sub2api 后端的 embed 目录。
  *
  * 后端 internal/web/embed_on.go 里有 `//go:embed all:dist`，
  * 只有 backend/internal/web/dist/ 存在内容时，`go build -tags embed` 才能把前端打进二进制。

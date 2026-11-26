@@ -1,4 +1,4 @@
-# beichen-web
+# sub2api-web-simple-theme
 
 从 [sub2api](https://github.com/Wei-Shaw/sub2api)（fork: sub2api-beichen）中剥离出来的**独立前端项目**。
 技术栈：Vue 3 + Vite 5 + TypeScript + Pinia + Tailwind，包管理使用 **pnpm**。
@@ -87,7 +87,7 @@ pnpm build
    * `build.outDir` 由写死 `../backend/internal/web/dist` 改为可配置（默认 `dist`）；
    * 新增 `preview.proxy`，让 `pnpm preview` 也能连真实后端；
    * 新增 `VITE_PREVIEW_PORT`。
-2. `package.json`：包名改为 `beichen-web`，新增 `build:embed` / `sync:backend` 两个脚本。
+2. `package.json`：包名改为 `sub2api-web-simple-theme`，新增 `build:embed` / `sync:backend` 两个脚本。
 3. 法务文档 `docs/legal/admin-compliance.{zh,en}.md` 从仓库根目录搬到本项目的 `docs/legal/`，
    两个引用它的组件（`AdminComplianceDialog.vue`、`LegalDocumentView.vue`）的相对路径由
    `../../../../docs/legal/` 改成 `../../../docs/legal/`。

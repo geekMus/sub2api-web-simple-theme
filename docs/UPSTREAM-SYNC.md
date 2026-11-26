@@ -5,7 +5,7 @@
 
 ## 同步命令
 
-在 `beichen-web/` 下：
+在 `sub2api-web-simple-theme/` 下：
 
 ```bash
 # 1) 业务源码
@@ -30,7 +30,7 @@ cp ../sub2api-beichen/docs/legal/admin-compliance.{zh,en}.md docs/legal/
 | 文件 | 上游 | 本仓库 | 原因 |
 | --- | --- | --- | --- |
 | `vite.config.ts` | `build.outDir: '../backend/internal/web/dist'` 写死 | `VITE_OUT_DIR` 可配（默认 `dist`）+ `preview.proxy` | 独立项目不能写死后端路径 |
-| `package.json` | 名字 `sub2api-frontend`，只有基础脚本 | `beichen-web`、`packageManager: pnpm@10.15.0`、`build:embed` / `sync:backend` | 独立仓库与嵌入构建需要 |
+| `package.json` | 名字 `sub2api-frontend`，只有基础脚本 | `sub2api-web-simple-theme`、`packageManager: pnpm@10.15.0`、`build:embed` / `sync:backend` | 独立仓库与嵌入构建需要 |
 | `src/components/admin/AdminComplianceDialog.vue` | `../../../../docs/legal/...` | `../../../docs/legal/...` | 文档从仓库根搬到本项目 `docs/legal/` |
 | `src/views/public/LegalDocumentView.vue` | 同上 | 同上 | 同上 |
 | `src/components/admin/settings/__tests__/AdminAccessKeysSettings.i18n.spec.ts` | 读 `../backend/...catalog.go` | `BACKEND_REPO` 可配、缺失时跳过 | 独立仓库不一定有后端在旁边 |

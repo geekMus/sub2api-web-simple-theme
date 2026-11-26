@@ -9,7 +9,7 @@ import zh from '@/i18n/locales/zh'
 import enKeys from '@/i18n/locales/en/adminAccessKeys'
 import zhKeys from '@/i18n/locales/zh/adminAccessKeys'
 
-// 这个用例拿后端权限目录做契约校验。beichen-web 独立成仓后，后端目录不一定在旁边，
+// 这个用例拿后端权限目录做契约校验。本仓库独立成仓后，后端目录不一定在旁边，
 // 所以用 BACKEND_REPO 指定（默认 ../sub2api-beichen），找不到就整体跳过而不是报错。
 const backendRepo = resolve(process.cwd(), process.env.BACKEND_REPO || '../sub2api-beichen')
 const catalogPath = resolve(backendRepo, 'backend/internal/pkg/adminaccess/catalog.go')
