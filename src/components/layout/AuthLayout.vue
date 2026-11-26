@@ -3,6 +3,14 @@
     <section class="auth">
       <div class="st-shell auth__wrap">
         <div class="auth__card st-card">
+          <nav v-if="showTabs" class="auth__tabs" role="tablist">
+            <router-link to="/login" class="auth__tab" :class="{ 'auth__tab--on': isLogin }" role="tab">
+              {{ c('auth.tab.login') }}
+            </router-link>
+            <router-link to="/register" class="auth__tab" :class="{ 'auth__tab--on': !isLogin }" role="tab">
+              {{ c('auth.tab.register') }}
+            </router-link>
+          </nav>
           <slot />
         </div>
         <div v-if="$slots.footer" class="auth__footer">
@@ -16,10 +24,16 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores'
+import { useAuthCopy } from '@/composables/copy/auth'
 import UserShell from '@/components/shell/UserShell.vue'
 
 const appStore = useAppStore()
+const route = useRoute()
+const { c } = useAuthCopy()
+const showTabs = computed(() => route.path === '/login' || route.path === '/register')
+const isLogin = computed(() => route.path === '/login')
 const siteName = computed(() => appStore.siteName || 'Sub2API')
 const currentYear = computed(() => new Date().getFullYear())
 
@@ -48,6 +62,35 @@ onMounted(() => {
   max-width: 428px;
   padding: clamp(22px, 3.2vw, 34px);
   box-shadow: var(--st-shadow-2);
+}
+
+.auth__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+}
+.auth__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--st-ink-2);
+  text-decoration: none;
+  transition: color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
+.auth__tab:hover { color: var(--st-ink); }
+.auth__tab--on {
+  background: var(--st-bg);
+  color: var(--st-ink);
+  box-shadow: var(--st-shadow-1);
 }
 
 .auth__footer { margin-top: 14px; text-align: center; }

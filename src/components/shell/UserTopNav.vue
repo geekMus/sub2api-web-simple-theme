@@ -3,13 +3,9 @@
     <div class="st-shell nv__in">
       <BrandMark />
 
-      <nav class="nv__links" aria-label="primary">
-        <router-link v-for="item in links" :key="item.to" :to="item.to" class="nv__link">{{ item.label }}</router-link>
-      </nav>
-
       <div class="nv__right">
         <router-link v-if="user" to="/dashboard" class="nv__balance" :title="c('nav.balance')">{{ money }}</router-link>
-        <LocaleSwitcher />
+        <span class="nv__lang"><LocaleSwitcher /></span>
         <ThemeToggle />
 
         <template v-if="user">
@@ -27,10 +23,9 @@
             </transition>
           </div>
         </template>
-        <template v-else>
-          <router-link to="/login" class="nv__login">{{ c('nav.login') }}</router-link>
-          <router-link to="/register" class="st-btn st-btn--primary st-btn--sm">{{ c('nav.signup') }}</router-link>
-        </template>
+        <router-link v-else to="/login" class="st-btn st-btn--primary st-btn--sm">
+          {{ c('nav.authEntry') }}
+        </router-link>
 
         <button class="nv__burger" type="button" :aria-label="c('nav.menu')" @click="sheetOpen = !sheetOpen">
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -43,7 +38,7 @@
 
     <transition name="sheet">
       <div v-if="sheetOpen" class="nv__sheet">
-        <router-link v-for="item in links" :key="item.to" :to="item.to" class="nv__sheet-link" @click="sheetOpen = false">{{ item.label }}</router-link>
+        <div class="nv__sheet-lang"><LocaleSwitcher /></div>
         <div class="nv__sheet-foot">
           <template v-if="!user">
             <router-link to="/login" class="st-btn st-btn--quiet st-btn--sm" @click="sheetOpen = false">{{ c('nav.login') }}</router-link>
@@ -88,19 +83,6 @@ const menuOpen = ref(false)
 const sheetOpen = ref(false)
 const scrolled = ref(false)
 
-const links = computed(() => {
-  const settings = appStore?.cachedPublicSettings
-  const items = [
-    { to: '/dashboard', label: c('nav.overview') },
-    { to: '/keys', label: c('nav.passes') },
-    { to: '/usage', label: c('nav.usage') },
-  ]
-  if (settings?.subscription_enabled !== false) items.push({ to: '/subscriptions', label: c('nav.plans') })
-  if (settings?.model_plaza_enabled) items.push({ to: '/model-plaza', label: c('nav.models') })
-  if (settings?.available_channels_enabled) items.push({ to: '/available-channels', label: c('nav.channels') })
-  return items
-})
-
 const accountMenu = computed(() => {
   const items = [{ to: '/profile', label: c('account.profile') }]
   if (appStore?.cachedPublicSettings?.affiliate_enabled) items.push({ to: '/affiliate', label: c('account.affiliate') })
@@ -144,16 +126,9 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 
 .nv__in { display: flex; align-items: center; gap: 24px; height: 60px; }
 
-.nv__links { display: none; align-items: center; gap: 2px; margin-left: 8px; }
-.nv__link { padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 450; color: var(--st-ink-2); text-decoration: none; transition: color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease); }
-.nv__link:hover { color: var(--st-ink); background: var(--st-bg-soft); }
-.nv__link.router-link-active { color: var(--st-ink); font-weight: 500; }
-
 .nv__right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .nv__balance { font-size: 0.82rem; font-weight: 550; color: var(--st-ink); text-decoration: none; padding: 5px 9px; border-radius: 6px; font-variant-numeric: tabular-nums; }
 .nv__balance:hover { background: var(--st-bg-soft); }
-.nv__login { display: none; font-size: 0.85rem; color: var(--st-ink-2); text-decoration: none; padding: 6px 10px; }
-.nv__login:hover { color: var(--st-ink); }
 
 .nv__acct { position: relative; }
 .nv__avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--st-line-2); background: var(--st-bg-soft); color: var(--st-ink); font-family: inherit; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
@@ -169,6 +144,7 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 .nv__sheet { position: absolute; inset: 60px 0 auto; padding: 8px var(--st-gutter) 18px; background: var(--st-bg); border-bottom: 1px solid var(--st-line); display: flex; flex-direction: column; }
 .nv__sheet-link { padding: 11px 4px; font-size: 0.95rem; color: var(--st-ink); text-decoration: none; border-bottom: 1px solid var(--st-line); }
 .nv__sheet-link--sub { font-size: 0.86rem; color: var(--st-ink-2); border-bottom: 0; }
+.nv__sheet-lang { display: flex; justify-content: flex-start; padding-top: 12px; }
 .nv__sheet-foot { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; }
 
 .pop-enter-active, .pop-leave-active { transition: opacity var(--st-t-fast) var(--st-ease), transform var(--st-t-fast) var(--st-ease); }
@@ -176,9 +152,13 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 .sheet-enter-active, .sheet-leave-active { transition: opacity var(--st-t) var(--st-ease), transform var(--st-t) var(--st-ease); }
 .sheet-enter-from, .sheet-leave-to { opacity: 0; transform: translateY(-6px); }
 
+/* 窄屏：语言切换收进抽屉，导航只留品牌 + 主题 + 主按钮 + 菜单 */
+@media (max-width: 560px) {
+  .nv__lang { display: none; }
+  .nv__in { gap: 10px; }
+}
+
 @media (min-width: 920px) {
-  .nv__links { display: flex; }
-  .nv__login { display: inline-block; }
   .nv__burger { display: none; }
 }
 </style>

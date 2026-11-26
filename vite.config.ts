@@ -90,7 +90,9 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       checker({
-        vueTsc: true
+        vueTsc: true,
+        // 并行开发时可用 VITE_CHECKER_OVERLAY=off 关掉全屏错误遮罩，便于截图验收
+        overlay: process.env.VITE_CHECKER_OVERLAY !== 'off',
       }),
       injectPublicSettings(backendUrl)
     ],

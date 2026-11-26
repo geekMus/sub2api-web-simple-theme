@@ -8,6 +8,8 @@ import { useI18n } from 'vue-i18n'
 type Dict = Record<string, string>
 
 const zh: Dict = {
+  'auth.tab.login': '登录',
+  'auth.tab.register': '注册',
   // 左侧品牌叙事
   'auth.aside.eyebrow': '统一入口',
   'auth.aside.title1': '一个通行证，',
@@ -66,6 +68,8 @@ const zh: Dict = {
 }
 
 const en: Dict = {
+  'auth.tab.login': 'Sign in',
+  'auth.tab.register': 'Sign up',
   'auth.aside.eyebrow': 'ONE ENDPOINT',
   'auth.aside.title1': 'One key,',
   'auth.aside.title2': 'every major AI model',
