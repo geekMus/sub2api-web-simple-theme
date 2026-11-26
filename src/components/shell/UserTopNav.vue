@@ -13,7 +13,7 @@
         <span class="nv__name">{{ siteName }}</span>
       </router-link>
 
-      <nav class="nv__links" aria-label="primary">
+      <nav v-if="!isLanding" class="nv__links" aria-label="primary">
         <router-link v-for="item in links" :key="item.to" :to="item.to" class="nv__link">{{ item.label }}</router-link>
       </nav>
 
@@ -50,7 +50,7 @@
           <router-link to="/register" class="st-btn st-btn--primary st-btn--sm">{{ c('nav.signup') }}</router-link>
         </template>
 
-        <button class="st-icon-btn nv__burger" type="button" :aria-label="c('nav.menu')" @click="sheetOpen = !sheetOpen">
+        <button v-if="!isLanding" class="st-icon-btn nv__burger" type="button" :aria-label="c('nav.menu')" @click="sheetOpen = !sheetOpen">
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5">
             <path v-if="!sheetOpen" d="M3 6h14M3 10h14M3 14h14" stroke-linecap="round" />
             <path v-else d="M5 5l10 10M15 5L5 15" stroke-linecap="round" />
@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAppStore, useAuthStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import { useSimpleCopy } from '@/composables/useSimpleCopy'
@@ -86,15 +86,22 @@ import { formatCurrency } from '@/utils/format'
 import { toggleThemeFromElement } from '@/utils/theme-transition'
 
 let router: ReturnType<typeof useRouter> | null = null
+let route: ReturnType<typeof useRoute> | null = null
 let authStore: ReturnType<typeof useAuthStore> | null = null
 let appStore: ReturnType<typeof useAppStore> | null = null
 try {
   router = useRouter()
+  route = useRoute()
   authStore = useAuthStore()
   appStore = useAppStore()
 } catch {
   router = null
 }
+/** 落地页保持干净：只留品牌与右侧操作，不显示主导航 */
+const isLanding = computed(() => {
+  const path = route?.path ?? ''
+  return path === '/home' || path === '/'
+})
 const ready = !!authStore && !!appStore
 const { c } = useSimpleCopy()
 
