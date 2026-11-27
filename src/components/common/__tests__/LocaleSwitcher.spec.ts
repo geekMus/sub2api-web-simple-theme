@@ -21,7 +21,6 @@ const mountSwitcher = () =>
   mount(LocaleSwitcher, { global: { stubs: { Icon: true, transition: false } } })
 
 const choose = async (wrapper: ReturnType<typeof mountSwitcher>, name: string) => {
-  await wrapper.get('button').trigger('click')
   const option = wrapper.findAll('button').find((button) => button.text().includes(name))
   await option!.trigger('click')
   await flushPromises()
@@ -42,7 +41,7 @@ describe('LocaleSwitcher', () => {
   it('switches language in place without reloading the page', async () => {
     const wrapper = mountSwitcher()
 
-    await choose(wrapper, 'English')
+    await choose(wrapper, 'EN')
 
     expect(setLocale).toHaveBeenCalledWith('en')
     expect(reload).not.toHaveBeenCalled()

@@ -111,7 +111,7 @@
     </section>
 
     <!-- 趋势 / 分布 -->
-    <section class="st-section--tight">
+    <section class="st-section--tight usage-charts">
       <div class="st-shell">
         <div class="charts">
           <article class="st-card st-card--pad chart chart--trend">
@@ -204,7 +204,7 @@
           </div>
         </header>
 
-        <div class="tabs">
+        <div class="usage-tabs">
           <div class="st-seg">
             <button type="button" class="st-seg__item" :class="{ 'st-seg__item--active': activeTab === 'usage' }" @click="activeTab = 'usage'">
               {{ t('usage.tabs.usage') }}
@@ -250,7 +250,7 @@
           </div>
         </div>
 
-        <details v-if="activeTab === 'usage'" class="st-card st-card--pad filters" open>
+        <details v-if="activeTab === 'usage'" class="st-card st-card--pad filters">
           <summary class="filters__summary">
             <span class="st-eyebrow">{{ c('usage.filters.title') }}</span>
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -1271,7 +1271,9 @@ watch(endpointDistributionSource, () => {
 </script>
 
 <style scoped>
-.usage { padding-top: clamp(32px, 5vw, 56px); }
+.usage { padding-top: clamp(32px, 5vw, 56px); padding-bottom: 0; }
+/* 摘要与图表属于同一屏内容，收紧两个 section 之间的空档 */
+.usage-charts { padding-top: clamp(20px, 2.6vw, 32px); }
 .usage__wrap { display: flex; flex-direction: column; gap: clamp(28px, 4vw, 56px); }
 .usage-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
 .usage-head__copy { display: flex; flex-direction: column; gap: 10px; max-width: 62ch; }
@@ -1323,7 +1325,7 @@ watch(endpointDistributionSource, () => {
 .logs__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px; margin-bottom: 16px; }
 .logs__head h2 { margin: 0 0 4px; }
 .logs__head .st-body { max-width: 52ch; }
-.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+.usage-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
 .tabs__tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 
 .st-colset { position: relative; }
@@ -1393,6 +1395,15 @@ watch(endpointDistributionSource, () => {
 .logs-skeleton__row .sk-line--md { flex: 1; }
 .logs-skeleton__row .sk-line--xs { width: 64px; }
 .logs__pager { margin-top: 14px; }
+/* 移动端分页按钮跟随 simple theme（桌面 nav 由全局 .st-pagination 接管） */
+.logs__pager :deep(.st-pagination > div:first-child button) {
+  border: 1px solid var(--st-line) !important;
+  border-radius: var(--st-r-sm) !important;
+  background: var(--st-bg-soft) !important;
+  color: var(--st-ink-2) !important;
+  min-height: 40px;
+}
+.logs__pager :deep(.st-pagination > div:first-child span) { color: var(--st-ink-3) !important; }
 
 .error-state { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .error-state__mark { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--st-danger-soft); color: var(--st-danger); }
@@ -1420,14 +1431,18 @@ watch(endpointDistributionSource, () => {
   .logs { gap: 30px; }
   .filters__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+@media (min-width: 1200px) {
+  .filters__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 18px; }
+}
 @media (max-width: 639px) {
   .toolbar { align-items: stretch; }
   .toolbar > .st-seg { display: flex; width: 100%; }
   .toolbar > .st-seg .st-seg__item { flex: 1 1 0; padding-inline: 5px; font-size: 0.75rem; white-space: nowrap; }
   .toolbar__granularity { margin-left: 0; }
   .toolbar__granularity .st-seg { display: flex; }
-  .toolbar__actions { width: 100%; }
-  .toolbar__actions .st-btn { flex: 1 1 auto; }
+  .toolbar__actions { width: 100%; justify-content: flex-end; }
+  .toolbar__actions .st-btn { flex: 0 0 auto; }
+  .toolbar__actions .st-btn--primary { margin-left: auto; }
   .log { grid-template-columns: 52px minmax(0, 1fr) auto; row-gap: 4px; padding: 14px; }
   .log__tokens { grid-column: 2 / 3; justify-content: flex-start; gap: 10px; }
   .log__cost { grid-column: 3 / 4; grid-row: 1 / 2; }

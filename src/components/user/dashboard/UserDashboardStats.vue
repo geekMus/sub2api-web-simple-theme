@@ -11,6 +11,17 @@
         <span class="dash-hero__unit">{{ c('usercore.dash.balanceUnit') }}</span>
       </p>
       <p class="dash-hero__note">{{ c('usercore.dash.balanceNote') }}</p>
+      <div class="dash-hero__art" aria-hidden="true">
+        <svg viewBox="0 0 420 260" fill="none" width="420" height="260">
+          <ellipse cx="210" cy="130" rx="178" ry="78" stroke="var(--st-line-2)" stroke-width="1" />
+          <ellipse cx="210" cy="130" rx="126" ry="54" stroke="var(--st-brand-line)" stroke-width="1" stroke-dasharray="3 7" />
+          <ellipse cx="210" cy="130" rx="72" ry="30" stroke="var(--st-line)" stroke-width="1" />
+          <circle cx="210" cy="130" r="3.5" fill="var(--st-brand)" />
+          <circle cx="38" cy="86" r="3" fill="var(--st-brand)" />
+          <circle cx="382" cy="170" r="2.5" fill="var(--st-ink-3)" />
+          <path d="M210 52v-14M210 222v-14M32 130H18M402 130h-14" stroke="var(--st-line-2)" stroke-width="1" stroke-linecap="round" />
+        </svg>
+      </div>
     </article>
 
     <!-- 三个次级指标：移动端 2 列 + 末张整行，桌面一行三列 -->
@@ -337,7 +348,7 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
   display: flex;
   flex-direction: column;
   box-shadow: var(--st-shadow-2);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--st-brand) 8%, var(--st-bg)), var(--st-bg) 62%);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--st-brand) 5%, var(--st-bg)), var(--st-bg) 52%);
 }
 .dash-hero__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .dash-hero__amount {
@@ -357,6 +368,14 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
 .dash-hero__currency { font-size: 0.5em; font-weight: 500; color: var(--st-ink-2); }
 .dash-hero__unit { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em; color: var(--st-ink-2); }
 .dash-hero__note { margin: clamp(10px, 1.4vw, 16px) 0 0; max-width: 36ch; font-size: 0.84rem; line-height: 1.62; color: var(--st-ink-2); }
+.dash-hero__art {
+  position: absolute; top: 50%; right: clamp(-30px, 0.5vw, 10px);
+  width: min(46%, 440px); transform: translateY(-50%);
+  pointer-events: none; opacity: 0.9;
+}
+.dash-hero__art svg { display: block; width: 100%; height: auto; }
+.dash-hero__head, .dash-hero__amount, .dash-hero__note { position: relative; z-index: 1; }
+@media (max-width: 899px) { .dash-hero__art { display: none; } }
 
 .dash-stats__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .dash-stats__tile { display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; min-width: 0; box-shadow: var(--st-shadow-1); }
@@ -389,7 +408,7 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
 .dash-stats__section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .dash-stats__section-title { margin-top: 10px; }
 .dash-stats__section-lede { margin-top: 8px; font-size: 0.9rem; max-width: 46ch; }
-.dash-stats__platform-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.dash-stats__platform-grid { display: flex; flex-direction: column; gap: 10px; }
 
 .dash-stats__plat { display: flex; flex-direction: column; gap: 12px; box-shadow: var(--st-shadow-1); }
 .dash-stats__plat--other { border-style: dashed; background: color-mix(in srgb, var(--st-bg) 70%, var(--st-bg-sink)); }
@@ -411,8 +430,8 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
 .dash-stats__quota-disabled { font-size: 0.76rem; color: var(--st-danger); }
 .dash-stats__quota-reset { font-size: 0.68rem; color: var(--st-ink-3); }
 .dash-stats__bar { height: 4px; border-radius: 999px; background: var(--st-bg-sink); overflow: hidden; }
-.dash-stats__bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--st-brand); transition: width var(--st-t) var(--st-ease); }
-.dash-stats__bar-fill--ok { background: var(--st-brand); }
+.dash-stats__bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--st-chart-1)nd); transition: width var(--st-t) var(--st-ease); }
+.dash-stats__bar-fill--ok { background: var(--st-chart-1); }
 .dash-stats__bar-fill--warn { background: var(--st-warn); }
 .dash-stats__bar-fill--danger, .dash-stats__bar-fill--off { background: var(--st-danger); }
 
@@ -420,9 +439,13 @@ const formatDuration = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s`
   .dash-stats__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .dash-stats__tile--wide { grid-column: auto; }
   .dash-stats__strip-body { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .dash-stats__platform-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* 平台少的时候不再按三列卡片铺，改成整行横排，避免右侧大片留白 */
+  .dash-stats__plat-rows { flex-direction: row; flex-wrap: wrap; gap: 6px 44px; }
+  .dash-stats__plat-rows > div { flex: 1 1 0; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .dash-stats__plat-rows dt { font-size: 0.7rem; }
+  .dash-stats__plat-rows dd { font-size: 0.88rem; }
 }
 @media (min-width: 1024px) {
-  .dash-stats__platform-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dash-stats__plat-rows { gap: 6px 64px; }
 }
 </style>

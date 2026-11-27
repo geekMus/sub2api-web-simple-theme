@@ -271,6 +271,7 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { FeatureFlags, resolveFeatureFlag } from '@/utils/featureFlags'
 import Icon from '@/components/icons/Icon.vue'
+import UserShell from '@/components/shell/UserShell.vue'
 import { buildGatewayUrl } from '@/api/client'
 import { useBillingCopy } from '@/composables/copy/billing'
 import { formatDateLocalInput } from '@/utils/format'
@@ -871,6 +872,12 @@ onUnmounted(() => {
   .ku-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .ku-day__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ku-skeleton { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 719px) and (max-height: 740px) {
+  .ku-pre__item { padding: 10px 0; }
+  .ku-pre__copy .st-body { display: none; }
+  .ku { padding-top: 20px; }
+  .ku-query { gap: 10px; }
 }
 @media (max-width: 639px) {
   .ku-query { padding: 18px; }

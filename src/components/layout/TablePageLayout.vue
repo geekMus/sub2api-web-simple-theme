@@ -1,5 +1,5 @@
 <template>
-  <div class="table-page-layout" :class="{ 'mobile-mode': isMobile }">
+  <div class="table-page-layout" :class="{ 'mobile-mode': isMobile, 'table-page-layout--user': variant === 'user' }">
     <!-- 固定区域：操作按钮 -->
     <div v-if="$slots.actions" class="layout-section-fixed">
       <slot name="actions" />
@@ -27,6 +27,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+/** 用户端（.st-root 内）使用 user 变体：取消固定视口高度，改用卡片外观 */
+withDefaults(defineProps<{ variant?: 'default' | 'user' }>(), { variant: 'default' })
+
 const isMobile = ref(false)
 
 const checkMobile = () => {
@@ -48,6 +51,38 @@ onUnmounted(() => {
 .table-page-layout {
   @apply flex flex-col gap-6;
   height: calc(100vh - 64px - 4rem); /* 减去 header + lg:p-8 的上下padding */
+}
+
+/* 用户端变体：随内容高度，不锁视口 */
+.table-page-layout--user {
+  height: auto;
+  gap: clamp(16px, 2vw, 22px);
+}
+.table-page-layout--user .layout-section-scrollable {
+  flex: none;
+  min-height: 0;
+}
+.table-page-layout--user .table-scroll-container {
+  border: 1px solid var(--st-line) !important;
+  background: var(--st-bg) !important;
+  border-radius: var(--st-r-lg);
+  box-shadow: var(--st-shadow-1);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.table-page-layout--user .table-scroll-container :deep(thead) {
+  background: var(--st-bg-soft) !important;
+}
+.table-page-layout--user .table-scroll-container :deep(th) {
+  color: var(--st-ink-2) !important;
+  border-bottom: 1px solid var(--st-line) !important;
+}
+.table-page-layout--user .table-scroll-container :deep(td) {
+  color: var(--st-ink-2) !important;
+  border-bottom: 1px solid var(--st-line) !important;
+}
+.table-page-layout--user .table-scroll-container :deep(tbody tr:hover) {
+  background: var(--st-bg-soft);
 }
 
 .layout-section-fixed {

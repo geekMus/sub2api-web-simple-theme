@@ -183,7 +183,7 @@
         <tr v-else-if="!data || data.length === 0">
           <td
             :colspan="tableColumnCount"
-            :class="['py-12 text-center text-gray-500 dark:text-dark-400', getAdaptivePaddingClass()]"
+            :class="['dt-empty-cell py-12 text-center text-gray-500 dark:text-dark-400', getAdaptivePaddingClass()]"
           >
             <slot name="empty">
               <div class="flex flex-col items-center">
@@ -951,6 +951,12 @@ defineExpose({
 </script>
 
 <style scoped>
+/* 手机端空态收紧，别把一屏撑破 */
+@media (max-width: 719px) {
+  .dt-empty-cell { padding-top: 32px !important; padding-bottom: 32px !important; }
+  .dt-empty-cell :deep(.mb-4) { margin-bottom: 12px; }
+  .dt-empty-cell :deep(.h-12) { width: 34px; height: 34px; }
+}
 /* 表格横向滚动 */
 .table-wrapper {
   --select-col-width: 52px; /* 勾选列宽度：px-6 (24px*2) + checkbox (16px) */

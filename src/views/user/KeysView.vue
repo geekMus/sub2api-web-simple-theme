@@ -1947,8 +1947,8 @@ onUnmounted(() => {
 .keys__quota-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 0.76rem; color: var(--st-ink-2); }
 .keys__rl-reset { font-size: 0.7rem; color: var(--st-ink-3); }
 .keys__bar { height: 4px; border-radius: 999px; background: var(--st-bg-sink); overflow: hidden; }
-.keys__bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--st-brand); transition: width var(--st-t) var(--st-ease); }
-.keys__bar-fill--ok { background: var(--st-brand); }
+.keys__bar-fill { display: block; height: 100%; border-radius: 999px; background: var(--st-chart-1); transition: width var(--st-t) var(--st-ease); }
+.keys__bar-fill--ok { background: var(--st-chart-1); }
 .keys__bar-fill--warn { background: var(--st-warn); }
 .keys__bar-fill--off { background: var(--st-danger); }
 .keys__textbtn { align-self: flex-start; margin-top: 2px; padding: 2px 6px; border: 0; border-radius: 8px; background: none; font-family: inherit; font-size: 0.72rem; color: var(--st-ink-3); cursor: pointer; }
@@ -1989,6 +1989,15 @@ onUnmounted(() => {
 .keys__empty-body { font-size: 0.9rem; max-width: 44ch; }
 
 .keys__pager { display: flex; justify-content: center; flex-wrap: wrap; padding-top: 8px; }
+/* 移动端分页按钮跟随 simple theme（桌面 nav 由全局 .st-pagination 接管） */
+.keys__pager :deep(.st-pagination > div:first-child button) {
+  border: 1px solid var(--st-line) !important;
+  border-radius: var(--st-r-sm) !important;
+  background: var(--st-bg-soft) !important;
+  color: var(--st-ink-2) !important;
+  min-height: 40px;
+}
+.keys__pager :deep(.st-pagination > div:first-child span) { color: var(--st-ink-3) !important; }
 
 /* 弹窗内表单 */
 .keys-stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
@@ -2096,9 +2105,12 @@ onUnmounted(() => {
   .keys__head-actions { padding-bottom: 6px; }
   .keys__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* 偶数张两列刚好铺满；奇数时最后一张整行，避免桌面右半边空一块 */
+.keys__grid > .keys__card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 @media (min-width: 1100px) {
-  .keys__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-  .keys__card { min-height: 280px; }
+  .keys__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .keys__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 32px; }
+  .keys__card { min-height: 0; }
 }
 
 /* ---- 第二轮：卡片层级 / 触控目标 ---- */
