@@ -4,7 +4,7 @@
       <div class="stripe-pop__panel st-card st-card--pad">
         <div v-if="amount" class="stripe-pop__amount">
           <p class="st-eyebrow">{{ t('payment.actualPay') }}</p>
-          <p class="st-display-2 stripe-pop__money st-num" :style="{ color: methodColor }">¥{{ amount }}</p>
+          <p class="st-display-2 stripe-pop__money st-num">¥{{ amount }}</p>
           <p v-if="orderId" class="st-row__meta">{{ t('payment.orders.orderId') }}: {{ orderId }}</p>
         </div>
 
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { extractI18nErrorMessage } from '@/utils/apiError'
@@ -45,20 +45,12 @@ interface StripeWithWechatPay {
   confirmWechatPayPayment(clientSecret: string, options: Record<string, unknown>): Promise<{ error?: { message?: string }; paymentIntent?: { status: string } }>
 }
 
-const METHOD_COLORS: Record<string, string> = {
-  alipay: '#00AEEF',
-  wechat_pay: '#07C160',
-}
-const DEFAULT_METHOD_COLOR = '#635bff'
-
 const { t } = useI18n()
 const route = useRoute()
 
 const orderId = String(route.query.order_id || '')
 const method = String(route.query.method || 'alipay')
 const amount = String(route.query.amount || '')
-
-const methodColor = computed(() => METHOD_COLORS[method] || DEFAULT_METHOD_COLOR)
 
 const error = ref('')
 const success = ref(false)
@@ -192,7 +184,7 @@ function startPolling() {
 .stripe-pop__wrap { width: 100%; max-width: 420px; }
 .stripe-pop__panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .stripe-pop__amount { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-.stripe-pop__money { font-size: clamp(1.9rem, 6vw, 2.5rem); }
+.stripe-pop__money { font-size: clamp(1.9rem, 6vw, 2.5rem); color: var(--st-brand-text); }
 .stripe-pop__state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
 .stripe-pop__state--loading { padding-block: 20px; }
 
@@ -227,5 +219,8 @@ function startPolling() {
 }
 @keyframes stripe-pop-spin { to { transform: rotate(360deg); } }
 .stripe-pop__btn { width: 100%; min-width: 0; white-space: normal; }
+@media (max-width: 480px) {
+  .stripe-pop__btn { min-height: 50px; }
+}
 </style>
 

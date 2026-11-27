@@ -22,6 +22,7 @@
               <path stroke-linecap="round" d="M12 8v5m0 3.5h.01" />
             </svg>
           </div>
+          <p class="st-eyebrow">{{ c('pay.eyebrow') }}</p>
           <h1 class="st-display-3">{{ c('stripe.failed') }}</h1>
           <p class="st-body">{{ initError }}</p>
           <p class="st-row__meta">{{ c('stripe.failedHint') }}</p>

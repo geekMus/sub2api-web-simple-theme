@@ -4,8 +4,8 @@
       <div class="st-shell qrpay__wrap">
         <header class="qrpay__hero">
           <p class="st-eyebrow">{{ c('pay.qr.title') }}</p>
-          <h1 class="st-display-2 qrpay__title">{{ qrUrl ? scanTitle : t('payment.qr.payInNewWindow') }}</h1>
-          <p v-if="!expired" class="st-lede">{{ c('qr.ledeShort') }}</p>
+          <h1 class="st-display-2 qrpay__title">{{ qrUrl ? scanTitle : (hasPayContext ? t('payment.qr.payInNewWindow') : c('pay.qr.title')) }}</h1>
+          <p v-if="!expired && hasPayContext" class="st-lede">{{ c('qr.ledeShort') }}</p>
         </header>
 
         <div v-if="qrUrl && !expired" class="st-card st-card--pad qrpay__card">
@@ -15,7 +15,19 @@
           <p v-if="scanHint" class="st-body qrpay__hint">{{ scanHint }}</p>
         </div>
 
-        <div v-if="expired" class="st-card st-card--pad qrpay__card qrpay__card--center">
+        <div v-if="!hasPayContext" class="st-card st-card--pad qrpay__card qrpay__card--center">
+          <div class="qrpay__mark">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9" />
+              <path stroke-linecap="round" d="M12 8v5m0 3.5h.01" />
+            </svg>
+          </div>
+          <h2 class="st-display-3">{{ c('pay.qr.expiredTitle') }}</h2>
+          <p class="st-body qrpay__fallback-copy">{{ c('pay.qr.expiredBody') }}</p>
+          <button class="st-btn st-btn--primary qrpay__btn" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
+        </div>
+
+        <div v-else-if="expired" class="st-card st-card--pad qrpay__card qrpay__card--center">
           <div class="qrpay__mark qrpay__mark--bad">
             <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v5m0 3.5h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z" />
@@ -84,6 +96,7 @@ const countdownDisplay = computed(() => {
 
 const isAlipay = computed(() => isBuiltInAlipayMethod(paymentType.value))
 const isWxpay = computed(() => isBuiltInWxpayMethod(paymentType.value))
+const hasPayContext = computed(() => !!qrUrl.value || !!payUrl.value || orderId.value > 0)
 
 const scanTitle = computed(() => {
   if (isAlipay.value) return t('payment.qr.scanAlipay')
@@ -266,6 +279,7 @@ onUnmounted(() => cleanup())
 
 .qrpay__card { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 12px; text-align: center; }
 .qrpay__hint { font-size: 0.86rem; text-align: center; }
+.qrpay__fallback-copy { max-width: 38ch; }
 
 .qrpay__paper {
   display: grid;

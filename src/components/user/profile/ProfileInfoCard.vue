@@ -44,16 +44,14 @@
 
     <div class="profile-columns">
       <div data-testid="profile-main-column" class="profile-columns__main">
-    <section data-testid="profile-basics-panel" class="st-card st-card--pad">
-      <div class="profile-basics">
-        <div class="profile-basics__cell">
-          <ProfileAvatarCard :user="user" embedded />
-        </div>
-        <div class="profile-basics__cell">
-          <ProfileEditForm :initial-username="user?.username || ''" embedded />
-        </div>
-      </div>
-    </section>
+    <div data-testid="profile-basics-panel" class="profile-basics">
+      <section class="st-card st-card--pad profile-basics__cell">
+        <ProfileAvatarCard :user="user" embedded />
+      </section>
+      <section class="st-card st-card--pad profile-basics__cell">
+        <ProfileEditForm :initial-username="user?.username || ''" embedded />
+      </section>
+    </div>
 
     <section data-testid="profile-auth-bindings-panel" class="st-card st-card--pad">
       <ProfileIdentityBindingsSection
@@ -117,7 +115,13 @@ const props = withDefaults(defineProps<{
   wechatMpEnabled: undefined,
 })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+/** 日期跟随站点语言，而不是浏览器语言。 */
+const dateLocale = computed(() => {
+  const raw = (locale as unknown as { value?: unknown })?.value
+  return typeof raw === 'string' && raw ? raw : undefined
+})
 
 function normalizeBindingStatus(binding: boolean | UserAuthBindingStatus | undefined): boolean | null {
   if (typeof binding === 'boolean') {
@@ -166,7 +170,7 @@ const memberSinceLabel = computed(() => {
     return '-'
   }
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(dateLocale.value, {
     year: 'numeric',
     month: 'short',
   }).format(date)
@@ -292,10 +296,11 @@ const sourceHints = computed(() => {
 </script>
 
 <style scoped>
-.profile-info { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.profile-columns { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.profile-columns__main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.profile-columns__side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.profile-info { display: flex; flex-direction: column; gap: clamp(14px, 1.8vw, 20px); min-width: 0; }
+/* display:contents 让两个列容器直接在 .profile-info 里排，侧栏为空时不会撑出空白 */
+.profile-columns { display: contents; }
+.profile-columns__main { display: flex; flex-direction: column; gap: clamp(14px, 1.8vw, 20px); min-width: 0; }
+.profile-columns__side { display: flex; flex-direction: column; gap: clamp(14px, 1.8vw, 20px); min-width: 0; }
 .profile-hero { display: flex; flex-direction: column; gap: 22px; }
 .profile-hero__top { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .profile-hero__avatar {
@@ -315,8 +320,8 @@ const sourceHints = computed(() => {
 .profile-hero__metrics dt { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--st-ink-3); }
 .profile-hero__metrics dd { margin: 4px 0 0; font-family: var(--st-font-display); font-size: 1.15rem; font-weight: 600; letter-spacing: -0.02em; color: var(--st-ink); }
 .profile-block__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.profile-basics { display: grid; grid-template-columns: 1fr; gap: 14px; }
-.profile-basics__cell { min-width: 0; padding: 16px; border: 1px solid var(--st-line); border-radius: var(--st-r-md); background: var(--st-bg-soft); }
+.profile-basics { display: grid; grid-template-columns: 1fr; gap: clamp(14px, 1.8vw, 20px); }
+.profile-basics__cell { min-width: 0; display: flex; flex-direction: column; justify-content: flex-start; }
 .profile-source { grid-template-columns: auto minmax(0, 1fr); }
 .profile-source__icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--st-bg-sink); color: var(--st-ink-3); }
 .profile-source__text { font-size: 0.86rem; color: var(--st-ink-2); overflow-wrap: anywhere; }
@@ -349,9 +354,9 @@ const sourceHints = computed(() => {
   .profile-basics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* ---- 第二轮：身份卡更“杂志” ---- */
+/* ---- 身份卡：更大字号、更松的呼吸 ---- */
 .profile-hero__name .st-display-3 { font-size: clamp(1.45rem, 2.4vw, 1.9rem); }
 .profile-hero__metrics dd { font-size: clamp(1.2rem, 1.8vw, 1.45rem); }
-.profile-basics__cell { border-color: var(--st-line-2); transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease); }
-.profile-basics__cell:hover { border-color: var(--st-line-2); background: var(--st-bg); }
+.profile-basics__cell { transition: border-color var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease); }
+.profile-basics__cell:hover { border-color: var(--st-line-2); box-shadow: var(--st-shadow-3); }
 </style>

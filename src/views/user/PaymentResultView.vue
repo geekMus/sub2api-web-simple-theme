@@ -7,25 +7,27 @@
         </div>
 
         <template v-else>
-          <header class="result__hero">
-            <div class="result__mark" :class="'result__mark--' + markTone">
-              <svg v-if="isSuccess" width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span v-else-if="isPending" class="result__spin"></span>
-              <svg v-else width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+          <section class="st-card st-card--pad result__panel">
+            <div class="result__hero">
+              <div class="result__mark" :class="'result__mark--' + markTone">
+                <svg v-if="isSuccess" width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span v-else-if="isPending" class="result__spin"></span>
+                <svg v-else width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <p class="st-eyebrow result__eyebrow">{{ c('result.eyebrow') }}</p>
+              <h1 class="st-display-2 result__title">{{ statusTitle }}</h1>
+              <p class="st-lede result__lede">{{ statusBody }}</p>
             </div>
-            <p class="st-eyebrow result__eyebrow">{{ c('result.eyebrow') }}</p>
-            <h1 class="st-display-2 result__title">{{ statusTitle }}</h1>
-            <p class="st-lede result__lede">{{ statusBody }}</p>
-          </header>
 
-          <div class="result__actions">
-            <button class="st-btn st-btn--primary st-btn--lg result__btn" @click="router.push('/purchase')">{{ c('result.back') }}</button>
-            <button class="st-btn st-btn--quiet st-btn--lg result__btn" @click="router.push('/orders')">{{ c('result.orders') }}</button>
-          </div>
+            <div class="result__actions">
+              <button class="st-btn st-btn--primary st-btn--lg result__btn" @click="router.push('/purchase')">{{ c('result.back') }}</button>
+              <button class="st-btn st-btn--quiet st-btn--lg result__btn" @click="router.push('/orders')">{{ c('result.orders') }}</button>
+            </div>
+          </section>
 
           <section v-if="order" class="st-card st-card--pad result__receipt">
             <h2 class="st-display-4">{{ c('result.receipt') }}</h2>
@@ -475,7 +477,8 @@ onBeforeUnmount(() => {
 })
 </script>
 <style scoped>
-.result__hero { margin-bottom: clamp(26px, 4vw, 42px); }
+.result__panel { display: flex; flex-direction: column; gap: 20px; margin-bottom: 16px; }
+.result__hero { margin-bottom: 0; }
 .result__mark { width: 64px; height: 64px; }
 .result__title { margin-top: 4px; }
 .result .st-card { box-shadow: var(--st-shadow-2); }
@@ -503,7 +506,7 @@ onBeforeUnmount(() => {
 .result__loading { display: flex; flex-direction: column; gap: 12px; }
 .result__sk { height: 280px; border-radius: var(--st-r-md); }
 
-.result__hero { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 22px; }
+.result__hero { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .result__mark {
   display: grid;
   place-items: center;
@@ -530,7 +533,7 @@ onBeforeUnmount(() => {
 .result__title { margin-top: 2px; }
 .result__lede { max-width: 44ch; }
 
-.result__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.result__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .result__btn { flex: 1 1 180px; min-width: 0; }
 
 .result__receipt { display: flex; flex-direction: column; gap: 12px; }
@@ -547,8 +550,9 @@ onBeforeUnmount(() => {
 .result__value--accent { color: var(--st-brand-text); }
 
 @media (max-width: 480px) {
+  .result__panel { padding: 20px; gap: 18px; }
   .result__actions { flex-direction: column; }
-  .result__btn { flex: 1 1 auto; width: 100%; }
+  .result__btn { flex: 1 1 auto; width: 100%; min-height: 50px; }
 }
 </style>
 

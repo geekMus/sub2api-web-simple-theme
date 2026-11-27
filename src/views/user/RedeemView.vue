@@ -102,21 +102,30 @@
           </transition>
         </div>
 
-        <div class="st-card st-card--pad redeem__where st-reveal" style="--i: 3">
-          <div class="redeem__where-copy">
-            <p class="st-eyebrow">{{ t('redeem.aboutCodes') }}</p>
-            <p class="st-body">{{ t('redeem.codeRule1') }}</p>
-            <p class="st-body">{{ t('redeem.codeRule2') }}</p>
-          </div>
-          <span v-if="contactInfo" class="st-pill st-pill--accent">{{ contactInfo }}</span>
+        <div class="redeem__notes st-reveal" style="--i: 3">
+          <p class="redeem__notes-title">{{ t('redeem.aboutCodes') }}</p>
+          <ul class="redeem__notes-list">
+            <li>{{ t('redeem.codeRule1') }}</li>
+            <li>{{ t('redeem.codeRule2') }}</li>
+          </ul>
+          <p v-if="contactInfo" class="redeem__notes-contact">
+            {{ t('common.contactSupport') }} · <span>{{ contactInfo }}</span>
+          </p>
         </div>
 
-        <section class="hist st-reveal" style="--i: 4">
+        <section class="hist st-reveal" :class="{ 'hist--open': historyOpen }" style="--i: 4">
           <div class="hist__head">
-            <div>
-              <h2 class="st-display-3">{{ c('redeem.history') }}</h2>
-              <p class="st-body">{{ c('redeem.historyLede') }}</p>
-            </div>
+            <button type="button" class="hist__title-btn" :aria-expanded="historyOpen" @click="historyOpen = !historyOpen">
+              <span>
+                <h2 class="st-display-3">{{ c('redeem.history') }}</h2>
+                <p class="st-body">{{ c('redeem.historyLede') }}</p>
+              </span>
+              <span class="hist__chev" :class="{ 'hist__chev--open': historyOpen }" aria-hidden="true">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path d="m5.5 8 4.5 4.5L14.5 8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+            </button>
             <div class="hist__tools">
               <label class="hist__size">
                 {{ t('pagination.perPage') }}
@@ -133,6 +142,7 @@
             </div>
           </div>
 
+          <div class="hist__body" :class="{ 'hist__body--open': historyOpen }">
           <div v-if="historyError" class="hist__error st-card st-card--pad">
             <Icon name="exclamationCircle" size="md" />
             <span>{{ c('redeem.historyErrorBody') }}</span>
@@ -145,7 +155,7 @@
 
           <div v-else-if="history.length === 0 && !historyError" class="st-card st-card--pad hist__empty">
             <p class="st-body">{{ c('redeem.historyEmpty') }}</p>
-            <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="focusRedeemInput">{{ c('redeem.historyEmptyCta') }}</button>
+            <button type="button" class="st-btn st-btn--quiet st-btn--sm" @click="focusRedeemInput">{{ c('redeem.historyEmptyCta') }}</button>
           </div>
 
           <div v-else-if="history.length > 0" class="st-list hist__list">
@@ -159,6 +169,7 @@
                 {{ formatHistoryValue(item) }}
               </span>
             </div>
+          </div>
           </div>
         </section>
       </div>
@@ -204,6 +215,8 @@ const historyError = ref(false)
 // History data
 const history = ref<RedeemHistoryItem[]>([])
 const loadingHistory = ref(false)
+/** 手机端默认收起兑换记录，把主操作留在首屏 */
+const historyOpen = ref(false)
 const historyPage = ref(1)
 const historyPageSize = ref(20)
 const historyTotal = ref(0)
@@ -365,9 +378,13 @@ onMounted(async () => {
 .spin-row { display: inline-flex; align-items: center; gap: 8px; }
 .spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.redeem__where { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; width: 100%; max-width: 640px; margin-inline: auto; }
-.redeem__where-copy { display: flex; flex-direction: column; gap: 4px; }
-.redeem__where-copy .st-body { font-size: 0.82rem; }
+.redeem__notes { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 640px; margin-inline: auto; padding-top: 4px; }
+.redeem__notes-title { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--st-ink-3); }
+.redeem__notes-list { display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; list-style: none; }
+.redeem__notes-list li { position: relative; padding-left: 14px; font-size: 0.82rem; line-height: 1.65; color: var(--st-ink-2); }
+.redeem__notes-list li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 4px; height: 4px; border-radius: 50%; background: var(--st-line-2); }
+.redeem__notes-contact { font-size: 0.78rem; color: var(--st-ink-3); overflow-wrap: anywhere; }
+.redeem__notes-contact span { color: var(--st-ink-2); }
 .notice { display: flex; gap: 16px; align-items: flex-start; }
 .notice__mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; }
 .notice--ok .notice__mark { background: var(--st-brand-soft); color: var(--st-brand-text); }
@@ -378,6 +395,15 @@ onMounted(async () => {
 .notice__val { font-size: 0.88rem; color: var(--st-ink); text-align: right; overflow-wrap: anywhere; }
 .hist { display: flex; flex-direction: column; gap: 14px; width: 100%; }
 .hist__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; }
+.hist__title-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 0; border: 0; background: none; text-align: left; cursor: default;
+  font-family: inherit; color: inherit;
+}
+.hist__title-btn > span { display: block; }
+.hist__chev { display: none; color: var(--st-ink-3); transition: transform var(--st-t) var(--st-ease); }
+.hist__chev--open { transform: rotate(180deg); }
+.hist__body { display: block; margin-top: 12px; }
 .hist__head h2 { margin: 0 0 2px; }
 .hist__head .st-body { font-size: 0.82rem; }
 .hist__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -398,7 +424,24 @@ onMounted(async () => {
 .fade-enter-active, .fade-leave-active { transition: opacity var(--st-t) var(--st-ease), transform var(--st-t) var(--st-ease); }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-6px); }
 @media (max-width: 640px) {
-  .redeem__card { padding: 20px; }
+  .redeem__wrap { gap: 20px; }
+  .redeem__head { gap: 8px; }
+  .redeem__head .st-display-2 { font-size: clamp(1.7rem, 7vw, 2.1rem); }
+  .redeem__stage { gap: 12px; }
+  .redeem__card { padding: 18px; gap: 14px; }
+  .redeem__notes-list li { font-size: 0.79rem; line-height: 1.55; }
+  .redeem__notes { display: none; }
+  .hist__head { gap: 8px 12px; }
+  .hist__empty { padding: 18px; }
+  /* 兑换记录是次要信息：手机端默认收起，展开后再看列表 */
+  .hist__chev { display: inline-flex; }
+  .hist__body { display: none; }
+  .hist__body--open { display: block; }
+  .hist__tools { display: none; }
+  .hist--open .hist__tools { display: flex; }
+  .hist__size { display: none; }
+  .hist__tools { justify-content: flex-end; }
+  .hist__tools .st-btn { min-height: 40px; }
   .redeem__input { height: 58px; }
   .notice { flex-direction: column; gap: 10px; }
   .notice__mark { width: 36px; height: 36px; }
@@ -409,7 +452,7 @@ onMounted(async () => {
   .hist__tools { width: 100%; }
   .hist__tools .st-btn { min-height: 44px; }
   .st-btn { min-height: 44px; }
-  .redeem__where { padding: 18px; }
+  .redeem__notes { padding-inline: 4px; }
 }
 </style>
 

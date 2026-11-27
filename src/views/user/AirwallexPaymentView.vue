@@ -16,7 +16,8 @@
               <path stroke-linecap="round" d="M12 8v5m0 3.5h.01" />
             </svg>
           </div>
-          <h1 class="st-display-3">{{ t('payment.airwallexLoadFailed') }}</h1>
+          <p class="st-eyebrow">{{ c('pay.eyebrow') }}</p>
+          <h1 class="st-display-3">{{ c('stripe.failed') }}</h1>
           <p class="st-body">{{ errorMessage }}</p>
           <p class="st-row__meta">{{ c('stripe.failedHint') }}</p>
           <button class="st-btn st-btn--primary awx__btn" @click="router.push('/purchase')">{{ c('stripe.back') }}</button>
@@ -178,5 +179,8 @@ onMounted(async () => {
 }
 @keyframes awx-spin { to { transform: rotate(360deg); } }
 .awx__btn { width: 100%; min-width: 0; white-space: normal; }
+@media (max-width: 480px) {
+  .awx__btn { min-height: 50px; }
+}
 </style>
 

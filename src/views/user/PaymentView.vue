@@ -5,7 +5,7 @@
         <header class="pay__hero">
           <p class="st-eyebrow st-reveal">{{ c('pay.eyebrow') }}</p>
           <h1 class="st-display-2 pay__title st-reveal" style="--i: 1">{{ pageTitle }}</h1>
-          <p class="st-lede pay__lede st-reveal" style="--i: 2">{{ c('pay.ledeShort') }}</p>
+          <p class="st-lede pay__lede st-reveal" style="--i: 2">{{ pageLede }}</p>
         </header>
 
         <div v-if="loading" class="pay__loading" aria-busy="true">
@@ -52,16 +52,23 @@
           />
 
           <template v-else>
-            <div v-if="tabs.length === 0" class="st-card st-card--pad pay__empty">
-              <div class="pay__empty-icon">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 8v5m0 3.5h.01" /></svg>
+            <div v-if="tabs.length === 0" class="st-card st-card--pad pay__empty pay__empty--panel">
+              <span class="pay__empty-art" aria-hidden="true">
+                <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 8v5m0 3.5h.01" /></svg>
+              </span>
+              <div class="pay__empty-content">
+                <p class="st-eyebrow">{{ c('pay.eyebrow') }}</p>
+                <p class="st-display-3 pay__empty-title">{{ t('payment.billingUnavailable') }}</p>
+                <p class="st-body pay__empty-copy">{{ c('pay.unavailableHint') }}</p>
+                <div class="pay__empty-actions">
+                  <button class="st-btn st-btn--primary pay__empty-btn" @click="reloadPage">{{ c('pay.reload') }}</button>
+                  <button class="st-btn st-btn--quiet pay__empty-btn" @click="router.push('/orders')">{{ c('result.orders') }}</button>
+                </div>
               </div>
-              <p class="st-body">{{ t('payment.billingUnavailable') }}</p>
-              <button class="st-btn st-btn--quiet pay__empty-btn" @click="router.push('/orders')">{{ c('result.orders') }}</button>
             </div>
 
             <template v-else-if="activeTab === 'recharge'">
-              <div class="pay__grid">
+              <div class="pay__grid" :class="{ 'pay__grid--empty': enabledMethods.length === 0 }">
                 <div class="pay__col">
                   <div class="st-card st-card--pad pay__card pay__account">
                     <p class="st-eyebrow">{{ t('payment.rechargeAccount') }}</p>
@@ -71,12 +78,19 @@
                     </div>
                   </div>
 
-                  <div v-if="enabledMethods.length === 0" class="st-card st-card--pad pay__empty">
-                    <div class="pay__empty-icon">
-                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2" /><path stroke-linecap="round" d="M3 10h18" /></svg>
+                  <div v-if="enabledMethods.length === 0" class="st-card st-card--pad pay__empty pay__empty--panel">
+                    <span class="pay__empty-art" aria-hidden="true">
+                      <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2" /><path stroke-linecap="round" d="M3 10h18" /></svg>
+                    </span>
+                    <div class="pay__empty-content">
+                      <p class="st-eyebrow">{{ c('pay.methods') }}</p>
+                      <p class="st-display-3 pay__empty-title">{{ t('payment.notAvailable') }}</p>
+                      <p class="st-body pay__empty-copy">{{ c('pay.unavailableHint') }}</p>
+                      <div class="pay__empty-actions">
+                        <button class="st-btn st-btn--primary pay__empty-btn" @click="reloadPage">{{ c('pay.reload') }}</button>
+                        <button v-if="tabs.some(tab => tab.key === 'subscription')" class="st-btn st-btn--quiet pay__empty-btn" @click="activeTab = 'subscription'">{{ c('plans.emptyCta') }}</button>
+                      </div>
                     </div>
-                    <p class="st-body">{{ t('payment.notAvailable') }}</p>
-                    <button class="st-btn st-btn--quiet pay__empty-btn" @click="reloadPage">{{ c('pay.reload') }}</button>
                   </div>
                   <template v-else>
                     <div class="st-card st-card--pad pay__card">
@@ -270,12 +284,19 @@
               </div>
 
               <template v-else>
-                <div v-if="checkout.plans.length === 0" class="st-card st-card--pad pay__empty">
-                  <div class="pay__empty-icon">
-                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M6 7v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7" stroke-linecap="round" /><path d="M9 11h6" stroke-linecap="round" /></svg>
+                <div v-if="checkout.plans.length === 0" class="st-card st-card--pad pay__empty pay__empty--panel">
+                  <span class="pay__empty-art" aria-hidden="true">
+                    <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M6 7v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7" stroke-linecap="round" /><path d="M9 11h6" stroke-linecap="round" /></svg>
+                  </span>
+                  <div class="pay__empty-content">
+                    <p class="st-eyebrow">{{ c('plans.eyebrow') }}</p>
+                    <p class="st-display-3 pay__empty-title">{{ t('payment.noPlans') }}</p>
+                    <p class="st-body pay__empty-copy">{{ c('plans.emptyBody') }}</p>
+                    <div class="pay__empty-actions">
+                      <button v-if="tabs.length > 1" class="st-btn st-btn--primary pay__empty-btn" @click="activeTab = 'recharge'">{{ t('payment.tabTopUp') }}</button>
+                      <button class="st-btn st-btn--quiet pay__empty-btn" @click="router.push('/orders')">{{ c('result.orders') }}</button>
+                    </div>
                   </div>
-                  <p class="st-body">{{ t('payment.noPlans') }}</p>
-                  <button v-if="tabs.length > 1" class="st-btn st-btn--quiet pay__empty-btn" @click="activeTab = 'recharge'">{{ t('payment.tabTopUp') }}</button>
                 </div>
                 <div v-else :class="planGridClass" class="pay__plans">
                   <SubscriptionPlanCard v-for="plan in checkout.plans" :key="plan.id" :plan="plan" :active-subscriptions="activeSubscriptions" @select="selectPlan" />
@@ -835,8 +856,14 @@ watch(() => [payBaseAmount.value, selectedMethod.value] as const, ([amt, method]
 
 const pageTitle = computed(() => {
   if (selectedPlan.value) return c('pay.titleSubscribe')
-  if (activeTab.value === 'subscription') return c('pay.planList')
+  if (activeTab.value === 'subscription') return c('plans.title')
   return c('pay.title')
+})
+
+const pageLede = computed(() => {
+  if (selectedPlan.value) return c('pay.lede')
+  if (activeTab.value === 'subscription') return c('plans.lede')
+  return c('pay.ledeShort')
 })
 
 // Subscription confirm: platform accent colors (clean card, no gradient)
@@ -1321,6 +1348,7 @@ onMounted(async () => {
   color: var(--st-ink-faint);
 }
 
+.pay__grid--empty { grid-template-columns: minmax(0, 1fr) !important; }
 .pay__empty {
   display: flex;
   flex-direction: column;
@@ -1329,16 +1357,37 @@ onMounted(async () => {
   padding-block: clamp(32px, 6vw, 56px);
   text-align: center;
 }
-.pay__empty-icon {
+.pay__empty--panel {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: clamp(16px, 3vw, 28px);
+  padding: clamp(22px, 3.6vw, 34px);
+  text-align: left;
+}
+.pay__empty-art {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
+  border: 1px solid var(--st-line);
   background: var(--st-bg-soft);
   color: var(--st-ink-2);
 }
-.pay__empty-btn { min-width: 160px; min-height: 44px; margin-top: 4px; }
+.pay__empty-art::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--st-brand-line);
+}
+.pay__empty-content { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 58ch; }
+.pay__empty-title { margin: 0; }
+.pay__empty-copy { max-width: 52ch; }
+.pay__empty-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pay__empty-btn { min-width: 150px; min-height: 44px; }
 
 .pay__error {
   display: flex;
@@ -1357,15 +1406,38 @@ onMounted(async () => {
 .pay__error-retry { flex-shrink: 0; min-height: 44px; }
 
 @media (max-width: 520px) {
+  .pay__empty--panel { padding: 18px; gap: 12px; }
+  .pay__empty-title { font-size: 1.08rem; }
+  .pay__empty-copy { font-size: 0.86rem; line-height: 1.5; }
+  .pay__empty-actions { width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .pay__empty-actions .st-btn { flex: 1 1 120px; height: 42px; min-width: 0; min-height: 42px; align-self: auto; }
+  .pay__empty-art { width: 56px; height: 56px; }
+  .pay__empty-art::after { inset: 8px; }
+  .pay__empty-actions { margin-top: 4px; }
+  .pay__empty-btn { min-width: 0; flex: 1 1 auto; }
   .pay__error { flex-direction: column; align-items: stretch; }
   .pay__error-retry { width: 100%; }
-  .pay__tabs .st-seg__item { min-height: 44px; }
-  .pay__empty-btn { width: 100%; }
+  .pay__tabs .st-seg__item { min-height: 46px; }
+  .pay__submit,
+  .pay__back { min-height: 50px; }
+  .pay__hero { margin-bottom: 14px; }
+  .pay__tabs { margin-bottom: 12px; }
+}
+
+/* 矮屏手机：把首屏收紧到一屏内 */
+@media (max-width: 719px) and (max-height: 740px) {
+  .pay__hero { margin-bottom: 8px; }
+  .pay__hero .st-lede { display: none; }
+  .pay__tabs { margin-bottom: 8px; }
+  .pay__empty--panel { padding: 14px; gap: 8px; }
+  .pay__empty-art { width: 46px; height: 46px; }
+  .pay__empty-actions { margin-top: 0; }
+  .pay__empty-actions .st-btn { height: 40px; min-height: 40px; }
 }
 </style>
 
 <style scoped>
-.pay { padding-bottom: clamp(56px, 8vw, 96px); }
+.pay { padding-bottom: 0; }
 .pay__wrap { max-width: 980px; }
 .pay__hero { max-width: 60ch; margin-bottom: clamp(22px, 3vw, 36px); }
 .pay__title { margin-top: 14px; }
@@ -1384,7 +1456,6 @@ onMounted(async () => {
 .pay__card { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .pay__card-head { display: flex; flex-direction: column; gap: 4px; }
 .pay__card-lede { font-size: 0.84rem; }
-.pay__empty { text-align: center; }
 
 .pay__account-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 12px; }
 .pay__account-name { font-size: 1.3rem; min-width: 0; overflow-wrap: anywhere; }

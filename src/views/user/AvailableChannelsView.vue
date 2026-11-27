@@ -8,7 +8,7 @@
             <h1 class="st-display-2 ch__title st-reveal" style="--i: 1">{{ c('ch.title') }}</h1>
             <p class="st-lede ch__lede st-reveal" style="--i: 2">{{ c('ch.lede') }}</p>
 
-            <dl class="ch__stats st-reveal" style="--i: 3">
+            <dl v-if="channels.length > 0" class="ch__stats st-reveal" style="--i: 3">
               <div class="ch__stat st-stat">
                 <dt class="st-stat__label">{{ c('ch.statChannels') }}</dt>
                 <dd class="st-stat__value st-num">{{ channels.length }}</dd>
@@ -24,7 +24,7 @@
             </dl>
           </div>
 
-          <div class="ch__tools st-reveal" style="--i: 3">
+          <div v-if="channels.length > 0" class="ch__tools st-reveal" style="--i: 3">
             <label class="ch__search">
               <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
                 <circle cx="8.5" cy="8.5" r="5.5" />
@@ -122,24 +122,44 @@
         </div>
 
         <!-- 空状态 -->
-        <div v-else class="ch__state st-card st-card--pad">
-          <span class="ch__state-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
-              <path d="M4 7h16M4 12h10M4 17h6" stroke-linecap="round" />
-            </svg>
-          </span>
-          <p class="ch__state-title">{{ searchQuery.trim() ? c('ch.empty') : t('availableChannels.empty') }}</p>
-          <button
-            v-if="searchQuery.trim()"
-            type="button"
-            class="st-btn st-btn--quiet st-btn--sm"
-            @click="searchQuery = ''"
-          >
-            {{ c('ch.clearSearch') }}
-          </button>
-          <button v-else type="button" class="st-btn st-btn--primary st-btn--sm" @click="loadChannels">
-            {{ c('ch.refresh') }}
-          </button>
+        <div v-else class="ch__empty st-card st-card--pad">
+          <div class="ch__empty-body">
+            <h2 class="ch__empty-title">
+              {{ searchQuery.trim() ? c('ch.empty') : t('availableChannels.empty') }}
+            </h2>
+            <p class="ch__empty-hint">
+              <template v-if="searchQuery.trim()">
+                {{ lc('换个关键词，或者清空搜索看全部渠道。', 'Try another keyword, or clear the search to see every channel.') }}
+              </template>
+              <template v-else>
+                {{ lc(
+                  '渠道由管理员按分组开通。开通后，这里会按平台列出你能走的模型和实际生效的倍率。',
+                  'Channels are opened by an administrator per group. Once yours are on, this page lists the platforms, models and multipliers that apply to you.',
+                ) }}
+              </template>
+            </p>
+            <div class="ch__empty-actions">
+              <button
+                v-if="searchQuery.trim()"
+                type="button"
+                class="st-btn st-btn--quiet st-btn--sm"
+                @click="searchQuery = ''"
+              >
+                {{ c('ch.clearSearch') }}
+              </button>
+              <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="loadChannels">
+                {{ c('ch.refresh') }}
+              </button>
+            </div>
+            <p v-if="!searchQuery.trim()" class="ch__empty-foot">
+              {{ lc('刚被加进新的分组？等几秒再刷新一次。', 'Just added to a new group? Give it a few seconds, then refresh.') }}
+            </p>
+          </div>
+          <div class="ch__empty-art" aria-hidden="true">
+            <span class="ch__empty-line"></span>
+            <span class="ch__empty-line"></span>
+            <span class="ch__empty-line"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -159,9 +179,18 @@ import { platformLabel } from '@/utils/platformColors'
 import { useMiscCopy } from '@/composables/copy/misc'
 import type { GroupPlatform } from '@/types'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { c } = useMiscCopy()
 const appStore = useAppStore()
+
+/** 页面内小文案：中英各写一句，保持空态像人话。 */
+const isZh = computed(() => {
+  const raw = (locale as unknown as { value?: unknown })?.value ?? locale
+  return String(raw ?? '').toLowerCase().startsWith('zh')
+})
+function lc(zh: string, en: string): string {
+  return isZh.value ? zh : en
+}
 
 const channels = ref<UserAvailableChannel[]>([])
 const userGroupRates = ref<Record<number, number>>({})
@@ -359,6 +388,33 @@ onMounted(loadChannels)
   gap: 14px;
   padding-block: clamp(40px, 7vw, 72px);
   text-align: center;
+}
+
+/* ---- 空态：左文右线稿，像一页说明而不是一块空白 ---- */
+.ch__empty {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 40px);
+  padding: clamp(26px, 3.4vw, 44px);
+  overflow: hidden;
+}
+.ch__empty-body { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.ch__empty-title { margin: 0; font-family: var(--st-font-display); font-size: clamp(1.35rem, 2.1vw, 1.7rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; color: var(--st-ink); }
+.ch__empty-hint { margin: 0; font-size: 0.9rem; line-height: 1.7; color: var(--st-ink-2); max-width: 56ch; }
+.ch__empty-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.ch__empty-foot { margin: 2px 0 0; font-size: 0.78rem; line-height: 1.6; color: var(--st-ink-3); }
+.ch__empty-art { display: none; position: relative; align-self: stretch; min-height: 150px; }
+.ch__empty-art::before,
+.ch__empty-art::after { content: ""; position: absolute; border-radius: 50%; }
+.ch__empty-art::before { inset: 8% 18% 12% 10%; border: 1px solid var(--st-line); }
+.ch__empty-art::after { inset: 26% 4% 26% 30%; border: 1px solid var(--st-line); }
+.ch__empty-line { position: absolute; left: 0; right: 12%; height: 1px; background: var(--st-line); }
+.ch__empty-line:nth-child(1) { top: 22%; }
+.ch__empty-line:nth-child(2) { top: 50%; right: 26%; }
+.ch__empty-line:nth-child(3) { top: 78%; right: 4%; }
+@media (min-width: 860px) {
+  .ch__empty { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); align-items: center; }
+  .ch__empty-art { display: block; }
 }
 .ch__state-mark {
   display: grid;

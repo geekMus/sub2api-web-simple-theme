@@ -21,7 +21,7 @@
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
             </button>
-            <button class="st-btn st-btn--primary orders__cta" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
+            <button v-if="orders.length > 0 || !!errorMessage" class="st-btn st-btn--primary orders__cta" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
           </div>
         </div>
 
@@ -46,16 +46,23 @@
           <button class="st-btn st-btn--primary orders__state-btn" @click="fetchOrders">{{ c('orders.retry') }}</button>
         </div>
 
-        <div v-else-if="orders.length === 0" class="st-card st-card--pad orders__state">
-          <div class="orders__mark">
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-              <path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linejoin="round" />
-              <path d="M14 3v5h5M9 13h6M9 17h4" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+        <div v-else-if="orders.length === 0" class="st-card st-card--pad orders__state orders__state--empty">
+          <div class="orders__empty-main">
+            <div class="orders__mark">
+              <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                <path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-linejoin="round" />
+                <path d="M14 3v5h5M9 13h6M9 17h4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <div class="orders__empty-copy">
+              <p class="st-eyebrow">{{ c('orders.eyebrow') }}</p>
+              <p class="st-display-3 orders__state-title">{{ c('orders.emptyTitle') }}</p>
+              <p class="st-body">{{ c('orders.emptyBody') }}</p>
+            </div>
           </div>
-          <p class="st-display-3 orders__state-title">{{ c('orders.emptyTitle') }}</p>
-          <p class="st-body">{{ c('orders.emptyBody') }}</p>
-          <button class="st-btn st-btn--primary orders__state-btn" @click="router.push('/purchase')">{{ c('orders.emptyCta') }}</button>
+          <div class="orders__empty-side">
+            <button class="st-btn st-btn--primary orders__state-btn" @click="router.push('/purchase')">{{ c('orders.emptyCta') }}</button>
+          </div>
         </div>
 
         <div v-else class="orders__grid" :aria-busy="loading">
@@ -340,6 +347,17 @@ onMounted(() => { fetchOrders(); loadRefundEligibility() })
   text-align: center;
   box-shadow: var(--st-shadow-2);
 }
+.orders__state--empty {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(18px, 3vw, 36px);
+  padding: clamp(22px, 3.4vw, 34px);
+  text-align: left;
+}
+.orders__empty-main { display: flex; align-items: flex-start; gap: 16px; min-width: 0; }
+.orders__empty-copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 54ch; }
+.orders__empty-side { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex: 0 0 auto; }
 .orders__state-title { margin: 2px 0 0; }
 .orders__state-btn { min-width: 180px; min-height: 44px; }
 .orders__mark {
@@ -367,10 +385,14 @@ onMounted(() => { fetchOrders(); loadRefundEligibility() })
   .orders__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .orders__bar { flex-direction: column; align-items: stretch; }
-  .orders__select { max-width: none; }
-  .orders__actions { justify-content: space-between; }
-  .orders__cta { flex: 1 1 auto; min-width: 0; }
+  .orders__bar { flex-wrap: wrap; align-items: center; }
+  .orders__select { flex: 1 1 220px; max-width: none; width: auto; }
+  .orders__actions { flex: 0 0 auto; justify-content: flex-end; gap: 10px; margin-left: auto; }
+  .orders__cta { flex: 0 1 auto; min-width: 0; }
+  .orders__state--empty { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
+  .orders__empty-main { gap: 12px; }
+  .orders__empty-side { align-items: stretch; }
+  .orders__state-btn { width: 100%; min-height: 48px; }
 }
 </style>
 

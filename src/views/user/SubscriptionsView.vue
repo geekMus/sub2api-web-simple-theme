@@ -304,6 +304,12 @@ onMounted(() => {
 <style scoped>
 .plans-sec { padding-bottom: clamp(64px, 8vw, 120px); }
 .plans-head { max-width: 62ch; margin-bottom: clamp(28px, 4vw, 48px); }
+@media (max-width: 719px) and (max-height: 740px) {
+  .plans-head .st-lede { display: none; }
+  .plans-head { margin-bottom: 10px; }
+  .plans-head .st-display-2 { margin-top: 0; font-size: 1.5rem; }
+  .plans-empty, .plans-card { padding: 18px; }
+}
 .plans-head .st-display-2 { margin-top: 0; }
 .plans-head .st-lede { margin-top: 14px; }
 
@@ -333,8 +339,8 @@ onMounted(() => {
 .sub__quota-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
 .sub__quota-head .st-row__meta { min-width: 0; text-align: right; }
 .bar { display: block; height: 6px; border-radius: 999px; background: var(--st-bg-soft); overflow: hidden; }
-.bar__fill { display: block; height: 100%; border-radius: 999px; background: var(--st-brand); transition: width var(--st-t) var(--st-ease); }
-.bar--ok { background: var(--st-brand); }
+.bar__fill { display: block; height: 100%; border-radius: 999px; background: var(--st-chart-1); transition: width var(--st-t) var(--st-ease); }
+.bar--ok { background: var(--st-chart-1); }
 .bar--warn { background: var(--st-warn); }
 .bar--danger { background: var(--st-danger); }
 .bar--muted { background: var(--st-ink-3); }

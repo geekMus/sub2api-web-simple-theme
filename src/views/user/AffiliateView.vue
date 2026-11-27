@@ -10,8 +10,13 @@
 
         <!-- 加载 -->
         <div v-if="loading" class="aff__loading" aria-busy="true">
-          <div class="aff__stats">
-            <div v-for="i in 4" :key="i" class="st-card st-skeleton aff__sk-stat"></div>
+          <div class="st-card aff__panel">
+            <div class="aff__stats">
+              <div v-for="i in 4" :key="i" class="aff__stat">
+                <span class="st-skeleton aff__sk aff__sk--label"></span>
+                <span class="st-skeleton aff__sk aff__sk--value"></span>
+              </div>
+            </div>
           </div>
           <div class="st-card st-card--pad aff__card">
             <div class="st-skeleton aff__sk aff__sk--wide"></div>
@@ -32,34 +37,53 @@
         </div>
 
         <template v-else-if="detail">
-          <!-- 数字 -->
-          <div class="aff__stats aff__stats--live st-reveal" style="--i: 2">
-            <div class="st-card st-card--pad aff__stat aff__stat--accent">
-              <p class="st-stat__label">{{ t('affiliate.stats.rebateRate') }}</p>
-              <p class="st-stat__value st-num">{{ formattedRebateRate }}<span class="st-stat__unit">%</span></p>
-              <p class="aff__hint">{{ t('affiliate.stats.rebateRateHint') }}</p>
+          <!-- 数据 + 转余额：一条面板，数字和动作放在一起 -->
+          <section class="st-card aff__panel st-reveal" style="--i: 3">
+            <div class="aff__stats">
+              <div class="aff__stat aff__stat--accent">
+                <p class="st-stat__label">{{ t('affiliate.stats.rebateRate') }}</p>
+                <p class="st-stat__value st-num">{{ formattedRebateRate }}<span class="st-stat__unit">%</span></p>
+                <p class="aff__hint">{{ t('affiliate.stats.rebateRateHint') }}</p>
+              </div>
+              <div class="aff__stat">
+                <p class="st-stat__label">{{ t('affiliate.stats.invitedUsers') }}</p>
+                <p class="st-stat__value st-num">{{ formatCount(detail.aff_count) }}</p>
+              </div>
+              <div class="aff__stat">
+                <p class="st-stat__label">{{ t('affiliate.stats.availableQuota') }}</p>
+                <p class="st-stat__value st-num aff__value--accent">{{ formatCurrency(detail.aff_quota) }}</p>
+              </div>
+              <div class="aff__stat">
+                <p class="st-stat__label">{{ t('affiliate.stats.totalQuota') }}</p>
+                <p class="st-stat__value st-num">{{ formatCurrency(detail.aff_history_quota) }}</p>
+                <p v-if="detail.aff_frozen_quota > 0" class="aff__hint aff__hint--warn">
+                  {{ t('affiliate.stats.frozenQuota') }}: {{ formatCurrency(detail.aff_frozen_quota) }}
+                </p>
+              </div>
             </div>
-            <div class="st-card st-card--pad aff__stat">
-              <p class="st-stat__label">{{ t('affiliate.stats.invitedUsers') }}</p>
-              <p class="st-stat__value st-num">{{ formatCount(detail.aff_count) }}</p>
+
+            <div class="aff__transfer">
+              <div class="aff__transfer-copy">
+                <p class="aff__transfer-title">{{ c('aff.transferTitle') }}</p>
+                <p class="aff__transfer-note">{{ t('affiliate.transfer.description') }}</p>
+                <p v-if="detail.aff_quota <= 0" class="aff__hint aff__hint--warn">{{ t('affiliate.transfer.empty') }}</p>
+              </div>
+              <button
+                class="st-btn st-btn--primary aff__transfer-btn"
+                :disabled="transferring || detail.aff_quota <= 0"
+                @click="transferQuota"
+              >
+                {{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}
+              </button>
             </div>
-            <div class="st-card st-card--pad aff__stat">
-              <p class="st-stat__label">{{ t('affiliate.stats.availableQuota') }}</p>
-              <p class="st-stat__value st-num aff__value--accent">{{ formatCurrency(detail.aff_quota) }}</p>
-            </div>
-            <div class="st-card st-card--pad aff__stat">
-              <p class="st-stat__label">{{ t('affiliate.stats.totalQuota') }}</p>
-              <p class="st-stat__value st-num">{{ formatCurrency(detail.aff_history_quota) }}</p>
-              <p v-if="detail.aff_frozen_quota > 0" class="aff__hint aff__hint--warn">
-                {{ t('affiliate.stats.frozenQuota') }}: {{ formatCurrency(detail.aff_frozen_quota) }}
-              </p>
-            </div>
-          </div>
+          </section>
 
           <!-- 邀请链接 -->
-          <section class="st-card st-card--pad aff__card st-reveal" style="--i: 3">
-            <h2 class="st-display-3">{{ c('aff.inviteTitle') }}</h2>
-            <p class="st-body">{{ t('affiliate.description') }}</p>
+          <section class="st-card st-card--pad aff__card aff__card--invite st-reveal" style="--i: 4">
+            <header class="aff__card-head">
+              <h2 class="st-display-3">{{ c('aff.inviteTitle') }}</h2>
+              <p class="st-body">{{ t('affiliate.description') }}</p>
+            </header>
 
             <div class="aff__fields">
               <div class="aff__field">
@@ -84,18 +108,6 @@
               <li>03 · {{ t('affiliate.tips.line3') }}</li>
               <li v-if="detail.aff_frozen_quota > 0">04 · {{ t('affiliate.tips.line4') }}</li>
             </ul>
-          </section>
-
-          <!-- 转余额 -->
-          <section class="st-card st-card--pad aff__card aff__transfer st-reveal" style="--i: 4">
-            <div>
-              <h2 class="st-display-3">{{ c('aff.transferTitle') }}</h2>
-              <p class="st-body">{{ t('affiliate.transfer.description') }}</p>
-              <p v-if="detail.aff_quota <= 0" class="aff__hint aff__hint--warn">{{ t('affiliate.transfer.empty') }}</p>
-            </div>
-            <button class="st-btn st-btn--primary" :disabled="transferring || detail.aff_quota <= 0" @click="transferQuota">
-              {{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}
-            </button>
           </section>
 
           <!-- 邀请列表 -->
@@ -224,18 +236,135 @@ onMounted(() => {
   void loadAffiliateDetail()
 })
 </script>
+
 <style scoped>
-.aff__hero { margin-bottom: clamp(26px, 4vw, 44px); }
+.aff { padding-bottom: clamp(56px, 8vw, 96px); }
+.aff__hero { max-width: 58ch; margin-bottom: clamp(24px, 3.4vw, 40px); }
+.aff__title { margin-top: 14px; }
+.aff__lede { margin-top: 14px; }
 .aff .st-card { box-shadow: var(--st-shadow-2); }
 .aff .st-pill { font-size: 0.75rem; }
 .aff .st-btn { min-height: 44px; }
-.aff__stat { flex-direction: column; gap: 6px; }
-.aff__stat--accent { border: 1px solid var(--st-brand-line); }
-.aff__valuebox { transition: border-color var(--st-t) var(--st-ease); }
+
+/* ---- 数据面板：一条卡里排四格，数字之间用细线分隔 ---- */
+.aff__panel { display: flex; flex-direction: column; margin-bottom: clamp(14px, 1.8vw, 20px); overflow: hidden; }
+.aff__stats { display: grid; grid-template-columns: 1fr; }
+.aff__stat { display: flex; flex-direction: column; gap: 6px; padding: clamp(18px, 2vw, 24px) clamp(18px, 2.4vw, 28px); min-width: 0; }
+.aff__stat + .aff__stat { border-top: 1px solid var(--st-line); }
+.aff__stat .st-stat__label { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.aff__stat .st-stat__value { font-size: clamp(1.5rem, 2.4vw, 2.05rem); line-height: 1.08; }
+.aff__stat--accent { position: relative; }
+.aff__stat--accent::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--st-brand);
+}
+.aff__value--accent { color: var(--st-brand-text); }
+.aff__hint { font-size: 0.76rem; line-height: 1.6; color: var(--st-ink-3); }
+.aff__hint--quiet { color: var(--st-ink-3); }
+.aff__hint--warn { color: var(--st-warn); }
+
+.aff__transfer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: clamp(14px, 1.8vw, 18px) clamp(18px, 2.4vw, 28px);
+  border-top: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+}
+.aff__transfer-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.aff__transfer-title { font-size: 0.9rem; font-weight: 600; color: var(--st-ink); }
+.aff__transfer-note { font-size: 0.8rem; line-height: 1.6; color: var(--st-ink-3); max-width: 62ch; }
+.aff__transfer-btn { flex-shrink: 0; }
+
+/* ---- 卡片通用 ---- */
+.aff__card { display: flex; flex-direction: column; gap: clamp(14px, 1.8vw, 20px); margin-bottom: clamp(14px, 1.8vw, 20px); }
+.aff__card:last-child { margin-bottom: 0; }
+.aff__card-head { display: flex; flex-direction: column; gap: 6px; }
+.aff__card-head .st-body { font-size: 0.85rem; }
+
+/* ---- 邀请码 / 邀请链接 ---- */
+.aff__fields { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.aff__field { min-width: 0; }
+.aff__valuebox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 16px;
+  border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line-2);
+  background: var(--st-bg-soft);
+  transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease);
+}
 .aff__valuebox:hover { border-color: var(--st-ink-3); }
-.aff__valuebox .st-btn { min-height: 44px; }
-.aff__empty { gap: 12px; }
+.aff__valuebox:focus-within { border-color: var(--st-brand-text); box-shadow: 0 0 0 4px var(--st-brand-soft); }
+.aff__code {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--st-font-mono);
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--st-ink);
+  overflow-wrap: anywhere;
+}
+.aff__link {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--st-font-mono);
+  font-size: 0.78rem;
+  color: var(--st-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aff__valuebox .st-btn { flex-shrink: 0; }
+
+.aff__tips {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--st-line);
+}
+.aff__tips li {
+  padding: 9px 0;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--st-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.aff__tips li + li { border-top: 1px dashed var(--st-line); }
+
+/* ---- 邀请人列表 ---- */
+.aff__list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.aff__invitees { margin-top: 2px; }
+.aff__invitee { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-inline: 8px; }
+.aff__invitee-main { min-width: 0; }
+.aff__invitee-main .st-row__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aff__rebate { font-size: 0.88rem; font-weight: 600; color: var(--st-brand-text); white-space: nowrap; }
+
+.aff__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 0.86rem;
+  color: var(--st-ink-3);
+  border: 1px dashed var(--st-line-2);
+  border-radius: var(--st-r-md);
+}
+.aff__empty-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--st-line); color: var(--st-ink-3); }
 .aff__empty-btn { min-height: 44px; min-width: 180px; margin-top: 4px; }
+
+/* ---- 状态 ---- */
 .aff__state {
   display: flex;
   flex-direction: column;
@@ -255,118 +384,29 @@ onMounted(() => {
 }
 .aff__state-title { margin: 2px 0 0; }
 .aff__state-btn { min-width: 180px; min-height: 44px; }
-.aff__sk { height: 14px; border-radius: var(--st-r-xs); }
+
+.aff__loading { display: flex; flex-direction: column; gap: 14px; }
+.aff__sk { height: 12px; border-radius: var(--st-r-xs); display: block; }
+.aff__sk--label { width: 45%; }
+.aff__sk--value { width: 62%; height: 26px; margin-top: 8px; }
 .aff__sk--wide { width: 70%; }
 .aff__sk--block { height: 120px; border-radius: var(--st-r-md); }
-.aff__stats .st-card { min-height: 108px; }
-@media (max-width: 640px) {
-  .aff__empty-btn { width: 100%; }
-}
-</style>
-
-
-<style scoped>
-.aff { padding-bottom: clamp(56px, 8vw, 96px); }
-.aff__hero { max-width: 58ch; margin-bottom: clamp(24px, 3.4vw, 40px); }
-.aff__title { margin-top: 14px; }
-.aff__lede { margin-top: 14px; }
-
-.aff__stats {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.aff__sk-stat { height: 128px; }
-.aff__stat { display: flex; flex-direction: column; gap: 6px; }
-.aff__stat--accent { border-color: var(--st-accent-line); background: color-mix(in srgb, var(--st-accent) 6%, var(--st-bg-elev)); }
-.aff__value--accent { color: var(--st-brand-text); }
-.aff__hint { font-size: 0.76rem; line-height: 1.6; color: var(--st-ink-faint); }
-.aff__hint--warn { color: var(--st-warn); }
-
-.aff__card { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
-
-.aff__fields { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 4px; }
-.aff__field { min-width: 0; }
-.aff__valuebox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px 8px 14px;
-  border-radius: var(--st-radius-md);
-  border: 1px solid var(--st-line-strong);
-  background: var(--st-bg-sunk);
-}
-.aff__code {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--st-font-mono);
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--st-ink);
-  overflow-wrap: anywhere;
-}
-.aff__link {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--st-font-mono);
-  font-size: 0.76rem;
-  color: var(--st-ink-soft);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.aff__valuebox .st-btn { flex-shrink: 0; }
-
-.aff__tips {
-  display: flex;
-  flex-direction: column;
-  margin-top: 6px;
-  border-top: 1px solid var(--st-line);
-}
-.aff__tips li {
-  padding: 9px 0;
-  font-size: 0.82rem;
-  line-height: 1.7;
-  color: var(--st-ink-soft);
-  font-variant-numeric: tabular-nums;
-}
-.aff__tips li + li { border-top: 1px dashed var(--st-line); }
-
-.aff__transfer { flex-direction: row; align-items: center; justify-content: space-between; gap: 18px; }
-.aff__transfer .st-btn { flex-shrink: 0; }
-
-.aff__list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.aff__invitees { margin-top: 2px; }
-.aff__invitee { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-inline: 8px; }
-.aff__invitee-main { min-width: 0; }
-.aff__invitee-main .st-row__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aff__rebate { font-size: 0.88rem; font-weight: 600; color: var(--st-brand-text); white-space: nowrap; }
-
-.aff__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 32px 16px;
-  text-align: center;
-  font-size: 0.86rem;
-  color: var(--st-ink-faint);
-  border: 1px dashed var(--st-line-strong);
-  border-radius: var(--st-radius-md);
-}
-.aff__empty-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--st-line); color: var(--st-ink-faint); }
 
 @media (min-width: 720px) {
-  .aff__stats { grid-template-columns: repeat(2, 1fr); }
+  .aff__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .aff__stat:nth-child(3) { border-top: 1px solid var(--st-line); }
+  .aff__stat:nth-child(odd) + .aff__stat { border-left: 1px solid var(--st-line); }
+  .aff__stat:nth-child(2) { border-top: 0; }
   .aff__fields { grid-template-columns: 1fr 1fr; }
 }
 @media (min-width: 1080px) {
-  .aff__stats { grid-template-columns: repeat(4, 1fr); }
+  .aff__stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .aff__stat + .aff__stat { border-top: 0; border-left: 1px solid var(--st-line); }
 }
 @media (max-width: 640px) {
   .aff__transfer { flex-direction: column; align-items: stretch; }
   .aff__transfer .st-btn { width: 100%; }
+  .aff__empty-btn { width: 100%; }
 
   /* 窄屏：复制按钮换到下一行，避免和长链接互相挤压 */
   .aff__valuebox { flex-wrap: wrap; }
