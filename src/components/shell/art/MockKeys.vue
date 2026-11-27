@@ -34,7 +34,7 @@ const keys = [
 .mk__st--off { color: var(--st-ink-3); background: var(--st-bg-soft); }
 .mk__key { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 8px; border-radius: 6px; background: var(--st-bg-soft); border: 1px solid var(--st-line); }
 .mk__key code { font-family: var(--st-font-mono); font-size: 9.5px; color: var(--st-ink-2); }
-.mk__copy { font-size: 9px; color: var(--st-brand); }
+.mk__copy { font-size: 9px; color: var(--st-brand-text); }
 .mk__meta { display: flex; align-items: center; gap: 8px; font-size: 9.5px; color: var(--st-ink-3); }
 .mk__meta b { color: var(--st-ink); font-weight: 550; font-variant-numeric: tabular-nums; }
 .mk__dot { width: 2px; height: 2px; border-radius: 50%; background: var(--st-ink-3); }

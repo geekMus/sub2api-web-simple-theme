@@ -28,10 +28,16 @@ function initIOSViewportZoomFix() {
 }
 
 function initThemeClass() {
-  const savedTheme = localStorage.getItem('theme')
+  // 偏好可能是 system / light / dark；system 时跟随系统
+  let saved: string | null = null
+  try {
+    saved = localStorage.getItem('theme')
+  } catch {
+    /* 隐私模式忽略 */
+  }
   const shouldUseDark =
-    savedTheme === 'dark' ||
-    (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    saved === 'dark' ||
+    (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   document.documentElement.classList.toggle('dark', shouldUseDark)
 }
 

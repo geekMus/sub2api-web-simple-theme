@@ -11,6 +11,7 @@
   border-radius: var(--st-r-lg);
   border: 1px solid var(--st-line);
   background: var(--st-bg);
+  box-shadow: var(--st-shadow-1), var(--st-edge);
 }
 
 .st-root .card-header,
@@ -42,12 +43,12 @@
 .st-root .btn:disabled, .st-root .btn[disabled] { opacity: 0.4; pointer-events: none; }
 
 .st-root .btn-primary {
-  border-color: var(--st-ink);
-  background: var(--st-ink);
-  color: var(--st-ink-inv);
-  font-weight: 550;
+  border-color: transparent;
+  background: var(--st-brand);
+  color: var(--st-brand-ink);
+  font-weight: 600;
 }
-.st-root .btn-primary:hover { opacity: 0.9; background: var(--st-ink); border-color: var(--st-ink); }
+.st-root .btn-primary:hover { opacity: 1; background: var(--st-brand); border-color: var(--st-brand); filter: brightness(0.94); }
 
 .st-root .btn-secondary, .st-root .btn-outline { border-color: var(--st-line); background: var(--st-bg); }
 .st-root .btn-secondary:hover, .st-root .btn-outline:hover { background: var(--st-bg-soft); }
@@ -68,7 +69,7 @@
   width: 100%;
   border-radius: var(--st-r-sm);
   border: 1px solid var(--st-line-2);
-  background: var(--st-bg);
+  background: var(--st-bg-sink);
   color: var(--st-ink);
   font-family: inherit;
   font-size: 0.92rem;
@@ -98,7 +99,7 @@
   font-weight: 500;
   color: var(--st-ink-2);
 }
-.st-root .badge-primary { border-color: var(--st-brand-line); background: var(--st-brand-soft); color: var(--st-brand); }
+.st-root .badge-primary { border-color: var(--st-brand-line); background: var(--st-brand-soft); color: var(--st-brand-text); }
 .st-root .badge-success { border-color: transparent; background: var(--st-ok-soft); color: var(--st-ok); }
 .st-root .badge-danger { border-color: transparent; background: var(--st-danger-soft); color: var(--st-danger); }
 .st-root .badge-warning { border-color: transparent; background: var(--st-warn-soft); color: var(--st-warn); }
@@ -135,3 +136,170 @@
 .st-root tbody tr:hover { background: var(--st-bg-soft); }
 
 .st-root .skeleton { border-radius: var(--st-r-sm); background: var(--st-bg-sink); }
+
+/* 表格页布局（用户端变体）：让 DataTable 外观回到设计令牌 */
+.st-root .table-page-layout--user .table-scroll-container,
+.st-root .table-page-layout--user .table-scroll-container > div,
+.st-root .table-page-layout--user .table-scroll-container .card {
+  background: var(--st-bg) !important;
+}
+.st-root .table-page-layout--user .table-scroll-container {
+  border: 1px solid var(--st-line) !important;
+  border-radius: var(--st-r-lg);
+  box-shadow: var(--st-shadow-1), var(--st-edge);
+  overflow: hidden;
+}
+.st-root .table-page-layout--user .table-scroll-container table { background: transparent; }
+.st-root .table-page-layout--user .table-scroll-container thead th {
+  background: var(--st-bg-soft);
+  color: var(--st-ink-2);
+  border-bottom: 1px solid var(--st-line);
+  font-weight: 600;
+}
+.st-root .table-page-layout--user .table-scroll-container tbody td {
+  color: var(--st-ink-2);
+  border-bottom: 1px solid var(--st-line);
+}
+.st-root .table-page-layout--user .table-scroll-container tbody tr:hover { background: var(--st-bg-soft); }
+
+/* 表格内部（含空态单元格）统一底色 */
+.st-root .table-page-layout--user .table-scroll-container table,
+.st-root .table-page-layout--user .table-scroll-container tbody,
+.st-root .table-page-layout--user .table-scroll-container tr,
+.st-root .table-page-layout--user .table-scroll-container td,
+.st-root .table-page-layout--user .table-scroll-container tbody td,
+.st-root .table-page-layout--user .table-scroll-container .table-wrapper,
+.st-root .table-page-layout--user .table-scroll-container > div {
+  background-color: var(--st-bg) !important;
+}
+.st-root .table-page-layout--user .table-scroll-container thead,
+.st-root .table-page-layout--user .table-scroll-container thead th {
+  background-color: var(--st-bg-soft) !important;
+}
+
+/* 旧 Select 触发器：用户端统一为黑底/浅浮层，避免旧深蓝灰 */
+.st-root .select-trigger {
+  min-height: 38px;
+  border-radius: var(--st-r-sm);
+  border-color: var(--st-line) !important;
+  background: var(--st-bg-sink) !important;
+  color: var(--st-ink) !important;
+  font-size: 0.86rem;
+  padding: 7px 11px;
+}
+.st-root .select-trigger:hover { border-color: var(--st-line-2) !important; }
+.st-root .select-trigger-open { border-color: var(--st-brand) !important; box-shadow: 0 0 0 3px var(--st-brand-soft) !important; }
+.st-root .select-trigger-disabled { opacity: 0.55; }
+.st-root .select-icon { color: var(--st-ink-3) !important; }
+
+/* 分页条：用户端不再是蓝色块 */
+.st-root .st-pagination {
+  background: transparent !important;
+  border-top-color: var(--st-line) !important;
+  padding: 16px 2px !important;
+  color: var(--st-ink-3) !important;
+}
+.st-root .st-pagination p,
+.st-root .st-pagination span { color: var(--st-ink-3) !important; font-size: 0.78rem; }
+.st-root .st-pagination .select-trigger { min-height: 30px; height: 30px; padding: 0 9px; font-size: 0.76rem; border-radius: var(--st-r-xs); }
+.st-root .st-pagination nav { gap: 4px; border-radius: 10px; box-shadow: none !important; }
+.st-root .st-pagination nav button {
+  border: 1px solid var(--st-line) !important;
+  background: transparent !important;
+  color: var(--st-ink-2) !important;
+  border-radius: 8px !important;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+}
+.st-root .st-pagination nav button:hover { background: var(--st-bg-soft) !important; color: var(--st-ink) !important; }
+.st-root .st-pagination nav button[aria-current="page"] {
+  background: var(--st-brand) !important;
+  border-color: var(--st-brand) !important;
+  color: var(--st-brand-ink) !important;
+  font-weight: 600;
+}
+.st-root .st-pagination nav button:disabled { opacity: 0.35; }
+.st-root .st-pagination .rounded-l-md,
+.st-root .st-pagination .rounded-r-md { border-radius: 8px !important; }
+
+/* Toast：用户端浮层落在导航下方，不再压住顶栏 */
+/* 用户端弹窗：BaseDialog 被 Teleport 到 body，不能靠 .st-root 祖先选择器 */
+body:has(.st-root) .modal-overlay { background: var(--st-overlay) !important; backdrop-filter: blur(10px) saturate(140%) !important; }
+body:has(.st-root) .modal-content {
+  background: var(--st-bg) !important;
+  border: 1px solid var(--st-line) !important;
+  border-radius: var(--st-r-xl) !important;
+  box-shadow: var(--st-shadow-3) !important;
+  color: var(--st-ink) !important;
+}
+body:has(.st-root) .modal-header { border-color: var(--st-line) !important; padding: 18px 22px !important; }
+body:has(.st-root) .modal-title { color: var(--st-ink) !important; font-family: var(--st-font-display) !important; letter-spacing: -0.02em; }
+body:has(.st-root) .modal-body { color: var(--st-ink-2); }
+body:has(.st-root) .modal-footer { border-color: var(--st-line) !important; padding: 16px 22px !important; background: transparent !important; }
+body:has(.st-root) .modal-content .input,
+body:has(.st-root) .modal-content .select,
+body:has(.st-root) .modal-content .textarea {
+  background: var(--st-bg-soft) !important;
+  border-color: var(--st-line) !important;
+  color: var(--st-ink) !important;
+}
+body:has(.st-root) .modal-content .input::placeholder,
+body:has(.st-root) .modal-content .textarea::placeholder { color: var(--st-ink-3) !important; }
+body:has(.st-root) .modal-content .select-trigger {
+  background: var(--st-bg-soft) !important;
+  border-color: var(--st-line) !important;
+  color: var(--st-ink) !important;
+}
+body:has(.st-root) .modal-content textarea {
+  background: var(--st-bg-soft) !important;
+  border: 1px solid var(--st-line) !important;
+  color: var(--st-ink) !important;
+  border-radius: var(--st-r-sm) !important;
+}
+body:has(.st-root) .modal-content .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 38px; padding-inline: 16px; border-radius: var(--st-r-sm);
+  border: 1px solid var(--st-line-2); background: var(--st-bg); color: var(--st-ink);
+  font-family: inherit; font-size: 0.86rem; font-weight: 500; cursor: pointer;
+}
+body:has(.st-root) .modal-content .btn:hover { background: var(--st-bg-soft); border-color: var(--st-ink-3); }
+body:has(.st-root) .modal-content .btn-primary { background: var(--st-brand) !important; border-color: var(--st-brand) !important; color: var(--st-brand-ink) !important; font-weight: 600; }
+body:has(.st-root) .modal-content .btn-primary:hover { filter: brightness(0.94); }
+body:has(.st-root) .modal-content .btn-secondary { background: var(--st-bg) !important; border-color: var(--st-line) !important; color: var(--st-ink) !important; }
+body:has(.st-root) .modal-content .btn-ghost { background: transparent !important; border-color: transparent !important; color: var(--st-ink-2) !important; }
+body:has(.st-root) .modal-content .btn-danger { background: var(--st-danger-soft) !important; border-color: transparent !important; color: var(--st-danger) !important; }
+body:has(.st-root) .modal-content .btn-sm { height: 30px; padding-inline: 11px; font-size: 0.8rem; border-radius: var(--st-r-xs); }
+body:has(.st-root) .modal-content .btn-lg { height: 44px; padding-inline: 22px; font-size: 0.92rem; border-radius: var(--st-r-md); }
+
+body:has(.st-root) .navigation-progress-bar {
+  background: linear-gradient(90deg, transparent 0%, var(--st-brand) 20%, var(--st-brand) 50%, var(--st-brand) 80%, transparent 100%) !important;
+}
+
+body:has(.st-root) .st-toast { top: 72px !important; right: 16px !important; }
+body:has(.st-root) .st-toast__item {
+  background: var(--st-bg) !important;
+  border: 1px solid var(--st-line) !important;
+  border-left-width: 4px !important;
+  border-radius: 12px !important;
+  box-shadow: var(--st-shadow-3) !important;
+}
+body:has(.st-root) .st-toast__item p { color: var(--st-ink) !important; }
+body:has(.st-root) .st-toast__item .text-sm { color: var(--st-ink-2) !important; }
+body:has(.st-root) .st-toast__item button { color: var(--st-ink-3) !important; }
+
+/* Select 下拉层（Teleport 到 body，用 :has 限定在用户端页面） */
+body:has(.st-root) .select-dropdown-portal {
+  border-radius: var(--st-r-md) !important;
+  border-color: var(--st-line) !important;
+  background: var(--st-bg) !important;
+  box-shadow: var(--st-shadow-3) !important;
+}
+body:has(.st-root) .select-dropdown-portal .select-search { border-bottom-color: var(--st-line) !important; }
+body:has(.st-root) .select-dropdown-portal .select-search-input { color: var(--st-ink) !important; }
+body:has(.st-root) .select-dropdown-portal .select-option { color: var(--st-ink-2) !important; }
+body:has(.st-root) .select-dropdown-portal .select-option:hover,
+body:has(.st-root) .select-dropdown-portal .select-option-focused { background: var(--st-bg-soft) !important; }
+body:has(.st-root) .select-dropdown-portal .select-option-selected { background: var(--st-brand-soft) !important; color: var(--st-brand-text) !important; }
+body:has(.st-root) .select-dropdown-portal .select-option-group { background: var(--st-bg-soft) !important; color: var(--st-ink-3) !important; }
+body:has(.st-root) .select-dropdown-portal .select-empty { color: var(--st-ink-3) !important; }

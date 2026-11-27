@@ -149,10 +149,10 @@ const palette = computed(() => {
   const style = getComputedStyle(document.documentElement)
   const read = (name: string, def: string) => style.getPropertyValue(name).trim() || def
   return {
-    accent: read('--st-accent', fallback.accent),
-    ink: read('--st-ink-soft', fallback.ink),
-    inkFaint: read('--st-ink-faint', fallback.inkFaint),
-    line: read('--st-line-strong', fallback.line),
+    accent: read('--st-chart-1', fallback.accent),
+    ink: read('--st-ink-2', fallback.ink),
+    inkFaint: read('--st-ink-3', fallback.inkFaint),
+    line: read('--st-line-2', fallback.line),
   }
 })
 
@@ -201,7 +201,7 @@ const chartData = computed(() => {
         fill: true,
         tension: 0.35,
         borderWidth: 2,
-        pointRadius: 0,
+        pointRadius: points.length <= 1 ? 4 : 0,
         pointHoverRadius: 4,
       },
       {
@@ -212,7 +212,7 @@ const chartData = computed(() => {
         fill: true,
         tension: 0.35,
         borderWidth: 1.6,
-        pointRadius: 0,
+        pointRadius: points.length <= 1 ? 4 : 0,
         pointHoverRadius: 4,
       },
       {
@@ -223,7 +223,7 @@ const chartData = computed(() => {
         fill: false,
         tension: 0.35,
         borderWidth: 1.4,
-        pointRadius: 0,
+        pointRadius: points.length <= 1 ? 4 : 0,
         pointHoverRadius: 4,
       },
       {
@@ -238,7 +238,7 @@ const chartData = computed(() => {
         fill: false,
         tension: 0.35,
         borderWidth: 1.4,
-        pointRadius: 0,
+        pointRadius: points.length <= 1 ? 4 : 0,
         pointHoverRadius: 4,
         yAxisID: 'yPercent',
       },

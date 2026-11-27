@@ -171,7 +171,7 @@ const chartTokens = computed(() => ({
   border: readToken('--st-line-2', '#d2d2d6'),
   ink: readToken('--st-ink', '#060607'),
   bg: readToken('--st-bg', '#ffffff'),
-  brand: readToken('--st-brand', '#c9f24a'),
+  brand: readToken('--st-chart-1', '#c9f24a'),
   brandText: readToken('--st-brand-text', '#5c7a00'),
   ok: readToken('--st-ok', '#16a34a'),
   warn: readToken('--st-warn', '#b45309'),

@@ -6,11 +6,12 @@
    ========================================================================== */
 
 :root {
-  /* 画布 */
-  --st-bg: #ffffff;
-  --st-bg-soft: #f6f6f7;
-  --st-bg-sink: #ededef;
-  --st-overlay: rgba(0, 0, 0, 0.5);
+  /* ---- 表面层级（从后到前）：canvas < sink < surface < soft ---- */
+  --st-canvas: #f4f4f6;   /* 页面底色 */
+  --st-bg: #ffffff;       /* 卡片 / 面板 */
+  --st-bg-soft: #f7f7f9;  /* 悬停、次级块 */
+  --st-bg-sink: #ededef;  /* 内凹：分段轨道、代码、骨架 */
+  --st-overlay: rgba(15, 16, 20, 0.5);
 
   /* 墨 */
   --st-ink: #060607;
@@ -29,6 +30,10 @@
   --st-brand-line: rgba(160, 200, 40, 0.45);
   --st-brand-text: #5c7a00;
 
+  /* 数据图形（图表线/进度条）：亮色下荧光绿在白底几乎看不见，改用可读的深绿 */
+  --st-chart-1: #5c7a00;
+  --st-chart-1-soft: rgba(92, 122, 0, 0.14);
+
   /* 语义 */
   --st-ok: #16a34a;
   --st-ok-soft: rgba(22, 163, 74, 0.1);
@@ -46,9 +51,10 @@
   --st-r-lg: 18px;
   --st-r-xl: 26px;
 
-  --st-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --st-shadow-2: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 30px -14px rgba(0, 0, 0, 0.18);
-  --st-shadow-3: 0 4px 14px rgba(0, 0, 0, 0.08), 0 40px 80px -40px rgba(0, 0, 0, 0.3);
+  --st-shadow-1: 0 1px 2px rgba(16, 18, 24, 0.06);
+  --st-shadow-2: 0 1px 3px rgba(16, 18, 24, 0.07), 0 10px 30px -16px rgba(16, 18, 24, 0.22);
+  --st-shadow-3: 0 4px 14px rgba(16, 18, 24, 0.09), 0 40px 80px -40px rgba(16, 18, 24, 0.32);
+  --st-edge: inset 0 1px 0 rgba(255, 255, 255, 0);
 
   --st-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --st-t-fast: 120ms;
@@ -62,25 +68,34 @@
   --st-font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
+/**
+ * 暗色不是「纯黑 + 更黑的卡片」：
+ * 纯黑画布会让卡片和背景融成一块，只能靠 1px 描边分辨，看久了非常累。
+ * 这里改成「深灰画布 + 抬起一层的卡片 + 更亮的悬停」，用明度差而不是描边来表达层级。
+ */
 .dark {
-  --st-bg: #000000;
-  --st-bg-soft: #0b0b0c;
-  --st-bg-sink: #131315;
-  --st-overlay: rgba(0, 0, 0, 0.7);
+  --st-canvas: #0b0c10;
+  --st-bg: #171a20;
+  --st-bg-soft: #22262f;
+  --st-bg-sink: #101216;
+  --st-overlay: rgba(4, 5, 7, 0.72);
 
-  --st-ink: #ffffff;
-  --st-ink-2: #a2a2a8;
-  --st-ink-3: #6e6e75;
+  --st-ink: #f4f5f7;
+  --st-ink-2: #a8abb4;
+  --st-ink-3: #767a85;
   --st-ink-inv: #08080a;
 
-  --st-line: #1d1d20;
-  --st-line-2: #2c2c31;
+  --st-line: #2a2e38;
+  --st-line-2: #3b404d;
 
   --st-brand: #c9f24a;
   --st-brand-ink: #0a0a0a;
   --st-brand-soft: rgba(201, 242, 74, 0.12);
   --st-brand-line: rgba(201, 242, 74, 0.32);
   --st-brand-text: #c9f24a;
+
+  --st-chart-1: #c9f24a;
+  --st-chart-1-soft: rgba(201, 242, 74, 0.16);
 
   --st-ok: #4ade80;
   --st-ok-soft: rgba(74, 222, 128, 0.12);
@@ -89,17 +104,22 @@
   --st-danger: #f87171;
   --st-danger-soft: rgba(248, 113, 113, 0.12);
 
-  --st-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.6);
-  --st-shadow-2: 0 1px 3px rgba(0, 0, 0, 0.6), 0 12px 32px -16px rgba(0, 0, 0, 0.9);
-  --st-shadow-3: 0 6px 20px rgba(0, 0, 0, 0.7), 0 48px 96px -48px rgba(0, 0, 0, 1);
+  --st-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --st-shadow-2: 0 2px 6px rgba(0, 0, 0, 0.45), 0 16px 40px -22px rgba(0, 0, 0, 0.8);
+  --st-shadow-3: 0 8px 24px rgba(0, 0, 0, 0.55), 0 48px 96px -48px rgba(0, 0, 0, 0.95);
+  /* 卡片顶部一道极淡的高光，模拟受光面，让块面「立」起来 */
+  --st-edge: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 /* ------------------------------------------------------------------ 骨架 */
 
 .st-root {
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background: var(--st-bg);
+  min-height: 100dvh;
+  background: var(--st-canvas);
   color: var(--st-ink);
   font-family: var(--st-font-body);
   font-size: 15px;
@@ -128,9 +148,9 @@
 }
 .dark .st-root::before {
   background:
-    radial-gradient(1100px 520px at 76% -12%, rgba(201, 242, 74, 0.07), transparent 62%),
-    radial-gradient(820px 460px at 6% 4%, rgba(96, 110, 255, 0.10), transparent 66%),
-    radial-gradient(760px 460px at 98% 42%, rgba(70, 200, 255, 0.06), transparent 70%);
+    radial-gradient(1100px 520px at 76% -12%, rgba(201, 242, 74, 0.05), transparent 62%),
+    radial-gradient(860px 480px at 4% 2%, rgba(104, 118, 255, 0.07), transparent 66%),
+    radial-gradient(760px 460px at 98% 42%, rgba(70, 200, 255, 0.045), transparent 70%);
 }
 
 .st-shell {
@@ -142,10 +162,31 @@
   padding-inline: var(--st-gutter);
 }
 
-.st-section { position: relative; padding-block: clamp(48px, 5.5vw, 84px); }
-.st-section--tight { padding-block: clamp(32px, 4vw, 56px); }
-.st-main { position: relative; z-index: 1; min-height: 62vh; }
+.st-section { position: relative; padding-block: clamp(44px, 5vw, 76px); }
+.st-section--tight { padding-block: clamp(30px, 3.6vw, 52px); }
+/* 主体撑满剩余高度：内容短时把页脚顶到底部，避免出现本不该有的滚动条 */
+.st-main { position: relative; z-index: 1; flex: 1 0 auto; min-height: 0; }
 .st-hr { height: 1px; border: 0; background: var(--st-line); }
+
+/* 手机端：收紧上下节奏与字号，让短页尽量一屏放下 */
+@media (max-width: 719px) {
+  .st-section { padding-block: 26px 30px; }
+  .st-section--tight { padding-block: 18px 22px; }
+  .st-display-1 { font-size: clamp(2.1rem, 10.5vw, 2.9rem); line-height: 1; }
+  .st-display-2 { font-size: clamp(1.72rem, 7.4vw, 2.15rem); line-height: 1.08; }
+  .st-display-3 { font-size: 1.2rem; }
+  .st-lede { font-size: 0.94rem; line-height: 1.6; }
+  .st-eyebrow { font-size: 11px; }
+  .st-main { min-height: 0; }
+}
+
+/* 矮屏手机（如 375×667）：再收一档，优先保证一屏内看完 */
+@media (max-width: 719px) and (max-height: 740px) {
+  .st-section { padding-block: 14px 18px; }
+  .st-section--tight { padding-block: 12px 14px; }
+  .st-display-2 { font-size: 1.58rem; }
+  .st-lede { font-size: 0.9rem; line-height: 1.55; }
+}
 
 /* ------------------------------------------------------------------ 排版 */
 
@@ -274,14 +315,20 @@
   border-radius: var(--st-r-md);
   border: 1px solid var(--st-line);
   background: var(--st-bg);
+  box-shadow: var(--st-shadow-1), var(--st-edge);
   transition: border-color var(--st-t) var(--st-ease), background-color var(--st-t) var(--st-ease),
-    transform var(--st-t) var(--st-ease);
+    transform var(--st-t) var(--st-ease), box-shadow var(--st-t) var(--st-ease);
 }
-.st-card--pad { padding: clamp(18px, 2.2vw, 26px); }
-.st-card--lift:hover { border-color: var(--st-line-2); background: var(--st-bg-soft); transform: translateY(-1px); }
-.st-card--soft { background: var(--st-bg-soft); border-color: transparent; }
+.st-card--pad { padding: clamp(20px, 2.4vw, 28px); }
+.st-card--lift:hover {
+  border-color: var(--st-line-2);
+  background: var(--st-bg-soft);
+  box-shadow: var(--st-shadow-2), var(--st-edge);
+  transform: translateY(-1px);
+}
+.st-card--soft { background: var(--st-bg-soft); border-color: transparent; box-shadow: none; }
 .st-card--glass { background: color-mix(in srgb, var(--st-bg) 78%, transparent); backdrop-filter: blur(16px); }
-.st-card--halo { border-color: var(--st-brand-line); }
+.st-card--halo { border-color: var(--st-brand-line); box-shadow: var(--st-shadow-1), var(--st-edge); }
 
 .st-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .st-stat__label { font-size: 0.78rem; font-weight: 400; color: var(--st-ink-3); }
@@ -304,7 +351,7 @@
   padding-inline: 9px;
   border-radius: 999px;
   border: 1px solid var(--st-line);
-  background: transparent;
+  background: var(--st-bg-soft);
   font-size: 11.5px;
   font-weight: 450;
   color: var(--st-ink-2);
@@ -343,7 +390,7 @@
 }
 .st-input--error { border-color: var(--st-danger); box-shadow: 0 0 0 3px var(--st-danger-soft); }
 
-.st-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--st-line); background: var(--st-bg-soft); }
+.st-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--st-line); background: var(--st-bg-sink); }
 .st-seg__item { height: 28px; padding-inline: 13px; border-radius: 999px; border: 0; background: transparent; font-family: inherit; font-size: 0.81rem; font-weight: 450; color: var(--st-ink-2); cursor: pointer; transition: background-color var(--st-t) var(--st-ease), color var(--st-t) var(--st-ease); }
 .st-seg__item:hover { color: var(--st-ink); }
 .st-seg__item--active { background: var(--st-bg); color: var(--st-ink); box-shadow: var(--st-shadow-1); }
@@ -355,8 +402,20 @@
 
 /* ------------------------------------------------------------------ 动效 */
 
-.st-reveal { opacity: 0; transform: translateY(12px); animation: st-reveal var(--st-t-slow) var(--st-ease) forwards; animation-delay: calc(var(--i, 0) * 60ms); }
-@keyframes st-reveal { to { opacity: 1; transform: none; } }
+/**
+ * 入场动画必须「失败也可见」：
+ * 起始的透明状态只写在关键帧里 + fill-mode: backwards，
+ * 这样一旦动画被取消/被外部样式覆盖/浏览器不跑，元素回落到基础样式（完全可见），
+ * 绝不会像以前那样把 opacity:0 写在基础规则里，动画没跑完就永久隐形。
+ */
+.st-reveal {
+  animation: st-reveal var(--st-t-slow) var(--st-ease) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+@keyframes st-reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
 .st-fade-in { animation: st-fade var(--st-t-slow) var(--st-ease) both; }
 @keyframes st-fade { from { opacity: 0; } to { opacity: 1; } }
 .st-hover-zoom img, .st-hover-zoom svg { transition: transform var(--st-t) var(--st-ease); }
