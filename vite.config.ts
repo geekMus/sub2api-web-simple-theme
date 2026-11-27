@@ -91,7 +91,7 @@ export default defineConfig(({ mode }) => {
    * Vite 5 默认只允许 localhost 与 IP，走反向代理会报
    * "This host is not allowed"；可用 VITE_ALLOWED_HOSTS 逗号分隔追加。
    */
-  const defaultAllowedHosts = ['beichen.rt.geekmus.com']
+  const defaultAllowedHosts = ['beichen.rt.geekmus.com', 'beichen.geekmus.com']
   const envAllowedHosts = (env.VITE_ALLOWED_HOSTS || '')
     .split(',')
     .map((item) => item.trim())

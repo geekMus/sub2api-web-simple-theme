@@ -38,7 +38,7 @@ const showTabBar = computed(() => props.tabBar && !!authStore?.isAuthenticated &
 
 <style scoped>
 /* 底部 Tab 是固定层，给它留出空间放在根节点，页脚才不会被盖住 */
-.st-root--tabbar { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
+.st-root--tabbar { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
 @media (min-width: 1024px) {
   .st-root--tabbar { padding-bottom: 0; }
 }
