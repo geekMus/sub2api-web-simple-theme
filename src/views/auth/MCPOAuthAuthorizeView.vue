@@ -1,70 +1,84 @@
 <template>
-  <main class="min-h-screen bg-gray-50 px-4 py-8 dark:bg-dark-950 sm:py-12">
-    <section class="card mx-auto max-w-2xl p-5 sm:p-8" aria-labelledby="mcp-consent-title" :aria-busy="loading || submitting">
-      <div class="mb-6 flex items-start gap-3">
-        <div class="rounded-xl bg-primary-50 p-3 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400"><Icon name="mcp" size="lg" /></div>
-        <div>
-          <h1 id="mcp-consent-title" class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('mcp.consentTitle') }}</h1>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t('mcp.consentDescription') }}</p>
+  <UserShell :show-footer="false" :tab-bar="false">
+    <section class="st-section consent" aria-labelledby="mcp-consent-title" :aria-busy="loading || submitting">
+      <div class="st-shell consent__wrap">
+        <header class="consent__head">
+          <p class="st-eyebrow">MCP</p>
+          <h1 id="mcp-consent-title" class="st-display-2">{{ t('mcp.consentTitle') }}</h1>
+          <p class="st-lede">{{ t('mcp.consentDescription') }}</p>
+        </header>
+
+        <div v-if="loading" class="st-card st-card--pad consent__state" role="status">
+          <span class="consent__spinner" aria-hidden="true"></span>
+          <p class="st-body">{{ t('mcp.consentLoading') }}</p>
         </div>
+
+        <div v-else-if="previewError" class="st-card st-card--pad consent__state">
+          <p role="alert" class="consent__error">{{ previewError }}</p>
+          <p class="st-body">{{ t('mcp.consentRetryHint') }}</p>
+          <RouterLink to="/settings/mcp" class="st-btn st-btn--primary">{{ t('mcp.backToConnections') }}</RouterLink>
+        </div>
+
+        <form v-else-if="consent" class="consent__grid" @submit.prevent="decide(true)">
+          <article class="st-card st-card--pad consent__card">
+            <p class="st-eyebrow">{{ t('mcp.applicationName') }}</p>
+            <h2 class="st-display-3 consent__app" data-testid="client-name">{{ consent.client_name }}</h2>
+            <dl class="consent__meta">
+              <div class="consent__row">
+                <dt>{{ t('mcp.clientId') }}</dt>
+                <dd><span class="st-code">{{ consent.client_id }}</span></dd>
+              </div>
+              <div class="consent__row">
+                <dt>{{ t('mcp.returnAddress') }}</dt>
+                <dd>
+                  <span data-testid="redirect-origin" class="consent__strong">{{ redirectOrigin }}</span>
+                  <span data-testid="redirect-uri" class="st-code">{{ consent.redirect_uri }}</span>
+                </dd>
+              </div>
+              <div class="consent__row">
+                <dt>{{ t('mcp.requestedAccess') }}</dt>
+                <dd>
+                  <span>{{ t('mcp.requestedAccessDescription') }}</span>
+                  <span class="st-code">{{ consent.resource }}</span>
+                </dd>
+              </div>
+            </dl>
+            <p class="consent__warn">{{ t('mcp.untrustedApplicationHint') }}</p>
+          </article>
+
+          <aside class="st-card st-card--pad consent__card consent__side">
+            <div class="consent__field">
+              <label for="mcp-consent-scope" class="st-label">{{ t('mcp.scope') }}</label>
+              <select id="mcp-consent-scope" v-model="scope" class="st-input" :disabled="submitting" aria-describedby="mcp-scope-hint">
+                <option value="user">{{ t('mcp.userScope') }}</option>
+                <option v-if="authStore.isAdmin" value="admin">{{ t('mcp.adminScope') }}</option>
+              </select>
+              <p id="mcp-scope-hint" class="consent__hint">{{ scope === 'admin' ? t('mcp.adminScopeHint') : t('mcp.userScopeHint') }}</p>
+            </div>
+
+            <div class="consent__field">
+              <label for="mcp-consent-permissions" class="st-label">{{ t('mcp.permissions') }}</label>
+              <select id="mcp-consent-permissions" v-model="readOnly" class="st-input" :disabled="submitting" aria-describedby="mcp-permissions-hint">
+                <option :value="true">{{ t('mcp.readOnly') }}</option>
+                <option :value="false">{{ t('mcp.readWrite') }}</option>
+              </select>
+              <p id="mcp-permissions-hint" class="consent__hint" :class="{ 'consent__hint--warn': !readOnly }">{{ readOnly ? t('mcp.readOnlyHint') : t('mcp.readWriteHint') }}</p>
+              <p v-if="scope === 'admin' && !readOnly" data-testid="admin-write-hint" class="consent__hint consent__hint--warn">{{ t('mcp.adminWriteHint') }}</p>
+            </div>
+
+            <p v-if="authStore.user?.email" class="consent__who">{{ t('mcp.signedInAs', { email: authStore.user.email }) }}</p>
+            <p v-if="submitError" role="alert" class="consent__error">{{ submitError }}</p>
+
+            <div class="consent__actions">
+              <button data-testid="deny" type="button" class="st-btn" :disabled="submitting" @click="decide(false)">{{ t('mcp.deny') }}</button>
+              <button data-testid="approve" type="submit" class="st-btn st-btn--primary" :disabled="submitting">{{ submitting ? t('common.processing') : t('mcp.approve') }}</button>
+            </div>
+          </aside>
+        </form>
       </div>
-      <p v-if="loading" role="status" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{{ t('mcp.consentLoading') }}</p>
-      <div v-else-if="previewError" class="auth-form__body">
-        <p role="alert" class="text-sm text-red-600 dark:text-red-400">{{ previewError }}</p>
-        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('mcp.consentRetryHint') }}</p>
-        <RouterLink to="/settings/mcp" class="btn btn-secondary">{{ t('mcp.backToConnections') }}</RouterLink>
-      </div>
-      <form v-else-if="consent" class="auth-form" @submit.prevent="decide(true)">
-        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-dark-700 dark:bg-dark-900">
-          <dl class="space-y-4 text-sm">
-            <div>
-              <dt class="text-gray-500 dark:text-gray-400">{{ t('mcp.applicationName') }}</dt>
-              <dd data-testid="client-name" class="mt-1 break-all text-lg font-semibold text-gray-900 dark:text-white">{{ consent.client_name }}</dd>
-            </div>
-            <div>
-              <dt class="text-gray-500 dark:text-gray-400">{{ t('mcp.clientId') }}</dt>
-              <dd class="mt-1 truncate font-mono text-xs text-gray-700 dark:text-gray-200" :title="consent.client_id">{{ consent.client_id }}</dd>
-            </div>
-            <div>
-              <dt class="text-gray-500 dark:text-gray-400">{{ t('mcp.returnAddress') }}</dt>
-              <dd data-testid="redirect-origin" class="mt-1 break-all font-semibold text-gray-900 dark:text-white">{{ redirectOrigin }}</dd>
-              <dd data-testid="redirect-uri" class="mt-1 break-all font-mono text-xs text-gray-600 dark:text-gray-300">{{ consent.redirect_uri }}</dd>
-            </div>
-            <div>
-              <dt class="text-gray-500 dark:text-gray-400">{{ t('mcp.requestedAccess') }}</dt>
-              <dd class="mt-1 text-gray-700 dark:text-gray-200">{{ t('mcp.requestedAccessDescription') }}</dd>
-              <dd class="mt-1 break-all font-mono text-xs text-gray-600 dark:text-gray-300">{{ consent.resource }}</dd>
-            </div>
-          </dl>
-          <p class="mt-4 border-t border-gray-200 pt-4 text-sm text-amber-800 dark:border-dark-700 dark:text-amber-300">{{ t('mcp.untrustedApplicationHint') }}</p>
-        </div>
-        <p v-if="authStore.user?.email" class="break-all text-sm text-gray-600 dark:text-gray-300">{{ t('mcp.signedInAs', { email: authStore.user.email }) }}</p>
-        <div>
-          <label for="mcp-consent-scope" class="st-label">{{ t('mcp.scope') }}</label>
-          <select id="mcp-consent-scope" v-model="scope" class="st-input" :disabled="submitting" aria-describedby="mcp-scope-hint">
-            <option value="user">{{ t('mcp.userScope') }}</option>
-            <option v-if="authStore.isAdmin" value="admin">{{ t('mcp.adminScope') }}</option>
-          </select>
-          <p id="mcp-scope-hint" class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ scope === 'admin' ? t('mcp.adminScopeHint') : t('mcp.userScopeHint') }}</p>
-        </div>
-        <div>
-          <label for="mcp-consent-permissions" class="st-label">{{ t('mcp.permissions') }}</label>
-          <select id="mcp-consent-permissions" v-model="readOnly" class="st-input" :disabled="submitting" aria-describedby="mcp-permissions-hint">
-            <option :value="true">{{ t('mcp.readOnly') }}</option>
-            <option :value="false">{{ t('mcp.readWrite') }}</option>
-          </select>
-          <p id="mcp-permissions-hint" class="mt-2 text-xs" :class="readOnly ? 'text-gray-500 dark:text-gray-400' : 'text-amber-700 dark:text-amber-400'">{{ readOnly ? t('mcp.readOnlyHint') : t('mcp.readWriteHint') }}</p>
-          <p v-if="scope === 'admin' && !readOnly" data-testid="admin-write-hint" class="mt-1 text-xs text-amber-700 dark:text-amber-400">{{ t('mcp.adminWriteHint') }}</p>
-        </div>
-        <p v-if="submitError" role="alert" class="text-sm text-red-600 dark:text-red-400">{{ submitError }}</p>
-        <div class="flex justify-end gap-3 border-t border-gray-100 pt-5 dark:border-dark-700">
-          <button data-testid="deny" type="button" class="btn btn-secondary" :disabled="submitting" @click="decide(false)">{{ t('mcp.deny') }}</button>
-          <button data-testid="approve" type="submit" class="btn btn-primary" :disabled="submitting">{{ submitting ? t('common.processing') : t('mcp.approve') }}</button>
-        </div>
-      </form>
     </section>
     <TotpStepUpDialog :controller="stepUp" />
-  </main>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
@@ -73,7 +87,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { mcpAPI, type MCPAccessScope, type MCPAuthorization, type MCPConsent } from '@/api/mcp'
 import TotpStepUpDialog from '@/components/auth/TotpStepUpDialog.vue'
-import { Icon } from '@/components/icons'
+import UserShell from '@/components/shell/UserShell.vue'
 import { isStepUpBlocked, isStepUpCancelled, stepUpBlockReason, useStepUp } from '@/composables/useStepUp'
 import { useAuthStore } from '@/stores/auth'
 
@@ -201,3 +215,38 @@ onBeforeUnmount(() => {
   stepUp.onCancel()
 })
 </script>
+
+<style scoped>
+.consent { padding-top: clamp(36px, 6vw, 84px); }
+.consent__wrap { max-width: 980px; }
+.consent__head { display: flex; flex-direction: column; gap: 10px; margin-bottom: clamp(24px, 4vw, 40px); }
+.consent__head .st-lede { max-width: 52ch; }
+.consent__state { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; max-width: 560px; }
+.consent__spinner { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--st-line); border-top-color: var(--st-brand); animation: consent-spin 800ms linear infinite; }
+@keyframes consent-spin { to { transform: rotate(360deg); } }
+.consent__grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.consent__card { display: flex; flex-direction: column; gap: 16px; }
+.consent__app { margin-top: -2px; word-break: break-all; }
+.consent__meta { display: flex; flex-direction: column; margin: 0; border-top: 1px solid var(--st-line); }
+.consent__row { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--st-line); }
+.consent__row dt { margin: 0; font-size: 0.78rem; color: var(--st-ink-3); }
+.consent__row dd { margin: 0; display: flex; flex-direction: column; gap: 4px; color: var(--st-ink-2); font-size: 0.88rem; }
+.consent__strong { color: var(--st-ink); font-weight: 550; word-break: break-all; }
+.consent__warn { margin: 0; padding: 12px 14px; border-radius: var(--st-r-sm); background: var(--st-warn-soft); color: var(--st-warn); font-size: 0.82rem; line-height: 1.55; }
+.consent__side { position: sticky; top: 88px; }
+.consent__field { display: flex; flex-direction: column; gap: 7px; }
+.consent__hint { margin: 0; font-size: 0.78rem; line-height: 1.5; color: var(--st-ink-3); }
+.consent__hint--warn { color: var(--st-warn); }
+.consent__who { margin: 0; padding-top: 2px; font-size: 0.8rem; color: var(--st-ink-3); word-break: break-all; }
+.consent__error { margin: 0; color: var(--st-danger); font-size: 0.86rem; line-height: 1.55; }
+.consent__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--st-line); }
+@media (max-width: 900px) {
+  .consent__grid { grid-template-columns: 1fr; }
+  .consent__side { position: static; }
+  .consent__row { grid-template-columns: 1fr; gap: 5px; }
+}
+@media (max-width: 560px) {
+  .consent__actions { flex-direction: column-reverse; }
+  .consent__actions .st-btn { width: 100%; }
+}
+</style>

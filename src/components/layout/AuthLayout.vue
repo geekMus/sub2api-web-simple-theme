@@ -7,7 +7,7 @@
       </div>
 
       <div class="st-shell auth__wrap">
-        <div class="auth__card st-card">
+        <div class="auth__card st-card" :class="{ 'auth__card--compact': !showTabs || compact }">
           <nav v-if="showTabs" class="auth__tabs" role="tablist">
             <router-link to="/login" class="auth__tab" :class="{ 'auth__tab--on': isLogin }" role="tab">
               {{ c('auth.tab.login') }}
@@ -38,6 +38,9 @@ import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores'
 import UserShell from '@/components/shell/UserShell.vue'
 import { useAuthCopy } from '@/composables/copy/auth'
+
+/** 内容比表单短（如「注册已关闭」）时不再撑固定高度 */
+withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
 
 const appStore = useAppStore()
 const route = useRoute()
@@ -107,17 +110,20 @@ onMounted(() => {
   transition: min-height 220ms var(--st-ease);
 }
 
+.auth__card--compact { min-height: 0; }
+
 .auth__body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  animation: auth-swap 240ms var(--st-ease) both;
+  justify-content: center;
 }
-@keyframes auth-swap {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+/* 登录/注册切换直接显示，不做上移动画 */
+.auth__card :deep(.st-reveal) {
+  animation: none !important;
+  opacity: 1;
+  transform: none;
 }
-@media (prefers-reduced-motion: reduce) { .auth__body { animation: none; } }
 
 .auth__tabs {
   display: grid;
@@ -151,6 +157,7 @@ onMounted(() => {
   .auth { padding-block: 16px; }
   .auth__wrap { padding-inline: 16px; }
   .auth__card { padding: 20px; border-radius: var(--st-r-md); min-height: 430px; }
+  .auth__card--compact { min-height: 0; }
 }
 
 /* 认证子页面通用排版 */

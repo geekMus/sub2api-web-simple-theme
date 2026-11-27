@@ -9,6 +9,10 @@ const { auth, previewAuthorization, authorize, routeState, assign } = vi.hoisted
   previewAuthorization: vi.fn(), authorize: vi.fn(), assign: vi.fn(),
   routeState: { current: {} as { fullPath: string; query: Record<string, unknown> } }
 }))
+vi.mock('@/components/shell/UserShell.vue', () => ({
+  default: { template: '<div><slot /></div>' },
+}))
+
 vi.mock('vue-router', () => ({ useRoute: () => routeState.current }))
 vi.mock('@/api/mcp', () => ({ mcpAPI: { previewAuthorization, authorize } }))
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => auth }))

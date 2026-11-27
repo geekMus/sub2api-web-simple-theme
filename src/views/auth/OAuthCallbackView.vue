@@ -1,148 +1,80 @@
 <template>
-  <div class="min-h-screen bg-gray-50 px-4 py-10 dark:bg-dark-900">
-    <div class="mx-auto max-w-2xl">
-      <div v-if="isProcessing" class="card p-6 text-center">
-        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"></div>
-        <h1 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-          {{ t('auth.oauth.callbackTitle') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('auth.oauth.callbackHint') }}
-        </p>
-      </div>
-
-      <div v-else-if="needsRegistrationCompletion" class="card p-6">
-        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ t('auth.oidc.callbackTitle', { providerName }) }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ registrationHint }}
-        </p>
-
-        <div class="mt-6 space-y-4">
-          <div>
-            <label class="st-label">{{ t('auth.emailLabel') }}</label>
-            <input
-              class="st-input w-full"
-              type="email"
-              :value="registrationEmail"
-              readonly
-              disabled
-            />
-          </div>
-          <div>
-            <label class="st-label">{{ t('auth.passwordLabel') }}</label>
-            <input
-              v-model="password"
-              type="password"
-              class="st-input w-full"
-              :placeholder="t('auth.createPasswordPlaceholder')"
-              :disabled="isSubmitting"
-              autocomplete="new-password"
-              @keyup.enter="handleSubmitRegistration"
-            />
-          </div>
-          <div>
-            <label class="st-label">{{ t('auth.confirmPassword') }}</label>
-            <input
-              v-model="confirmPassword"
-              type="password"
-              class="st-input w-full"
-              :placeholder="t('auth.confirmPasswordPlaceholder')"
-              :disabled="isSubmitting"
-              autocomplete="new-password"
-              @keyup.enter="handleSubmitRegistration"
-            />
-          </div>
-          <div v-if="invitationRequired">
-            <label class="st-label">{{ t('auth.invitationCodeLabel') }}</label>
-            <input
-              v-model="invitationCode"
-              type="text"
-              class="st-input w-full"
-              :placeholder="t('auth.invitationCodePlaceholder')"
-              :disabled="isSubmitting"
-              @keyup.enter="handleSubmitRegistration"
-            />
-          </div>
-          <p v-if="registrationError" class="text-sm text-red-600 dark:text-red-400">
-            {{ registrationError }}
-          </p>
-          <button
-            class="st-btn st-btn--primary st-btn--lg auth-form__submit"
-            type="button"
-            :disabled="isSubmitting || !canSubmitRegistration"
-            @click="handleSubmitRegistration"
-          >
-            {{ isSubmitting ? t('common.processing') : t('auth.oidc.completeRegistration') }}
-          </button>
+  <UserShell :show-footer="false" :tab-bar="false">
+    <section class="st-section oauth">
+      <div class="st-shell oauth__wrap">
+        <div v-if="isProcessing" class="st-card st-card--pad oauth__card oauth__center">
+          <span class="oauth__spinner" aria-hidden="true"></span>
+          <h1 class="st-display-3">{{ t('auth.oauth.callbackTitle') }}</h1>
+          <p class="st-body">{{ t('auth.oauth.callbackHint') }}</p>
         </div>
-      </div>
 
-      <div v-else-if="invalidCallback" class="card p-6 text-center">
-        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ t('auth.oauth.invalidCallbackTitle') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('auth.oauth.invalidCallbackHint') }}
-        </p>
-        <button class="st-btn st-btn--primary mt-6" type="button" @click="router.replace('/login')">
-          {{ t('auth.backToLogin') }}
-        </button>
-      </div>
+        <div v-else-if="needsRegistrationCompletion" class="st-card st-card--pad oauth__card">
+          <p class="st-eyebrow">{{ providerName }}</p>
+          <h1 class="st-display-3">{{ t('auth.oidc.callbackTitle', { providerName }) }}</h1>
+          <p class="st-body">{{ registrationHint }}</p>
 
-      <div v-else class="card p-6">
-        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ t('auth.oauth.callbackTitle') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('auth.oauth.callbackHint') }}
-        </p>
-
-        <div class="mt-6 space-y-4">
-          <div>
-            <label class="st-label">{{ t('auth.oauth.code') }}</label>
-            <div class="flex gap-2">
-              <input class="st-input flex-1 font-mono text-sm" :value="code" readonly />
-              <button class="btn btn-secondary" type="button" :disabled="!code" @click="copy(code)">
-                {{ t('common.copy') }}
-              </button>
+          <div class="oauth__form">
+            <div class="oauth__field">
+              <label class="st-label">{{ t('auth.emailLabel') }}</label>
+              <input class="st-input" type="email" :value="registrationEmail" readonly disabled />
             </div>
-          </div>
-
-          <div>
-            <label class="st-label">{{ t('auth.oauth.state') }}</label>
-            <div class="flex gap-2">
-              <input class="st-input flex-1 font-mono text-sm" :value="state" readonly />
-              <button
-                class="btn btn-secondary"
-                type="button"
-                :disabled="!state"
-                @click="copy(state)"
-              >
-                {{ t('common.copy') }}
-              </button>
+            <div class="oauth__field">
+              <label class="st-label">{{ t('auth.passwordLabel') }}</label>
+              <input v-model="password" type="password" class="st-input" :placeholder="t('auth.createPasswordPlaceholder')" :disabled="isSubmitting" autocomplete="new-password" @keyup.enter="handleSubmitRegistration" />
             </div>
+            <div class="oauth__field">
+              <label class="st-label">{{ t('auth.confirmPassword') }}</label>
+              <input v-model="confirmPassword" type="password" class="st-input" :placeholder="t('auth.confirmPasswordPlaceholder')" :disabled="isSubmitting" autocomplete="new-password" @keyup.enter="handleSubmitRegistration" />
+            </div>
+            <div v-if="invitationRequired" class="oauth__field">
+              <label class="st-label">{{ t('auth.invitationCodeLabel') }}</label>
+              <input v-model="invitationCode" type="text" class="st-input" :placeholder="t('auth.invitationCodePlaceholder')" :disabled="isSubmitting" @keyup.enter="handleSubmitRegistration" />
+            </div>
+            <p v-if="registrationError" class="oauth__error">{{ registrationError }}</p>
+            <button class="st-btn st-btn--primary oauth__submit" type="button" :disabled="isSubmitting || !canSubmitRegistration" @click="handleSubmitRegistration">
+              {{ isSubmitting ? t('common.processing') : t('auth.oidc.completeRegistration') }}
+            </button>
           </div>
+        </div>
 
-          <div>
-            <label class="st-label">{{ t('auth.oauth.fullUrl') }}</label>
-            <div class="flex gap-2">
-              <input class="st-input flex-1 font-mono text-xs" :value="fullUrl" readonly />
-              <button
-                class="btn btn-secondary"
-                type="button"
-                :disabled="!fullUrl"
-                @click="copy(fullUrl)"
-              >
-                {{ t('common.copy') }}
-              </button>
+        <div v-else-if="invalidCallback" class="st-card st-card--pad oauth__card oauth__center">
+          <span class="oauth__mark oauth__mark--warn" aria-hidden="true">!</span>
+          <h1 class="st-display-3">{{ t('auth.oauth.invalidCallbackTitle') }}</h1>
+          <p class="st-body">{{ t('auth.oauth.invalidCallbackHint') }}</p>
+          <button class="st-btn st-btn--primary" type="button" @click="router.replace('/login')">{{ t('auth.backToLogin') }}</button>
+        </div>
+
+        <div v-else class="st-card st-card--pad oauth__card">
+          <p class="st-eyebrow">OAuth</p>
+          <h1 class="st-display-3">{{ t('auth.oauth.callbackTitle') }}</h1>
+          <p class="st-body">{{ t('auth.oauth.callbackHint') }}</p>
+          <div class="oauth__form">
+            <div class="oauth__field">
+              <label class="st-label">{{ t('auth.oauth.code') }}</label>
+              <div class="oauth__copyrow">
+                <input class="st-input oauth__mono" :value="code" readonly />
+                <button class="st-btn st-btn--sm" type="button" :disabled="!code" @click="copy(code)">{{ t('common.copy') }}</button>
+              </div>
+            </div>
+            <div class="oauth__field">
+              <label class="st-label">{{ t('auth.oauth.state') }}</label>
+              <div class="oauth__copyrow">
+                <input class="st-input oauth__mono" :value="state" readonly />
+                <button class="st-btn st-btn--sm" type="button" :disabled="!state" @click="copy(state)">{{ t('common.copy') }}</button>
+              </div>
+            </div>
+            <div class="oauth__field">
+              <label class="st-label">{{ t('auth.oauth.fullUrl') }}</label>
+              <div class="oauth__copyrow">
+                <input class="st-input oauth__mono" :value="fullUrl" readonly />
+                <button class="st-btn st-btn--sm" type="button" :disabled="!fullUrl" @click="copy(fullUrl)">{{ t('common.copy') }}</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </UserShell>
 </template>
 
 <script setup lang="ts">
@@ -151,6 +83,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useClipboard } from '@/composables/useClipboard'
 import { useAppStore, useAuthStore } from '@/stores'
+import UserShell from '@/components/shell/UserShell.vue'
 import { apiClient } from '@/api/client'
 import { buildApiUrl } from '@/api/url'
 import {
@@ -411,3 +344,25 @@ const copy = (value: string) => {
   copyToClipboard(value)
 }
 </script>
+
+<style scoped>
+.oauth { padding-top: clamp(36px, 6vw, 80px); }
+.oauth__wrap { max-width: 720px; }
+.oauth__card { display: flex; flex-direction: column; gap: 12px; }
+.oauth__center { align-items: center; text-align: center; padding-block: clamp(32px, 5vw, 52px); }
+.oauth__center .st-body { max-width: 44ch; }
+.oauth__spinner { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--st-line); border-top-color: var(--st-brand); animation: oauth-spin 800ms linear infinite; }
+@keyframes oauth-spin { to { transform: rotate(360deg); } }
+.oauth__mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--st-warn-soft); color: var(--st-warn); font-size: 1.15rem; font-weight: 700; }
+.oauth__form { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+.oauth__field { display: flex; flex-direction: column; gap: 7px; }
+.oauth__copyrow { display: flex; gap: 8px; }
+.oauth__copyrow .st-input { flex: 1; min-width: 0; }
+.oauth__mono { font-family: var(--st-font-mono); font-size: 0.82rem; }
+.oauth__error { margin: 0; color: var(--st-danger); font-size: 0.86rem; }
+.oauth__submit { width: 100%; margin-top: 4px; }
+@media (max-width: 560px) {
+  .oauth__copyrow { flex-direction: column; }
+  .oauth__copyrow .st-btn { align-self: flex-end; }
+}
+</style>

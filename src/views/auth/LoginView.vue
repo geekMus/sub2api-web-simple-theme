@@ -1,7 +1,10 @@
 <template>
   <AuthLayout>
     <div class="auth-form">
-      <header class="auth-form__head st-reveal">
+      <header class="auth-form__head">
+        <p class="st-eyebrow">{{ c('auth.login.eyebrow') }}</p>
+        <h2 class="st-display-3 auth-form__title">{{ c('auth.login.title') }}</h2>
+        <p class="st-body auth-form__lede">{{ c('auth.login.lede') }}</p>
       </header>
 
       <form class="auth-form__body" @submit.prevent="handleLogin">

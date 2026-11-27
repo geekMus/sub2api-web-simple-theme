@@ -1,12 +1,38 @@
 <template>
-  <AuthLayout>
+  <AuthLayout :compact="registrationClosed">
     <div class="auth-form">
-      <header class="auth-form__head st-reveal">
+      <header class="auth-form__head">
+        <p class="st-eyebrow">{{ registrationClosed ? c('auth.closed.eyebrow') : c('auth.register.eyebrow') }}</p>
+        <h2 class="st-display-3 auth-form__title">
+          {{ registrationClosed ? c('auth.closed.title') : c('auth.register.title') }}
+        </h2>
+        <p class="st-body auth-form__lede">
+          {{ registrationClosed ? c('auth.closed.lede') : c('auth.register.lede') }}
+        </p>
       </header>
 
-      <div v-if="!registrationEnabled && settingsLoaded" class="auth-notice auth-notice--warn st-reveal" style="--i: 1">
-        <Icon name="exclamationCircle" size="md" />
-        <p>{{ t('auth.registrationDisabled') }}</p>
+      <!-- 注册关闭：一屏把「为什么 + 还能做什么」说清楚，不留大片空白 -->
+      <div v-if="registrationClosed" class="closed">
+        <ul class="closed__list">
+          <li v-for="item in closedPoints" :key="item" class="closed__item">
+            <span class="closed__dot" aria-hidden="true"></span>
+            <span>{{ item }}</span>
+          </li>
+        </ul>
+
+        <div class="closed__actions">
+          <router-link to="/login" class="st-btn st-btn--primary st-btn--lg closed__btn">
+            {{ c('auth.closed.goLogin') }}
+          </router-link>
+          <router-link to="/home" class="st-btn st-btn--quiet st-btn--lg closed__btn">
+            {{ c('auth.shell.backHome') }}
+          </router-link>
+        </div>
+
+        <p v-if="contactInfo" class="closed__contact">
+          {{ c('auth.closed.contact') }}
+          <span>{{ contactInfo }}</span>
+        </p>
       </div>
 
       <form v-else class="auth-form__body" @submit.prevent="handleRegister">
@@ -232,7 +258,7 @@
         </button>
       </form>
 
-      <section v-if="showOAuthLogin" class="auth-alt">
+      <section v-if="!registrationClosed && showOAuthLogin" class="auth-alt">
         <p class="st-rule-title auth-alt__rule">{{ t('auth.oauthOrContinue') }}</p>
         <div class="auth-alt__list">
           <EmailOAuthButtons
@@ -272,7 +298,7 @@
     </div>
 
     <template #footer>
-      <p class="auth-foot">
+      <p v-if="!registrationClosed" class="auth-foot">
         {{ t('auth.alreadyHaveAccount') }}
         <router-link to="/login" class="auth-link">{{ t('auth.signIn') }}</router-link>
       </p>
@@ -285,6 +311,7 @@ import { computed, ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { AuthLayout } from '@/components/layout'
+import { useAuthCopy } from '@/composables/copy/auth'
 import LinuxDoOAuthSection from '@/components/auth/LinuxDoOAuthSection.vue'
 import OidcOAuthSection from '@/components/auth/OidcOAuthSection.vue'
 import WechatOAuthSection from '@/components/auth/WechatOAuthSection.vue'
@@ -317,6 +344,7 @@ import {
 import type { LoginAgreementDocument } from '@/types'
 
 const { t, locale } = useI18n()
+const { c } = useAuthCopy()
 const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
 
 // ==================== Router & Stores ====================
@@ -357,6 +385,7 @@ const aliyunCaptchaSceneId = ref<string>('')
 const aliyunCaptchaPrefix = ref<string>('')
 const aliyunCaptchaRegion = ref<string>('cn')
 const siteName = ref<string>('Sub2API')
+const contactInfo = ref<string>('')
 const linuxdoOAuthEnabled = ref<boolean>(false)
 const wechatOAuthEnabled = ref<boolean>(false)
 const oidcOAuthEnabled = ref<boolean>(false)
@@ -441,6 +470,15 @@ const validationToastMessage = computed(() =>
   ''
 )
 
+/** 注册关闭：表单整块替换成说明 + 出口，避免一屏只剩一句灰字 */
+const registrationClosed = computed(() => !registrationEnabled.value && settingsLoaded.value)
+
+const closedPoints = computed(() => [
+  c('auth.closed.point1'),
+  c('auth.closed.point2'),
+  c('auth.closed.point3'),
+])
+
 const showOAuthLogin = computed(
   () =>
     linuxdoOAuthEnabled.value ||
@@ -494,6 +532,7 @@ onMounted(async () => {
     aliyunCaptchaPrefix.value = settings.aliyun_captcha_prefix || ''
     aliyunCaptchaRegion.value = settings.aliyun_captcha_region || 'cn'
     siteName.value = settings.site_name || 'Sub2API'
+  contactInfo.value = settings.contact_info || ''
     linuxdoOAuthEnabled.value = settings.linuxdo_oauth_enabled
     wechatOAuthEnabled.value = isWeChatWebOAuthEnabled(settings)
     oidcOAuthEnabled.value = settings.oidc_oauth_enabled
@@ -1036,6 +1075,38 @@ function buildRegistrationErrorMessage(error: unknown, fallback: string): string
 </script>
 
 <style scoped>
+/* ---- 注册关闭：说明 + 出口 ---- */
+.closed { display: flex; flex-direction: column; gap: 18px; }
+
+.closed__list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.closed__item {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.88rem; line-height: 1.6; color: var(--st-ink-2);
+}
+.closed__dot {
+  flex: none;
+  width: 5px; height: 5px; margin-top: 0.6em;
+  border-radius: 50%;
+  background: var(--st-brand-text);
+}
+
+.closed__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2px; }
+.closed__btn { flex: 1 1 auto; min-width: 0; }
+
+.closed__contact {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--st-ink-3);
+  overflow-wrap: anywhere;
+}
+.closed__contact span { color: var(--st-ink-2); }
+
+@media (max-width: 480px) {
+  .closed__actions { flex-direction: column; align-items: stretch; }
+  .closed__btn { flex: 0 0 auto; width: 100%; height: 48px; }
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
