@@ -39,6 +39,16 @@ const zh: Dict = {
   'auth.register.haveAccount': '已经有账号了？',
   'auth.register.goLogin': '直接登录',
 
+  // 注册关闭
+  'auth.closed.eyebrow': '暂时关闭注册',
+  'auth.closed.title': '现在还不能开新账号',
+  'auth.closed.lede': '管理员暂时关闭了自助注册。已有的账号照常使用，额度与调用都不受影响。',
+  'auth.closed.point1': '已有账号直接登录，一切照旧',
+  'auth.closed.point2': '需要新账号可以找站点管理员开通',
+  'auth.closed.point3': '想先了解产品，回首页看看支持哪些模型',
+  'auth.closed.goLogin': '去登录',
+  'auth.closed.contact': '联系管理员：',
+
   // 找回 / 重置密码
   'auth.forgot.eyebrow': '找回通行证',
   'auth.forgot.title': '把重置链接寄给你',
@@ -95,6 +105,15 @@ const en: Dict = {
   'auth.register.submitting': 'Creating…',
   'auth.register.haveAccount': 'Already have an account?',
   'auth.register.goLogin': 'Sign in',
+
+  'auth.closed.eyebrow': 'REGISTRATION CLOSED',
+  'auth.closed.title': 'New sign-ups are paused',
+  'auth.closed.lede': 'Self-service registration is temporarily off. Existing accounts keep working exactly as before.',
+  'auth.closed.point1': 'Sign in with your existing account as usual',
+  'auth.closed.point2': 'Ask the site admin to create a new account for you',
+  'auth.closed.point3': 'Curious first? The home page lists the supported models',
+  'auth.closed.goLogin': 'Go to sign in',
+  'auth.closed.contact': 'Contact admin: ',
 
   'auth.forgot.eyebrow': 'RECOVER',
   'auth.forgot.title': 'We will email you a reset link',

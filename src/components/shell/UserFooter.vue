@@ -20,9 +20,12 @@ const year = new Date().getFullYear()
 
 <style scoped>
 .ft {
-  margin-top: clamp(48px, 7vw, 96px);
-  padding-block: 28px 36px;
+  margin-top: auto;
+  padding-block: 24px 28px;
   border-top: 1px solid var(--st-line);
+}
+@media (min-width: 900px) {
+  .ft { padding-block: 28px 36px; }
 }
 .ft__line {
   margin: 0;

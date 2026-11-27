@@ -1,5 +1,5 @@
 <template>
-  <router-link to="/home" class="bm" :class="{ 'bm--lg': size === 'lg' }">
+  <router-link :to="to" class="bm" :class="{ 'bm--lg': size === 'lg' }">
     <span class="bm__mark">
       <img v-if="logo" :src="logo" alt="" />
       <svg v-else viewBox="0 0 20 20" aria-hidden="true">
@@ -17,7 +17,7 @@ import { computed } from 'vue'
 import { useAppStore } from '@/stores'
 import { sanitizeUrl } from '@/utils/url'
 
-withDefaults(defineProps<{ size?: 'md' | 'lg' }>(), { size: 'md' })
+withDefaults(defineProps<{ size?: 'md' | 'lg'; to?: string }>(), { size: 'md', to: '/home' })
 const appStore = useAppStore()
 const name = computed(() => appStore.siteName || 'Sub2API')
 const logo = computed(() => sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))

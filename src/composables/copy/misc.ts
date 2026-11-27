@@ -10,7 +10,11 @@ import { useI18n } from 'vue-i18n'
 type Dict = Record<string, string>
 
 const zh: Dict = {
+  'batch.eyebrow': '批量生图',
+  'batch.title': '一次提交，批量出图',
+  'batch.lede': '填一次提示词，排好队列慢慢跑。',
   // ── 模型广场（逛商店）─────────────────────────────
+  'plaza.filterCollapsed': '按条件挑一挑',
   'plaza.eyebrow': '模型与价格',
   'plaza.title': '挑一个顺手的模型',
   'plaza.lede': '同一把通行证，按价格和上下文挑模型。看到合适的，复制名字就能用。',
@@ -176,6 +180,10 @@ const zh: Dict = {
 }
 
 const en: Dict = {
+  'batch.eyebrow': 'Batch images',
+  'batch.title': 'Submit once, generate in bulk',
+  'batch.lede': 'Write the prompt once and let the queue run.',
+  'plaza.filterCollapsed': 'Narrow it down',
   'plaza.eyebrow': 'Models & pricing',
   'plaza.title': 'Pick a model that fits',
   'plaza.lede': 'One key, many models. Compare price and context, copy the name, ship it.',

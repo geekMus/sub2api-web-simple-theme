@@ -16,15 +16,19 @@ export function useNavLinks() {
       { to: '/usage', label: c('nav.usage') },
     ]
     if (settings?.subscription_enabled !== false) items.push({ to: '/subscriptions', label: c('nav.plans') })
+    if (settings?.payment_enabled !== false) items.push({ to: '/purchase', label: c('nav.recharge') })
     if (settings?.model_plaza_enabled) items.push({ to: '/model-plaza', label: c('nav.models') })
     if (settings?.available_channels_enabled) items.push({ to: '/available-channels', label: c('nav.channels') })
     return items
   })
 
   const accountMenu = computed(() => {
+    const settings = appStore.cachedPublicSettings
     const items = [{ to: '/profile', label: c('account.profile') }]
-    if (appStore.cachedPublicSettings?.affiliate_enabled) items.push({ to: '/affiliate', label: c('account.affiliate') })
-    if (appStore.cachedPublicSettings?.mcp_enabled) items.push({ to: '/mcp', label: c('account.mcp') })
+    if (settings?.payment_enabled !== false) items.push({ to: '/orders', label: c('account.orders') })
+    items.push({ to: '/redeem', label: c('account.redeem') })
+    if (settings?.affiliate_enabled) items.push({ to: '/affiliate', label: c('account.affiliate') })
+    if (settings?.mcp_enabled) items.push({ to: '/settings/mcp', label: c('account.mcp') })
     if (authStore.isAdmin) items.push({ to: '/admin/dashboard', label: c('account.admin') })
     return items
   })
