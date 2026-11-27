@@ -86,6 +86,18 @@ export default defineConfig(({ mode }) => {
   // 构建产物目录：默认 dist；可用 VITE_OUT_DIR 指定（例如指向后端 embed 目录）
   const outDir = env.VITE_OUT_DIR || 'dist'
 
+  /**
+   * dev server 允许的 Host 白名单（反代/自定义域名用）。
+   * Vite 5 默认只允许 localhost 与 IP，走反向代理会报
+   * "This host is not allowed"；可用 VITE_ALLOWED_HOSTS 逗号分隔追加。
+   */
+  const defaultAllowedHosts = ['beichen.rt.geekmus.com']
+  const envAllowedHosts = (env.VITE_ALLOWED_HOSTS || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+  const allowedHosts = [...new Set([...defaultAllowedHosts, ...envAllowedHosts])]
+
   return {
     plugins: [
       vue(),
@@ -158,6 +170,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: devPort,
+      allowedHosts,
       // 某些编辑工具会写原子替换临时目录，chokidar 监听它会 EBUSY 崩掉 dev server
       watch: { ignored: ['**/.*.tmpdir/**', '**/*.tmp', '**/.git/**'] },
       proxy: {
@@ -179,6 +192,7 @@ export default defineConfig(({ mode }) => {
     preview: {
       host: '0.0.0.0',
       port: previewPort,
+      allowedHosts,
       proxy: {
         '/api': { target: backendUrl, changeOrigin: true },
         '/v1': { target: backendUrl, changeOrigin: true },
