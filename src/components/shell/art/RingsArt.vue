@@ -10,12 +10,13 @@
         <filter id="rg-soft" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="6" />
         </filter>
+        <clipPath v-for="(v, i) in vendors" :id="'rg-chip-clip-' + i" :key="'clip-' + v.name">
+          <circle cx="0" cy="0" r="21" />
+        </clipPath>
       </defs>
 
-      <!-- 中心光晕 -->
       <circle cx="220" cy="220" r="150" fill="url(#rg-glow)" />
 
-      <!-- 静态同心圆 -->
       <g class="rg__rings">
         <circle cx="220" cy="220" r="72" class="rg__ring" />
         <circle cx="220" cy="220" r="116" class="rg__ring" />
@@ -23,37 +24,47 @@
         <circle cx="220" cy="220" r="204" class="rg__ring" />
       </g>
 
-      <!-- 向外扩散的波纹 -->
       <g class="rg__waves">
         <circle v-for="(d, i) in [0, 1.6, 3.2]" :key="i" cx="220" cy="220" r="72" class="rg__wave" :style="{ animationDelay: d + 's' }" />
       </g>
 
-      <!-- 中心：站点标识 -->
+      <circle cx="220" cy="220" r="116" class="rg__sweep" />
+      <circle cx="220" cy="220" r="160" class="rg__sweep rg__sweep--slow" />
+
       <circle cx="220" cy="220" r="44" class="rg__core-halo" filter="url(#rg-soft)" />
       <rect x="190" y="190" width="60" height="60" rx="18" class="rg__core" />
-      <path d="M205 234c8.6 0 11.4-4 16-10.6 4.3-6 7.6-11.8 16.4-11.8" class="rg__core-mark" />
-      <circle cx="241" cy="209" r="2.8" class="rg__core-dot" />
+      <image v-if="siteLogo" :href="siteLogo" x="202" y="202" width="36" height="36" preserveAspectRatio="xMidYMid meet" class="rg__core-logo" />
+      <svg v-else x="202" y="202" width="36" height="36" viewBox="0 0 20 20" class="rg__core-mark">
+        <path d="M4 14.2c2.9 0 3.9-1.2 5.4-3.5C10.9 8 12.1 5.8 15 5.8" />
+        <path d="M4 16.6c1.9 0 2.8-.8 3.8-2.2" opacity=".45" />
+        <circle cx="15.4" cy="5.8" r="1.35" />
+      </svg>
 
-      <!-- 厂商图标（随机角度/半径） -->
       <g v-for="(v, i) in vendors" :key="v.name" :transform="'translate(' + v.x + ',' + v.y + ')'" class="rg__chip" :style="{ animationDelay: (i * 0.7) + 's' }">
-        <circle cx="0" cy="0" r="22" class="rg__chip-bg" />
-        <path :d="v.icon" class="rg__chip-icon" />
+        <circle cx="0" cy="0" r="26" class="rg__chip-bg" />
+        <image :href="v.icon" x="-17" y="-17" width="34" height="34" preserveAspectRatio="xMidYMid meet" :clip-path="'url(#rg-chip-clip-' + i + ')'" />
       </g>
     </svg>
   </div>
 </template>
 
 <script setup lang="ts">
-/** 厂商图标：抽象几何，不直接使用官方 logo 资源 */
+import { computed } from 'vue'
+import { useAppStore } from '@/stores'
+import { sanitizeUrl } from '@/utils/url'
+import deepseekHarnessIcon from '@/assets/icons/tools/deepseek-harness.svg'
+import geminiIcon from '@/assets/icons/tools/gemini.svg'
+import claudeCodeIcon from '@/assets/icons/tools/claude-code.svg'
+import codexIcon from '@/assets/icons/tools/codex.svg'
+
+const appStore = useAppStore()
+const siteLogo = computed(() => sanitizeUrl(appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
+
 const vendors = [
-  // DeepSeek：波浪
-  { name: 'DeepSeek', x: 220 - 150, y: 220 - 96, icon: 'M-9 3c4.5 0 5.6-3.4 9-3.4s4.5 3.4 9 3.4' },
-  // Gemini：四角星
-  { name: 'Gemini', x: 220 + 128, y: 220 - 118, icon: 'M0 -10L2.4 -2.4L10 0L2.4 2.4L0 10L-2.4 2.4L-10 0L-2.4 -2.4Z' },
-  // Claude Code：星芒
-  { name: 'Claude Code', x: 220 + 156, y: 220 + 92, icon: 'M0 -10V10M-8.6 -5L8.6 5M8.6 -5L-8.6 5' },
-  // Codex：六边形
-  { name: 'Codex', x: 220 - 132, y: 220 + 118, icon: 'M-8 -4.6L0 -9L8 -4.6V4.6L0 9L-8 4.6Z' },
+  { name: 'DeepSeek Harness', x: 220 - 150, y: 220 - 96, icon: deepseekHarnessIcon },
+  { name: 'Gemini', x: 220 + 128, y: 220 - 118, icon: geminiIcon },
+  { name: 'Claude Code', x: 220 + 156, y: 220 + 92, icon: claudeCodeIcon },
+  { name: 'Codex', x: 220 - 132, y: 220 + 118, icon: codexIcon },
 ]
 </script>
 
@@ -61,17 +72,11 @@ const vendors = [
 .rg { width: 100%; }
 .rg svg { width: 100%; height: auto; overflow: visible; }
 
-.rg__ring {
-  fill: none;
-  stroke: var(--st-line-2);
-  stroke-width: 1;
-  opacity: 0.55;
-}
+.rg__ring { fill: none; stroke: var(--st-line-2); stroke-width: 1; opacity: 0.55; }
 .rg__ring:nth-child(2) { opacity: 0.42; }
 .rg__ring:nth-child(3) { opacity: 0.3; }
 .rg__ring:nth-child(4) { opacity: 0.18; }
 
-/* 波纹：从内向外扩散并淡出 */
 .rg__wave {
   fill: none;
   stroke: var(--st-brand);
@@ -86,12 +91,24 @@ const vendors = [
   100% { transform: scale(2.4); opacity: 0; }
 }
 
-.rg__core-halo { fill: var(--st-brand-soft); }
-.rg__core { fill: var(--st-bg); stroke: var(--st-line-2); stroke-width: 1; }
-.rg__core-mark { fill: none; stroke: var(--st-ink); stroke-width: 2.4; stroke-linecap: round; }
-.rg__core-dot { fill: var(--st-ink); }
+.rg__sweep {
+  fill: none;
+  stroke: var(--st-brand);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 62 668;
+  opacity: 0.4;
+  transform-origin: 220px 220px;
+  animation: rg-sweep 9s linear infinite;
+}
+.rg__sweep--slow { stroke-dasharray: 84 922; opacity: 0.24; animation-duration: 14s; animation-direction: reverse; }
+@keyframes rg-sweep { to { transform: rotate(360deg); } }
 
-/* 厂商图标：玻璃小圆片 + 轻微浮动 */
+.rg__core-halo { fill: var(--st-brand-soft); }
+.rg__core { fill: var(--st-bg); stroke: var(--st-line-2); stroke-width: 1; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.10)); }
+.rg__core-mark { fill: none; stroke: var(--st-ink); stroke-width: 2; stroke-linecap: round; }
+.rg__core-logo { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
+
 .rg__chip {
   animation: rg-float 6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
   transform-box: fill-box;
@@ -103,20 +120,13 @@ const vendors = [
   stroke-width: 1;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.18));
 }
-.rg__chip-icon {
-  fill: none;
-  stroke: var(--st-ink-2);
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 @keyframes rg-float {
   0%, 100% { opacity: 0.9; }
   50% { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rg__wave, .rg__chip { animation: none; }
+  .rg__wave, .rg__chip, .rg__sweep { animation: none; }
   .rg__wave { opacity: 0; }
 }
 </style>

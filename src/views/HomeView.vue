@@ -78,9 +78,11 @@
           <!-- 移动端：SVG 缩小后文字看不清，改用列表 -->
           <ul class="route__list">
             <li v-for="tool in routeTools" :key="tool.name">
-              <span class="route__dot"></span>
-              <span class="route__name">{{ tool.name }}</span>
-              <span class="route__meta">{{ tool.meta }}</span>
+              <span class="route__icon"><img :src="tool.icon" :alt="tool.name" loading="lazy" /></span>
+              <span class="route__copy">
+                <span class="route__name">{{ tool.name }}</span>
+                <span class="route__meta">{{ tool.meta }}</span>
+              </span>
             </li>
           </ul>
         </div>
@@ -186,6 +188,10 @@ import MockUsage from '@/components/shell/art/MockUsage.vue'
 import MockKeys from '@/components/shell/art/MockKeys.vue'
 import FanoutArt from '@/components/shell/art/FanoutArt.vue'
 import RingsArt from '@/components/shell/art/RingsArt.vue'
+import codexIcon from '@/assets/icons/tools/codex.svg'
+import workbuddyIcon from '@/assets/icons/tools/workbuddy.svg'
+import deepseekHarnessIcon from '@/assets/icons/tools/deepseek-harness.svg'
+import claudeCodeIcon from '@/assets/icons/tools/claude-code.svg'
 import { useSimpleCopy } from '@/composables/useSimpleCopy'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
@@ -275,10 +281,10 @@ onMounted(() => {
 })
 
 const routeTools = [
-  { name: 'Codex', meta: 'CLI' },
-  { name: 'Work Buddy', meta: '桌面端' },
-  { name: 'DeepSeek Harness', meta: 'Agent' },
-  { name: 'Claude Code', meta: 'CLI' },
+  { name: 'Codex', meta: 'OpenAI · CLI', icon: codexIcon },
+  { name: 'Work Buddy', meta: 'Tencent · 桌面端', icon: workbuddyIcon },
+  { name: 'DeepSeek Harness', meta: 'DeepSeek · Agent', icon: deepseekHarnessIcon },
+  { name: 'Claude Code', meta: 'Anthropic · CLI', icon: claudeCodeIcon },
 ]
 
 function scrollDown() {
@@ -422,16 +428,24 @@ function scrollDown() {
   .hero__scroll { display: none; }
   .route__list { display: flex; flex-direction: column; gap: 10px; }
   .route__list li {
-    display: flex; align-items: center; gap: 10px;
-    padding: 14px 16px;
+    display: flex; align-items: center; gap: 13px;
+    padding: 13px 15px;
     border-radius: var(--st-r-md);
     border: 1px solid var(--st-line);
     background: var(--st-bg);
     box-shadow: var(--st-shadow-1);
   }
-  .route__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--st-brand); flex: none; }
+  .route__icon {
+    display: grid; place-items: center; flex: none;
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    border: 1px solid var(--st-line);
+    background: var(--st-bg-soft);
+  }
+  .route__icon img { width: 22px; height: 22px; object-fit: contain; }
+  .route__copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .route__name { font-size: 0.92rem; font-weight: 550; color: var(--st-ink); }
-  .route__meta { margin-left: auto; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.5; }
+  .route__meta { font-size: 0.72rem; letter-spacing: 0.02em; color: var(--st-ink-3); }
   .models__grid { grid-template-columns: 1fr; }
 }
 
@@ -450,7 +464,7 @@ function scrollDown() {
 
 .mini--chart { align-items: flex-end; gap: 4px; padding: 10px 14px; }
 .mini--chart span { flex: 1 1 0; min-width: 0; border-radius: 3px 3px 1px 1px; background: color-mix(in srgb, var(--st-ink) 14%, transparent); }
-.mini--chart span.is-on { background: var(--st-brand); }
+.mini--chart span.is-on { background: var(--st-chart-1); }
 
 .mini--flow { gap: 6px; }
 .mini__req { font-size: 10.5px; color: var(--st-ink-3); white-space: nowrap; }
