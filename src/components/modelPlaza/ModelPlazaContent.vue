@@ -323,6 +323,15 @@ function resetFilters() {
 }
 .plaza__skeleton-card { height: 172px; border-radius: var(--st-r-md); }
 
+@media (max-width: 719px) and (max-height: 740px) {
+  .plaza__hero { gap: 10px; }
+  .plaza__hero .st-lede { display: none; }
+  .plaza__cta { margin-top: 10px; }
+  .plaza__stats { gap: 10px; padding-top: 10px; }
+  .plaza__state { padding: 14px; }
+  .plaza__state-title { font-size: 0.9rem; }
+  .filters { padding: 12px; }
+}
 @media (max-width: 720px) {
   .plaza__cta .st-btn { width: 100%; }
   .plaza__skeleton-filters { height: 132px; }

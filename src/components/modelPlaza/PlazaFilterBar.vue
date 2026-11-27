@@ -1,7 +1,7 @@
 <template>
-  <div class="filters">
+  <div class="filters" :class="{ 'filters--open': open }">
     <div class="filters__head">
-      <span class="filters__hint">{{ c('plaza.filterTitle') }}</span>
+      <span class="filters__hint">{{ open ? c('plaza.filterTitle') : c('plaza.filterCollapsed') }}</span>
       <button
         v-if="hasActive"
         type="button"
@@ -10,8 +10,17 @@
       >
         {{ c('action.clearFilters') }}
       </button>
+      <button
+        type="button"
+        class="st-btn st-btn--quiet st-btn--sm filters__toggle"
+        :aria-expanded="open"
+        @click="open = !open"
+      >
+        {{ open ? c('action.collapse') : c('plaza.filterTitle') }}
+      </button>
     </div>
 
+    <div class="filters__body">
     <div class="filters__row">
       <span class="filters__label">{{ c('plaza.filter.platform') }}</span>
       <div class="filters__rail" role="group" aria-label="platform">
@@ -108,11 +117,12 @@
         </button>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import { platformAccentColor } from '@/utils/platformColors'
@@ -143,6 +153,9 @@ defineEmits<{
 
 const { t } = useI18n()
 const { c } = useMiscCopy()
+
+/** 手机端默认收起筛选，只留一行入口。 */
+const open = ref(false)
 
 /** 任一维度偏离「全部」即可一键重置。 */
 const hasActive = computed(
@@ -193,6 +206,7 @@ function rateEnabled(r: number): boolean {
 }
 
 .filters__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 22px; }
+.filters__toggle { display: none; }
 .filters__hint {
   font-size: 11px;
   font-weight: 600;
@@ -287,6 +301,17 @@ function rateEnabled(r: number): boolean {
 
 @media (max-width: 720px) {
   .filters { padding: 14px; border-radius: var(--st-r-md); }
+  .filters__rail { overflow-x: visible; mask-image: none; -webkit-mask-image: none; }
+  .filters__seg { display: flex; flex-wrap: wrap; gap: 8px; max-width: 100%; padding: 0; border: 0; background: transparent; }
+  .filters__item {
+    border: 1px solid var(--st-line);
+    border-radius: 999px;
+    background: var(--st-bg);
+  }
+  .filters__item.st-seg__item--active { border-color: var(--st-brand); background: var(--st-brand-soft); }
+  .filters__toggle { display: inline-flex; }
+  .filters__body { display: none; }
+  .filters--open .filters__body { display: block; }
   .filters__row { grid-template-columns: minmax(0, 1fr); gap: 7px; }
   .filters__label { font-size: 12px; }
   .filters__hint { font-size: 12px; }

@@ -1,43 +1,59 @@
 <template>
   <UserShell>
-    <TablePageLayout>
-      <template #filters>
-        <div class="flex flex-col gap-3">
-          <div class="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
-            <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[260px_160px_144px_152px] 2xl:w-auto">
-              <div class="min-w-0">
-                <SearchInput
-                  v-model="filters.taskName"
-                  :placeholder="t('batchImage.filters.searchTaskName')"
-                  class="w-full"
-                  @search="applyFilters"
-                />
-              </div>
-              <Select v-model="filters.apiKeyId" :options="apiKeyFilterOptions" class="w-full" @change="applyFilters" />
-              <Select v-model="filters.status" :options="statusFilterOptions" class="w-full" @change="applyFilters" />
-              <Select v-model="filters.downloaded" :options="downloadFilterOptions" class="w-full" @change="applyFilters" />
+    <section class="st-section bi">
+      <div class="st-shell">
+        <header class="bi__hero">
+          <p class="st-eyebrow">{{ c('batch.eyebrow') }}</p>
+          <h1 class="st-display-2">{{ c('batch.title') }}</h1>
+          <p class="st-lede">{{ c('batch.lede') }}</p>
+        </header>
+
+        <TablePageLayout variant="user">
+          <template #filters>
+        <div class="bi-filters" :class="{ 'bi-filters--open': filtersOpen }">
+          <button
+            type="button"
+            class="st-btn st-btn--quiet st-btn--sm bi-filters__toggle"
+            :aria-expanded="filtersOpen"
+            @click="filtersOpen = !filtersOpen"
+          >
+            <Icon name="filter" size="sm" />
+            {{ t('common.filter') }}
+            <span v-if="activeFilterCount" class="bi-filters__count">{{ activeFilterCount }}</span>
+          </button>
+          <div class="bi-filters__fields">
+            <div class="bi-filters__search">
+              <SearchInput
+                v-model="filters.taskName"
+                :placeholder="t('batchImage.filters.searchTaskName')"
+                class="w-full"
+                @search="applyFilters"
+              />
             </div>
-            <div class="flex flex-wrap items-center justify-start gap-2 sm:justify-end 2xl:flex-shrink-0">
-              <button type="button" class="btn btn-secondary" :disabled="loadingJobs" @click="resetFilters">
-                {{ t('common.reset') }}
-              </button>
-              <button type="button" class="btn btn-secondary" :disabled="loadingKeys || loadingJobs" :title="t('common.refresh')" @click="refreshPage">
-                <Icon name="refresh" size="md" :class="loadingKeys || loadingJobs ? 'animate-spin' : ''" />
-              </button>
-              <button type="button" class="btn btn-secondary" @click="showGuideModal = true">
-                <Icon name="book" size="md" class="mr-2" />
-                {{ t('batchImage.actions.usageGuide') }}
-              </button>
-              <button type="button" class="btn btn-primary" @click="openCreateModal">
-                <Icon name="plus" size="md" class="mr-2" />
-                {{ t('batchImage.actions.createJob') }}
-              </button>
-            </div>
+            <Select v-model="filters.apiKeyId" :options="apiKeyFilterOptions" class="w-full" @change="applyFilters" />
+            <Select v-model="filters.status" :options="statusFilterOptions" class="w-full" @change="applyFilters" />
+            <Select v-model="filters.downloaded" :options="downloadFilterOptions" class="w-full" @change="applyFilters" />
+          </div>
+          <div class="bi-filters__actions">
+            <button type="button" class="st-btn st-btn--quiet st-btn--sm" :disabled="loadingJobs" @click="resetFilters">
+              {{ t('common.reset') }}
+            </button>
+            <button type="button" class="st-btn st-btn--quiet st-btn--sm bi-icon-btn" :disabled="loadingKeys || loadingJobs" :title="t('common.refresh')" @click="refreshPage">
+              <Icon name="refresh" size="sm" :class="loadingKeys || loadingJobs ? 'animate-spin' : ''" />
+            </button>
+            <button type="button" class="st-btn st-btn--quiet st-btn--sm" @click="showGuideModal = true">
+              <Icon name="book" size="sm" />
+              {{ t('batchImage.actions.usageGuide') }}
+            </button>
+            <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="openCreateModal">
+              <Icon name="plus" size="sm" />
+              {{ t('batchImage.actions.createJob') }}
+            </button>
           </div>
 
           <div
             v-if="selectedJobIds.size"
-            class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-dark-700 dark:bg-dark-800"
+            class="bi-bulk"
           >
             <i18n-t
               keypath="batchImage.list.selectedJobs"
@@ -217,12 +233,16 @@
 	          </template>
 
           <template #empty>
-            <div class="flex min-h-[260px] flex-col items-center justify-center py-6 md:min-h-[300px]">
-              <Icon name="sparkles" size="xl" class="mb-4 h-12 w-12 text-gray-400 dark:text-dark-500" />
-              <p class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ t('batchImage.list.empty') }}</p>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('batchImage.list.emptyHint') }}
-              </p>
+            <div class="bi-empty">
+              <span class="bi-empty__mark" aria-hidden="true">
+                <Icon name="sparkles" size="lg" />
+              </span>
+              <p class="bi-empty__title">{{ t('batchImage.list.empty') }}</p>
+              <p class="bi-empty__hint">{{ t('batchImage.list.emptyHint') }}</p>
+              <button type="button" class="st-btn st-btn--primary st-btn--sm" @click="openCreateModal">
+                <Icon name="plus" size="sm" />
+                {{ t('batchImage.actions.createJob') }}
+              </button>
             </div>
           </template>
         </DataTable>
@@ -231,9 +251,9 @@
       <template #pagination>
         <div
           v-if="visibleBatchJobs.length > 0 || pagination.page > 1"
-          class="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 dark:border-dark-700 dark:bg-dark-800 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+          class="bi-pagination"
         >
-          <div class="flex flex-wrap items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
+          <div class="bi-pagination__meta">
             <i18n-t keypath="batchImage.pagination.pageNumber" tag="span" scope="global">
               <template #page>
                 <span class="font-medium">{{ pagination.page }}</span>
@@ -276,7 +296,9 @@
           </div>
         </div>
       </template>
-    </TablePageLayout>
+        </TablePageLayout>
+      </div>
+    </section>
 
     <Teleport to="body">
       <div
@@ -846,15 +868,15 @@ const { t, locale } = useI18n()
 const { c } = useMiscCopy()
 
 const columns = computed<Column[]>(() => [
-  { key: 'select', label: '', sortable: false, class: 'w-12 text-center' },
-  { key: 'id', label: t('batchImage.columns.taskName'), sortable: false, class: 'w-[240px] max-w-[240px]' },
-  { key: 'model', label: t('batchImage.columns.model'), sortable: false, class: 'w-[180px] max-w-[180px] text-center' },
-  { key: 'api_key_name', label: t('batchImage.columns.apiKey'), sortable: false, class: 'w-40 max-w-40 text-center' },
-  { key: 'status', label: t('common.status'), sortable: false, class: 'w-28 text-center' },
-  { key: 'counts', label: t('batchImage.columns.result'), sortable: false, class: 'w-32 text-center' },
-  { key: 'cost', label: t('batchImage.columns.cost'), sortable: false, class: 'w-36 text-center' },
-  { key: 'downloaded', label: t('batchImage.columns.downloadStatus'), sortable: false, class: 'w-40 text-center' },
-  { key: 'actions', label: t('common.actions'), sortable: false, class: 'w-40 text-center' },
+  { key: 'select', label: '', sortable: false, class: 'w-10 text-center' },
+  { key: 'id', label: t('batchImage.columns.taskName'), sortable: false, class: 'w-[210px] max-w-[210px]' },
+  { key: 'model', label: t('batchImage.columns.model'), sortable: false, class: 'w-[150px] max-w-[150px] text-center' },
+  { key: 'api_key_name', label: t('batchImage.columns.apiKey'), sortable: false, class: 'w-[120px] max-w-[120px] text-center' },
+  { key: 'status', label: t('common.status'), sortable: false, class: 'w-[96px] text-center' },
+  { key: 'counts', label: t('batchImage.columns.result'), sortable: false, class: 'w-[116px] text-center' },
+  { key: 'cost', label: t('batchImage.columns.cost'), sortable: false, class: 'w-[104px] text-center' },
+  { key: 'downloaded', label: t('batchImage.columns.downloadStatus'), sortable: false, class: 'w-[130px] text-center' },
+  { key: 'actions', label: t('common.actions'), sortable: false, class: 'w-[150px] text-center' },
 ])
 
 const statusFilterOptions = computed<SelectOption[]>(() => [
@@ -888,6 +910,12 @@ const filters = reactive({
   status: '',
   downloaded: '',
 })
+
+/** 手机端默认收起筛选，先把任务列表露出来 */
+const filtersOpen = ref(false)
+const activeFilterCount = computed(
+  () => [filters.taskName, filters.apiKeyId, filters.status, filters.downloaded].filter(Boolean).length,
+)
 
 const pagination = reactive({
   page: 1,
@@ -2697,6 +2725,125 @@ onBeforeUnmount(() => {
   padding-right: 34px;
   line-height: 36px;
 }
+
+/* —— 页面视觉：筛选 / 批量条 / 空态 / 表格适配 —— */
+.bi__hero { max-width: 60ch; margin-bottom: clamp(20px, 3vw, 32px); }
+.bi__hero .st-display-2 { margin-top: 12px; }
+.bi__hero .st-lede { margin-top: 12px; }
+
+.bi-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.bi-filters__toggle { display: none; }
+.bi-filters__count {
+  display: inline-grid; place-items: center;
+  min-width: 18px; height: 18px; padding-inline: 5px;
+  border-radius: 999px;
+  background: var(--st-brand); color: var(--st-brand-ink);
+  font-size: 0.68rem; font-weight: 600;
+}
+.bi-filters__fields {
+  display: grid;
+  flex: 1 1 520px;
+  min-width: 0;
+  grid-template-columns: minmax(190px, 1.35fr) repeat(3, minmax(118px, 0.75fr));
+  gap: 10px;
+}
+.bi-filters__search { min-width: 0; }
+.bi-filters__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+.bi-icon-btn { width: 38px; min-width: 38px; padding: 0; }
+.bi-filters :deep(.select-trigger) { min-height: 40px; }
+.bi-filters :deep(input.input) { height: 40px; padding-left: 2.65rem; }
+
+.bi-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: var(--st-r-md);
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+}
+.bi-bulk > span { color: var(--st-ink-2); font-size: 0.84rem; }
+.bi-bulk > span > span { color: var(--st-ink); font-weight: 600; }
+
+.bi-empty {
+  display: flex;
+  min-height: 240px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 40px 16px;
+  text-align: center;
+}
+.bi-empty__mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-3);
+}
+.bi-empty__title {
+  margin: 0;
+  font-family: var(--st-font-display);
+  font-size: 1.08rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--st-ink);
+}
+.bi-empty__hint { margin: 0 0 12px; font-size: 0.86rem; color: var(--st-ink-3); }
+
+.bi :deep(.table-wrapper) { overflow-x: auto; scrollbar-width: thin; }
+.bi :deep(table) { min-width: 1020px; }
+.bi :deep(th),
+.bi :deep(td) { padding-left: 14px !important; padding-right: 14px !important; }
+.bi :deep(.table-scroll-container thead th) { color: var(--st-ink-2) !important; }
+.bi :deep(.table-scroll-container tbody td) { color: var(--st-ink-2) !important; background-color: transparent !important; }
+.bi :deep(.table-scroll-container tbody) { background-color: var(--st-bg) !important; }
+
+.bi-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 2px 0; }
+.bi-pagination__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 0.82rem; color: var(--st-ink-3); }
+
+@media (max-width: 900px) {
+  .bi-filters__fields { grid-template-columns: 1fr 1fr; }
+  .bi-filters__search { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .bi__hero { margin-bottom: 16px; }
+  .bi__hero .st-display-2 { margin-top: 8px; }
+  .bi__hero .st-lede { margin-top: 8px; }
+  /* 手机端：筛选默认收起，先把任务列表露出来 */
+  .bi-filters__toggle { display: inline-flex; width: 100%; justify-content: center; min-height: 42px; }
+  .bi-filters__fields { display: none; grid-template-columns: 1fr; }
+  .bi-filters--open .bi-filters__fields { display: grid; }
+  .bi-filters__actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; margin-left: 0; gap: 8px; }
+  .bi-filters__actions .st-btn { width: 100%; }
+  .bi-filters__actions .bi-icon-btn { width: 100%; }
+  .bi-filters__actions .st-btn:last-child { grid-column: 1 / -1; }
+  .bi-pagination__meta { gap: 8px; }
+}
+@media (max-width: 1023px) {
+  .bi :deep(.table-scroll-container) { border: 0 !important; box-shadow: none !important; background: transparent !important; margin-bottom: 0; }
+  .bi :deep(.table-scroll-container > .space-y-3 > .rounded-lg) {
+    border-color: var(--st-line) !important;
+    background: var(--st-bg) !important;
+    border-radius: var(--st-r-md) !important;
+  }
+  .bi :deep(.table-scroll-container .text-gray-500) { color: var(--st-ink-3) !important; }
+  .bi :deep(.table-scroll-container .text-gray-900) { color: var(--st-ink) !important; }
+}
 </style>
 
 <style scoped>
@@ -2763,5 +2910,33 @@ onBeforeUnmount(() => {
   .guide__step { padding: 14px; }
   .guide__num { font-size: 12px; }
   .guide__code { font-size: 0.78rem; }
+}
+
+/* 矮屏手机：把首屏收紧到一屏内 */
+@media (max-width: 719px) and (max-height: 740px) {
+  .bi__hero .st-lede { display: none; }
+  .bi__hero { margin-bottom: 8px; }
+  .bi__hero .st-display-2 { margin-top: 6px; }
+  .bi-filters { gap: 6px; }
+  .bi-filters__toggle { min-height: 34px; }
+  .bi-filters__actions .st-btn { height: 32px; font-size: 0.76rem; padding-inline: 8px; }
+  .bi-filters__actions { gap: 6px; }
+  .bi-empty { padding: 16px 14px; gap: 5px; }
+  .bi-empty__mark { width: 32px; height: 32px; margin-bottom: 2px; }
+  .bi-filters__toggle { min-height: 32px; }
+  .bi-empty__title { font-size: 1rem; }
+  .bi-empty__hint { display: none; }
+  .bi-empty__title { margin: 0; }
+  /* 空态卡片收矮，省掉中间的大片留白 */
+  .table-page-layout--user :deep(.table-scroll-container) { min-height: 0; }
+  .bi-empty { justify-content: flex-start; }
+  .bi__hero .st-eyebrow { display: none; }
+  .bi__hero { margin-bottom: 6px; }
+  .bi-empty__mark { width: 38px; height: 38px; }
+  .table-page-layout--user { gap: 8px; }
+  .table-page-layout--user :deep(.dt-empty-cell) { padding-top: 18px !important; padding-bottom: 18px !important; }
+  .table-page-layout--user :deep(.dt-empty-cell .mb-4) { margin-bottom: 8px; }
+  .table-page-layout--user :deep(.table-scroll-container) { margin-bottom: 0; }
+  .table-page-layout--user :deep(.layout-section-scrollable) { gap: 0; }
 }
 </style>

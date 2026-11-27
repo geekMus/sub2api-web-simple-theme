@@ -24,18 +24,18 @@
             <div class="monitor-v2__status">
               <span class="relative flex h-2 w-2 shrink-0">
                 <span
-                  class="relative inline-flex h-2 w-2 rounded-full"
-                  :class="loading || refreshing ? 'bg-gray-400' : 'bg-green-500'"
+                  class="monitor-v2__dot relative inline-flex h-2 w-2 rounded-full"
+                  :class="loading || refreshing ? 'monitor-v2__dot--idle' : 'monitor-v2__dot--ok'"
                 ></span>
               </span>
-              <span v-if="refreshing" class="inline-flex items-center gap-1 text-primary-600 dark:text-primary-300">
+              <span v-if="refreshing" class="monitor-v2__status-active inline-flex items-center gap-1">
                 <LoadingSpinner size="sm" />
                 {{ t('channelMonitorV2.updating') }}
               </span>
               <span v-else-if="snapshot?.coverage.data_through">
                 {{ t('channelMonitorV2.updatedTo', { time: formatTime(snapshot.coverage.data_through) }) }}
               </span>
-              <span v-else class="text-gray-400">{{ t('common.loading') }}</span>
+              <span v-else class="st-muted">{{ t('common.loading') }}</span>
               <span
                 v-if="snapshot && !snapshot.coverage.coverage_complete && !bootstrapActive"
                 class="badge badge-warning"
@@ -52,7 +52,7 @@
             </div>
           </div>
           <button
-            class="btn btn-secondary btn-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-dark-700 dark:text-gray-400 dark:hover:bg-dark-600"
+            class="btn btn-secondary btn-icon monitor-v2__refresh flex h-9 w-9 items-center justify-center"
             type="button"
             :title="t('common.refresh')"
             :disabled="loading"
@@ -65,25 +65,25 @@
         <!-- First-upgrade silent backfill: show until 30d product window is covered -->
         <div
           v-if="bootstrapActive"
-          class="border-b border-blue-100 bg-blue-50/90 px-5 py-3 dark:border-blue-900/40 dark:bg-blue-950/40 sm:px-6"
+          class="monitor-v2__bootstrap"
           role="status"
           aria-live="polite"
         >
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-semibold text-blue-900 dark:text-blue-100">
+              <p class="monitor-v2__bootstrap-title">
                 {{ t('channelMonitorV2.bootstrap.title') }}
               </p>
-              <p class="mt-0.5 text-xs text-blue-800/80 dark:text-blue-200/80">
+              <p class="monitor-v2__bootstrap-desc">
                 {{ t('channelMonitorV2.bootstrap.description') }}
               </p>
             </div>
-            <span class="shrink-0 text-xs font-medium tabular-nums text-blue-700 dark:text-blue-300">
+            <span class="monitor-v2__bootstrap-pct st-num">
               {{ t('channelMonitorV2.bootstrap.progress', { percent: bootstrapPercent }) }}
             </span>
           </div>
           <div
-            class="mt-2.5 h-1.5 overflow-hidden rounded-full bg-blue-200/80 dark:bg-blue-900/60"
+            class="monitor-v2__bootstrap-track"
             role="progressbar"
             :aria-valuenow="bootstrapPercent"
             aria-valuemin="0"
@@ -91,7 +91,7 @@
             :aria-label="t('channelMonitorV2.bootstrap.working')"
           >
             <div
-              class="h-full rounded-full bg-blue-500 transition-[width] duration-500 ease-out dark:bg-blue-400"
+              class="monitor-v2__bootstrap-fill transition-[width] duration-500 ease-out"
               :style="{ width: `${bootstrapPercent}%` }"
             />
           </div>
@@ -116,7 +116,7 @@
             </button>
           </div>
 
-          <span class="mx-0.5 hidden h-5 w-px shrink-0 bg-gray-200 dark:bg-dark-700 sm:block" aria-hidden="true"></span>
+          <span class="monitor-v2__divider mx-0.5 hidden h-5 w-px shrink-0 sm:block" aria-hidden="true"></span>
 
           <FilterMultiSelect
             v-model="filter.platforms"
@@ -149,7 +149,7 @@
             {{ t('channelMonitorV2.clearFilters') }}
           </button>
 
-          <span class="mx-0.5 hidden h-5 w-px shrink-0 bg-gray-200 dark:bg-dark-700 md:block" aria-hidden="true"></span>
+          <span class="monitor-v2__divider mx-0.5 hidden h-5 w-px shrink-0 md:block" aria-hidden="true"></span>
 
           <Select
             v-model="matrixGroupBy"
@@ -251,7 +251,7 @@
         <div
           v-for="i in (showThroughput ? 5 : 4)"
           :key="i"
-          class="h-24 animate-pulse rounded-2xl bg-gray-50 dark:bg-dark-900/30"
+          class="monitor-v2__kpi-skeleton h-24 animate-pulse rounded-2xl"
         />
       </section>
 
@@ -271,14 +271,14 @@
         />
         <div
           v-else-if="loading"
-          class="card flex min-h-[320px] items-center justify-center !rounded-3xl !border-0 text-sm text-gray-400 shadow-sm ring-1 ring-gray-900/5 dark:ring-dark-700"
+          class="st-card monitor-v2__chart-skeleton flex min-h-[320px] items-center justify-center !rounded-3xl !border-0 text-sm shadow-sm ring-1 ring-gray-900/5"
         >
-          <span class="animate-pulse">{{ t('common.loading') }}</span>
+          <span class="st-muted animate-pulse">{{ t('common.loading') }}</span>
         </div>
       </div>
 
-      <section class="card flex min-h-0 flex-col overflow-hidden !rounded-3xl !border-0 shadow-sm ring-1 ring-gray-900/5 dark:!bg-dark-800 dark:ring-dark-700">
-        <div class="border-b border-gray-100 px-5 pt-4 dark:border-dark-700 sm:px-6">
+      <section class="card monitor-v2__panel flex min-h-0 flex-col overflow-hidden !rounded-3xl !border-0 shadow-sm ring-1 ring-gray-900/5">
+        <div class="monitor-v2__panel-head border-b px-5 pt-4 sm:px-6">
           <nav class="tabs w-full max-w-md sm:w-auto" role="tablist" :aria-label="t('channelMonitorV2.tabs.aria')">
             <button
               v-for="item in tabs"
@@ -318,8 +318,8 @@
                     <div class="flex items-center gap-2">
                       <span :class="statusDot(row.health)" aria-hidden="true"></span>
                       <div>
-                        <span class="block text-xs text-gray-500 dark:text-dark-400">{{ row.platform }}</span>
-                        <strong class="font-semibold text-gray-900 dark:text-white">
+                        <span class="monitor-v2__cell-sub block text-xs">{{ row.platform }}</span>
+                        <strong class="monitor-v2__cell-name font-semibold">
                           {{ row.model === '__other__' ? t('channelMonitorV2.otherModels') : row.model }}
                         </strong>
                       </div>
@@ -327,11 +327,11 @@
                   </td>
                   <td>
                     <span class="block">{{ formatPercent(1 - row.metrics.error_rate) }}</span>
-                    <small class="text-xs text-gray-400">{{ t('channelMonitorV2.metrics.errorRateValue', { value: formatPercent(row.metrics.error_rate) }) }}</small>
+                    <small class="monitor-v2__cell-sub text-xs">{{ t('channelMonitorV2.metrics.errorRateValue', { value: formatPercent(row.metrics.error_rate) }) }}</small>
                   </td>
                   <td>
                     <span class="block">{{ formatMs(row.metrics.ttft.p50_ms) }}</span>
-                    <small class="text-xs text-gray-400">{{ latencyDetail(row.metrics.ttft) }}</small>
+                    <small class="monitor-v2__cell-sub text-xs">{{ latencyDetail(row.metrics.ttft) }}</small>
                   </td>
                   <td v-if="showThroughput" :title="exactTps(row.metrics.tpm)">{{ formatTps(row.metrics.tpm) }}</td>
                   <td>{{ formatPercent(row.metrics.cache_rate) }}</td>
@@ -345,7 +345,7 @@
             <div
               v-for="row in errorRows"
               :key="row.category"
-              class="rounded-2xl bg-gray-50 p-4 text-sm dark:bg-dark-900/30"
+              class="monitor-v2__error-row rounded-2xl p-4 text-sm"
               :class="row.ignored ? 'opacity-60' : ''"
             >
               <button
@@ -353,41 +353,38 @@
                 class="grid w-full grid-cols-[minmax(100px,200px)_1fr_auto_auto] items-center gap-3 text-left"
                 @click="toggleError(row.category)"
               >
-                <span class="flex min-w-0 items-center gap-1.5 truncate text-gray-700 dark:text-gray-200">
+                <span class="monitor-v2__error-label flex min-w-0 items-center gap-1.5 truncate">
                   <span class="truncate">{{ errorLabel(row.category) }}</span>
                   <span v-if="row.ignored" class="badge badge-gray shrink-0 !px-1.5 !py-0 text-[10px]">{{ t('channelMonitorV2.ignored') }}</span>
                 </span>
-                <span class="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-dark-700">
+                <span class="monitor-v2__bar">
                   <i
-                    class="block h-full rounded-full"
-                    :class="row.ignored ? 'bg-gray-400 dark:bg-gray-500' : 'bg-gradient-to-r from-red-400 to-red-500'"
+                    class="monitor-v2__bar-fill"
+                    :class="row.ignored ? 'monitor-v2__bar-fill--muted' : ''"
                     :style="{ width: `${Math.max(2, row.rate * 100)}%` }"
                   ></i>
                 </span>
-                <small
-                  class="w-14 text-right text-xs tabular-nums"
-                  :class="row.ignored ? 'text-gray-400' : 'text-gray-500'"
-                >{{ formatPercent(row.rate) }}</small>
-                <Icon name="chevronDown" size="sm" :class="['text-gray-400 transition-transform', expandedErrors.has(row.category) ? 'rotate-180' : '']" />
+                <small class="monitor-v2__cell-sub w-14 text-right text-xs tabular-nums">{{ formatPercent(row.rate) }}</small>
+                <Icon name="chevronDown" size="sm" :class="['monitor-v2__chevron transition-transform', expandedErrors.has(row.category) ? 'rotate-180' : '']" />
               </button>
-              <div v-if="expandedErrors.has(row.category)" class="mt-3 space-y-2 border-t border-gray-100 pt-3 dark:border-dark-700">
+              <div v-if="expandedErrors.has(row.category)" class="monitor-v2__error-detail mt-3 space-y-2 border-t pt-3">
                 <template v-if="isAdmin && (row.details || []).length">
                   <div
                     v-for="(detail, index) in row.details || []"
                     :key="`${row.category}:${index}:${detail.message}`"
-                    class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:bg-dark-900/50 dark:text-dark-300"
+                    class="monitor-v2__error-detail-item rounded-lg px-3 py-2 text-xs"
                   >
                     <div class="mb-1 flex flex-wrap items-center gap-2">
                       <span class="badge badge-gray !px-1.5 !py-0 text-[10px]">{{ detail.platform || '-' }}</span>
                       <span class="truncate font-medium">{{ detail.model || '-' }}</span>
-                      <span v-if="detail.status_code" class="text-gray-400">{{ t('channelMonitorV2.errorDetail.http', { code: detail.status_code }) }}</span>
-                      <span v-if="detail.upstream_status_code" class="text-gray-400">{{ t('channelMonitorV2.errorDetail.upstream', { code: detail.upstream_status_code }) }}</span>
-                      <span class="ml-auto text-gray-400">×{{ detail.count }}</span>
+                      <span v-if="detail.status_code" class="monitor-v2__cell-sub">{{ t('channelMonitorV2.errorDetail.http', { code: detail.status_code }) }}</span>
+                      <span v-if="detail.upstream_status_code" class="monitor-v2__cell-sub">{{ t('channelMonitorV2.errorDetail.upstream', { code: detail.upstream_status_code }) }}</span>
+                      <span class="monitor-v2__cell-sub ml-auto">×{{ detail.count }}</span>
                     </div>
                     <p class="break-words leading-relaxed">{{ detail.message || detail.error_type || t('channelMonitorV2.errorDetail.noMessage') }}</p>
                   </div>
                 </template>
-                <p v-else class="text-xs text-gray-400">{{ t('channelMonitorV2.errorDetail.empty') }}</p>
+                <p v-else class="monitor-v2__cell-sub text-xs">{{ t('channelMonitorV2.errorDetail.empty') }}</p>
               </div>
             </div>
           </div>
@@ -409,15 +406,13 @@
                 <tr
                   v-for="row in userRows"
                   :key="row.user_id || row.display_label"
-                  :class="row.is_self
-                    ? 'bg-primary-50 ring-1 ring-inset ring-primary-200/80 dark:bg-primary-900/25 dark:ring-primary-700/50'
-                    : ''"
+                  :class="row.is_self ? 'monitor-v2__row--self' : ''"
                 >
                   <td><MonitorRankBadge :rank="row.rank" /></td>
                   <td>
                     <strong
                       class="font-semibold"
-                      :class="row.is_self ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-white'"
+                      :class="row.is_self ? 'monitor-v2__row-name--self' : 'monitor-v2__cell-name'"
                     >
                       {{ row.display_label }}
                       <span
@@ -428,11 +423,11 @@
                   </td>
                   <td>
                     <span class="block">{{ formatPercent(1 - row.metrics.error_rate) }}</span>
-                    <small class="text-xs text-gray-400">{{ t('channelMonitorV2.metrics.errorRateValue', { value: formatPercent(row.metrics.error_rate) }) }}</small>
+                    <small class="monitor-v2__cell-sub text-xs">{{ t('channelMonitorV2.metrics.errorRateValue', { value: formatPercent(row.metrics.error_rate) }) }}</small>
                   </td>
                   <td>
                     <span class="block">{{ formatMs(row.metrics.ttft.p50_ms) }}</span>
-                    <small class="text-xs text-gray-400">{{ latencyDetail(row.metrics.ttft) }}</small>
+                    <small class="monitor-v2__cell-sub text-xs">{{ latencyDetail(row.metrics.ttft) }}</small>
                   </td>
                   <td v-if="showThroughput" :title="exactTps(row.metrics.tpm)">{{ formatTps(row.metrics.tpm) }}</td>
                   <td>{{ formatPercent(row.metrics.cache_rate) }}</td>
@@ -441,7 +436,7 @@
               </tbody>
             </table>
           </div>
-          <div v-if="tabLoading" class="empty-state py-10 text-sm text-gray-400">{{ t('common.loading') }}</div>
+          <div v-if="tabLoading" class="monitor-v2__tab-state empty-state py-10 text-sm">{{ t('common.loading') }}</div>
           <div v-else-if="activeRowsEmpty" class="empty-state py-10">
             <p class="empty-state-title text-base">
               {{
@@ -1033,8 +1028,76 @@ details > summary::-webkit-details-marker {
   font-size: 0.78rem;
   color: var(--st-ink-3);
 }
+.monitor-toolbar { flex-wrap: wrap !important; overflow-x: visible !important; row-gap: 8px; }
+/* —— 旧 Tailwind 色 → 设计令牌：状态点 / 引导条 / 表格与错误面板 —— */
+.monitor-v2__dot { width: 8px; height: 8px; border-radius: 9999px; }
+.monitor-v2__dot--ok { background: var(--st-ok); }
+.monitor-v2__dot--idle { background: var(--st-ink-3); }
+.monitor-v2__status-active { color: var(--st-brand-text); }
+.monitor-v2__refresh {
+  background: var(--st-bg-soft) !important;
+  border-color: var(--st-line) !important;
+  color: var(--st-ink-2) !important;
+  border-radius: var(--st-r-sm) !important;
+}
+.monitor-v2__refresh:hover { border-color: var(--st-line-2) !important; color: var(--st-ink) !important; }
+
+.monitor-v2__bootstrap {
+  padding: 12px clamp(16px, 2vw, 24px);
+  border-bottom: 1px solid var(--st-brand-line);
+  background: var(--st-brand-soft);
+}
+.monitor-v2__bootstrap-title { margin: 0; font-size: 0.84rem; font-weight: 600; color: var(--st-ink); }
+.monitor-v2__bootstrap-desc { margin: 2px 0 0; font-size: 0.76rem; line-height: 1.6; color: var(--st-ink-2); }
+.monitor-v2__bootstrap-pct { flex: none; font-size: 0.76rem; font-weight: 600; color: var(--st-brand-text); }
+.monitor-v2__bootstrap-track {
+  margin-top: 10px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--st-brand) 18%, transparent);
+}
+.monitor-v2__bootstrap-fill { height: 100%; border-radius: 9999px; background: var(--st-chart-1); }
+
+.monitor-v2__divider { background: var(--st-line); }
+.monitor-v2__kpi-skeleton { background: var(--st-bg-soft); }
+.monitor-v2__chart-skeleton { min-height: 320px; background: var(--st-bg); color: var(--st-ink-3); }
+.monitor-v2__panel { background: var(--st-bg) !important; border: 1px solid var(--st-line); }
+.monitor-v2__panel-head { border-color: var(--st-line); }
+.monitor-v2__cell-name { color: var(--st-ink); }
+.monitor-v2__cell-sub { color: var(--st-ink-3); }
+.monitor-v2__row--self { background: var(--st-brand-soft); box-shadow: inset 0 0 0 1px var(--st-brand-line); }
+.monitor-v2__row-name--self { color: var(--st-brand-text); }
+.monitor-v2__error-row { background: var(--st-bg-soft); }
+.monitor-v2__error-label { color: var(--st-ink); }
+.monitor-v2__bar { display: block; height: 8px; overflow: hidden; border-radius: 9999px; background: var(--st-bg-sink); }
+.monitor-v2__bar-fill { display: block; height: 100%; border-radius: 9999px; background: var(--st-danger); }
+.monitor-v2__bar-fill--muted { background: var(--st-ink-3); }
+.monitor-v2__chevron { color: var(--st-ink-3); }
+.monitor-v2__error-detail { border-color: var(--st-line); }
+.monitor-v2__error-detail-item { background: var(--st-bg-sink); color: var(--st-ink-2); }
+.monitor-v2__tab-state { color: var(--st-ink-3); }
+.monitor-v2 :deep(.tabs) { border-radius: var(--st-r-md); }
+.monitor-v2 :deep(.tab) { color: var(--st-ink-2); }
+.monitor-v2 :deep(.tab-active) {
+  background: var(--st-bg-sink) !important;
+  color: var(--st-ink) !important;
+  box-shadow: inset 0 0 0 1px var(--st-line);
+}
+.monitor-v2__panel :deep(.monitor-table thead th) {
+  background: var(--st-bg-soft) !important;
+  color: var(--st-ink-3) !important;
+  border-bottom-color: var(--st-line) !important;
+}
+.monitor-v2__panel :deep(.monitor-table tbody td) {
+  color: var(--st-ink-2) !important;
+  border-bottom-color: var(--st-line) !important;
+}
+.monitor-v2__panel :deep(.monitor-table tbody tr:hover) { background: var(--st-bg-soft) !important; }
+
 @media (max-width: 720px) {
   .monitor-v2 { padding-block: 16px clamp(40px, 7vw, 64px); }
+  .monitor-toolbar { flex-wrap: wrap; overflow-x: visible; row-gap: 8px; }
   .monitor-v2__head > button { min-width: 44px; min-height: 44px; }
   .monitor-v2__status { font-size: 0.82rem; }
   .monitor-v2 :deep(.badge) { font-size: 12px; }

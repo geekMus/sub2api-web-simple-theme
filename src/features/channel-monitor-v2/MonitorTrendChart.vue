@@ -1,20 +1,20 @@
 <template>
   <section
-    class="card flex min-h-[360px] flex-col overflow-hidden !rounded-3xl !border-0 !p-6 shadow-sm ring-1 ring-gray-900/5 dark:!bg-dark-800 dark:ring-dark-700"
+    class="card monitor-chart flex min-h-[360px] flex-col overflow-hidden !rounded-3xl !border-0 !p-6 shadow-sm ring-1 ring-gray-900/5"
   >
     <div class="card-header mb-4 flex shrink-0 flex-wrap items-start justify-between gap-3 !border-0 !p-0">
       <div class="min-w-0">
-        <h2 class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
-          <span class="inline-flex h-4 w-4 text-sky-500" aria-hidden="true">
+        <h2 class="monitor-chart__title flex items-center gap-2 text-sm font-bold">
+          <span class="monitor-chart__icon inline-flex h-4 w-4" aria-hidden="true">
             <Icon name="chart" size="sm" />
           </span>
           {{ t('channelMonitorV2.chart.title') }}
         </h2>
-        <p class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
+        <p class="monitor-chart__sub mt-0.5 text-xs">
           {{ t('channelMonitorV2.chart.description') }}
         </p>
       </div>
-      <div class="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 text-xs text-gray-500 dark:text-gray-400 sm:w-auto">
+      <div class="monitor-chart__sub flex w-full min-w-0 flex-wrap items-center justify-end gap-2 text-xs sm:w-auto">
         <span class="flex shrink-0 items-center gap-1">
           <span class="h-2 w-2 rounded-full bg-red-500"></span>{{ t('channelMonitorV2.chart.errorLegend') }}
         </span>
@@ -27,7 +27,7 @@
         <span class="badge badge-gray shrink-0">{{ bucketLabel }}</span>
         <button
           type="button"
-          class="inline-flex shrink-0 items-center rounded-lg border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-dark-700 dark:bg-dark-900 dark:text-gray-300 dark:hover:bg-dark-800"
+          class="monitor-chart__reset inline-flex shrink-0 items-center rounded-lg px-2 py-1 text-[11px] font-semibold disabled:opacity-50"
           :disabled="!zoomed"
           @click="resetChartZoom"
         >
@@ -37,7 +37,7 @@
     </div>
     <div class="card-body min-h-0 flex-1 !p-0">
       <div v-if="loading" class="flex h-[280px] items-center justify-center sm:h-[300px]">
-        <div class="animate-pulse text-sm text-gray-400">{{ t('common.loading') }}</div>
+        <div class="monitor-chart__sub animate-pulse text-sm">{{ t('common.loading') }}</div>
       </div>
       <div
         v-else-if="chartData"
@@ -271,3 +271,20 @@ const chartOptions = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+.monitor-chart {
+  background: var(--st-bg) !important;
+  border: 1px solid var(--st-line) !important;
+  box-shadow: none !important;
+}
+.monitor-chart__title { color: var(--st-ink); }
+.monitor-chart__icon { color: var(--st-brand-text); }
+.monitor-chart__sub { color: var(--st-ink-3) !important; }
+.monitor-chart__reset {
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-2);
+}
+.monitor-chart__reset:hover { border-color: var(--st-line-2); color: var(--st-ink); }
+</style>

@@ -1,16 +1,16 @@
 <template>
   <section
-    class="card flex min-h-[360px] flex-col overflow-visible !rounded-3xl !border-0 !p-6 shadow-sm ring-1 ring-gray-900/5 dark:!bg-dark-800 dark:ring-dark-700"
+    class="card monitor-matrix flex min-h-[360px] flex-col overflow-visible !rounded-3xl !border-0 !p-6 shadow-sm ring-1 ring-gray-900/5"
   >
     <div class="card-header mb-4 flex shrink-0 flex-wrap items-start justify-between gap-3 !border-0 !p-0">
       <div class="min-w-0">
-        <h2 class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
-          <span class="inline-flex h-4 w-4 text-emerald-500" aria-hidden="true">
+        <h2 class="monitor-matrix__title flex items-center gap-2 text-sm font-bold">
+          <span class="monitor-matrix__icon inline-flex h-4 w-4" aria-hidden="true">
             <Icon name="grid" size="sm" />
           </span>
           {{ t('channelMonitorV2.matrix.title') }}
         </h2>
-        <p class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
+        <p class="monitor-matrix__sub mt-0.5 text-xs">
           {{ t('channelMonitorV2.matrix.description') }}
         </p>
       </div>
@@ -19,7 +19,7 @@
         <span class="hidden text-[11px] text-gray-400 dark:text-dark-400 sm:inline">{{ t('channelMonitorV2.matrix.wheelZoomX') }}</span>
         <button
           type="button"
-          class="inline-flex shrink-0 items-center rounded-lg border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-dark-700 dark:bg-dark-900 dark:text-gray-300 dark:hover:bg-dark-800"
+          class="monitor-matrix__reset inline-flex shrink-0 items-center rounded-lg px-2 py-1 text-[11px] font-semibold disabled:opacity-50"
           :disabled="!zoomed"
           @click="resetMatrixZoom"
         >
@@ -32,12 +32,12 @@
       <div
         v-if="rows.length"
         ref="scrollRef"
-        class="matrix-scroll max-h-[min(42vh,420px)] max-w-full overflow-auto rounded-2xl bg-gray-50/60 p-2 dark:bg-dark-900/30"
+        class="matrix-scroll monitor-matrix__scroll max-h-[min(42vh,420px)] max-w-full overflow-auto rounded-2xl p-2"
         @wheel="onMatrixWheel"
       >
         <div class="matrix-table w-full" :style="tableStyle">
           <div
-            class="matrix-header matrix-row sticky top-0 z-[3] bg-gray-50 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-dark-900 dark:text-gray-400"
+            class="matrix-header monitor-matrix__head matrix-row sticky top-0 z-[3] text-[10px] font-semibold uppercase tracking-wide"
             :class="showThroughput ? 'matrix-row--with-tps' : ''"
           >
             <span>{{ t('channelMonitorV2.matrix.dimension') }}</span>
@@ -53,10 +53,10 @@
           <div
             v-for="entry in alignedRows"
             :key="rowKey(entry.row)"
-            class="matrix-row border-b border-gray-100/80 dark:border-dark-700/60"
+            class="matrix-row monitor-matrix__row"
             :class="showThroughput ? 'matrix-row--with-tps' : ''"
           >
-            <div class="dimension-cell flex min-w-0 items-center gap-2 bg-white dark:bg-dark-800" :title="rowLabel(entry.row)">
+            <div class="dimension-cell monitor-matrix__cell flex min-w-0 items-center gap-2" :title="rowLabel(entry.row)">
               <span :class="['status-dot', cellClass(entry.row.health, entry.row.metrics.request_count)]"></span>
               <strong class="truncate text-xs font-semibold text-gray-800 dark:text-gray-100">{{ rowLabel(entry.row) }}</strong>
             </div>
@@ -508,34 +508,34 @@ function formatBucketRange(value: string) {
 }
 
 /* Multi-stop green → yellow → red (score10 best … score0 worst) */
-.health-score10 { background: #16a34a; }
-.health-score9  { background: #22c55e; }
-.health-score8  { background: #4ade80; }
-.health-score7  { background: #a3e635; }
-.health-score6  { background: #facc15; }
-.health-score5  { background: #fbbf24; }
-.health-score4  { background: #f59e0b; }
-.health-score3  { background: #f97316; }
-.health-score2  { background: #fb7185; }
-.health-score1  { background: #f87171; }
-.health-score0  { background: rgb(239, 67, 67); }
+.health-score10 { background: var(--st-ok); }
+.health-score9  { background: color-mix(in srgb, var(--st-ok) 88%, var(--st-warn)); }
+.health-score8  { background: color-mix(in srgb, var(--st-ok) 74%, var(--st-warn)); }
+.health-score7  { background: color-mix(in srgb, var(--st-ok) 56%, var(--st-warn)); }
+.health-score6  { background: color-mix(in srgb, var(--st-warn) 78%, var(--st-ok)); }
+.health-score5  { background: var(--st-warn); }
+.health-score4  { background: color-mix(in srgb, var(--st-warn) 70%, var(--st-danger)); }
+.health-score3  { background: color-mix(in srgb, var(--st-danger) 62%, var(--st-warn)); }
+.health-score2  { background: color-mix(in srgb, var(--st-danger) 80%, var(--st-warn)); }
+.health-score1  { background: var(--st-danger); }
+.health-score0  { background: color-mix(in srgb, var(--st-danger) 82%, var(--st-ink)); }
 /* Coarse fallbacks (older payloads without score) */
-.health-healthy  { background: #22c55e; }
-.health-warning  { background: #f59e0b; }
-.health-critical { background: #ef4444; }
-.health-unknown  { background: #9ca3af; }
+.health-healthy  { background: var(--st-ok); }
+.health-warning  { background: var(--st-warn); }
+.health-critical { background: var(--st-danger); }
+.health-unknown  { background: var(--st-ink-3); }
 
 .score-legend {
   background: linear-gradient(
     90deg,
-    rgb(239, 67, 67) 0%,
-    #f87171 15%,
-    #f97316 30%,
-    #f59e0b 45%,
-    #facc15 55%,
-    #a3e635 70%,
-    #22c55e 85%,
-    #16a34a 100%
+    var(--st-danger) 0%,
+    color-mix(in srgb, var(--st-danger) 82%, var(--st-warn)) 15%,
+    color-mix(in srgb, var(--st-danger) 62%, var(--st-warn)) 30%,
+    color-mix(in srgb, var(--st-warn) 70%, var(--st-danger)) 45%,
+    var(--st-warn) 55%,
+    color-mix(in srgb, var(--st-ok) 56%, var(--st-warn)) 70%,
+    color-mix(in srgb, var(--st-ok) 74%, var(--st-warn)) 85%,
+    var(--st-ok) 100%
   );
 }
 
@@ -661,4 +661,26 @@ function formatBucketRange(value: string) {
     left: 0;
   }
 }
+/* —— 卡片与表格着色统一到设计令牌 —— */
+.monitor-matrix {
+  background: var(--st-bg) !important;
+  border: 1px solid var(--st-line) !important;
+  box-shadow: none !important;
+}
+.monitor-matrix__title { color: var(--st-ink); }
+.monitor-matrix__icon { color: var(--st-brand-text); }
+.monitor-matrix__sub { color: var(--st-ink-3) !important; }
+.monitor-matrix__reset {
+  border: 1px solid var(--st-line);
+  background: var(--st-bg-soft);
+  color: var(--st-ink-2);
+}
+.monitor-matrix__reset:hover { border-color: var(--st-line-2); color: var(--st-ink); }
+.monitor-matrix__scroll { background: var(--st-bg-soft) !important; }
+.monitor-matrix__head { background: var(--st-bg-soft) !important; color: var(--st-ink-3) !important; }
+.monitor-matrix__row { border-bottom: 1px solid var(--st-line); }
+.monitor-matrix__row:last-child { border-bottom: 0; }
+.monitor-matrix__cell,
+.monitor-matrix .summary-value { background: var(--st-bg) !important; color: var(--st-ink-2) !important; }
+.monitor-matrix .matrix-row strong { color: var(--st-ink); }
 </style>

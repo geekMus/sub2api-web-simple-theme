@@ -2,7 +2,7 @@
   <UserShell :show-footer="false">
     <section class="st-section--tight page">
       <div class="st-shell">
-        <div class="st-card page__panel">
+        <div class="st-card page__panel" :class="{ 'page__panel--state': loading || !menuItem || (!isMarkdownMode && !isValidUrl) }">
           <div v-if="loading" class="page__state page__state--loading" aria-busy="true" aria-live="polite">
             <span class="st-skeleton page__sk page__sk--title"></span>
             <span class="st-skeleton page__sk page__sk--line"></span>
@@ -477,6 +477,7 @@ onUnmounted(() => {
 }
 @keyframes page-spin { to { transform: rotate(360deg); } }
 
+.page__panel--state { height: auto; min-height: clamp(360px, 52vh, 560px); }
 .page__split { position: relative; flex: 1; min-height: 0; display: flex; }
 
 .page__toc {
@@ -574,9 +575,13 @@ onUnmounted(() => {
     box-shadow: var(--st-shadow-3);
   }
 }
+@media (max-width: 900px) {
+  .page__content { padding-top: 64px; }
+}
 @media (max-width: 640px) {
   .page__panel { height: clamp(380px, calc(100dvh - 156px), 900px); }
-  .page__content { padding: 18px 16px 30px; }
+  .page__panel--state { height: auto; min-height: 360px; }
+  .page__content { padding: 64px 16px 30px; }
 }
 
 .page__state--loading { align-items: stretch; justify-content: flex-start; gap: 12px; padding: clamp(24px, 4vw, 40px); }
